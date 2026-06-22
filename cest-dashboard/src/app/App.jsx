@@ -47,6 +47,7 @@ function AppContent() {
     canViewData,
     displayName,
     guestAccessStatus,
+    guestNeedsProfile,
     refreshGuestProfile,
   } = useAuth();
   const [isLoading, setIsLoading] = useState(true);
@@ -109,6 +110,7 @@ function AppContent() {
     darkMode,
     isGuestMode,
     guestAccessStatus,
+    guestNeedsProfile,
     canViewData,
     isAdmin,
     displayName,

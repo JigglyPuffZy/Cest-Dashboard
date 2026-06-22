@@ -1,19 +1,16 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Eye, EyeOff, AlertCircle, X, UserPlus } from "lucide-react";
+import { Eye, EyeOff, AlertCircle, X, LogIn } from "lucide-react";
 import { useAuth } from "../../shared/hooks/useAuth.jsx";
 import dostLogo from "../../dost logo.png";
 
 export const LoginPage = ({ darkMode, setDarkMode }) => {
   const navigate = useNavigate();
-  const { signIn, submitGuestAccessRequest, loading } = useAuth();
+  const { signIn, startGuestSession, loading } = useAuth();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [firstName, setFirstName] = useState("");
-  const [lastName, setLastName] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
-  const [guestError, setGuestError] = useState("");
   const [isShaking, setIsShaking] = useState(false);
 
   const handleSubmit = async (e) => {
@@ -55,15 +52,9 @@ export const LoginPage = ({ darkMode, setDarkMode }) => {
     }
   };
 
-  const handleGuestRequest = async (e) => {
-    e.preventDefault();
-    setGuestError("");
-    try {
-      await submitGuestAccessRequest(firstName, lastName);
-      navigate("/dashboard");
-    } catch (err) {
-      setGuestError(err.message || "Could not submit request.");
-    }
+  const handleGuestContinue = () => {
+    startGuestSession();
+    navigate("/dashboard");
   };
 
   const cardStyles = {
@@ -326,77 +317,36 @@ export const LoginPage = ({ darkMode, setDarkMode }) => {
                 <span className="relative z-10">Sign In</span>
               )}
             </button>
-
-            <div className="relative my-2">
-              <div className="absolute inset-0 flex items-center">
-                <div className="w-full border-t" style={{ borderColor: darkMode ? '#334155' : '#e2e8f0' }} />
-              </div>
-              <div className="relative flex justify-center text-xs">
-                <span className="px-3" style={{ background: darkMode ? 'rgba(15, 23, 42, 0.95)' : 'rgba(255, 255, 255, 0.95)', color: darkMode ? '#64748b' : '#94a3b8' }}>
-                  Guest access
-                </span>
-              </div>
-            </div>
-
-            <p className="text-xs leading-relaxed mb-3" style={{ color: darkMode ? '#94a3b8' : '#64748b' }}>
-              Enter your name to request view-only access. An administrator must approve your request before records become visible.
-            </p>
-
-            {guestError && (
-              <div className="mb-3 p-3 rounded-xl text-xs font-medium" style={{ background: 'rgba(239,68,68,0.1)', color: '#ef4444', border: '1px solid rgba(239,68,68,0.25)' }}>
-                {guestError}
-              </div>
-            )}
-
-            <div className="grid grid-cols-2 gap-3 mb-3">
-              <div>
-                <label className="block text-xs font-semibold mb-1.5" style={{ color: darkMode ? '#cbd5e1' : '#475569' }}>
-                  First Name <span style={{ color: '#ef4444' }}>*</span>
-                </label>
-                <input
-                  type="text"
-                  value={firstName}
-                  onChange={(e) => setFirstName(e.target.value)}
-                  placeholder="Juan"
-                  required
-                  className="w-full px-3 py-2.5 rounded-xl text-sm outline-none focus:ring-2 focus:ring-blue-500/30"
-                  style={inputStyles}
-                />
-              </div>
-              <div>
-                <label className="block text-xs font-semibold mb-1.5" style={{ color: darkMode ? '#cbd5e1' : '#475569' }}>
-                  Last Name <span style={{ color: '#ef4444' }}>*</span>
-                </label>
-                <input
-                  type="text"
-                  value={lastName}
-                  onChange={(e) => setLastName(e.target.value)}
-                  placeholder="Dela Cruz"
-                  required
-                  className="w-full px-3 py-2.5 rounded-xl text-sm outline-none focus:ring-2 focus:ring-blue-500/30"
-                  style={inputStyles}
-                />
-              </div>
-            </div>
-
-            <button
-              type="button"
-              onClick={handleGuestRequest}
-              disabled={loading || !firstName.trim() || !lastName.trim()}
-              className="w-full py-3 px-6 rounded-xl font-bold text-sm transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-              style={{
-                background: darkMode ? 'rgba(59, 130, 246, 0.12)' : 'rgba(59, 130, 246, 0.08)',
-                border: `2px solid ${darkMode ? 'rgba(59, 130, 246, 0.35)' : 'rgba(59, 130, 246, 0.25)'}`,
-                color: darkMode ? '#93c5fd' : '#2563eb',
-              }}
-            >
-              <UserPlus className="w-4 h-4" />
-              Request Guest Access
-            </button>
-            <p className="text-[10px] text-center leading-relaxed mt-2" style={{ color: darkMode ? '#64748b' : '#94a3b8' }}>
-              Files stay hidden until an admin approves your request.
-            </p>
           </form>
+
+          <div className="relative my-6">
+            <div className="absolute inset-0 flex items-center">
+              <div className="w-full border-t" style={{ borderColor: darkMode ? '#334155' : '#e2e8f0' }} />
+            </div>
+            <div className="relative flex justify-center text-xs">
+              <span className="px-3" style={{ background: darkMode ? 'rgba(15, 23, 42, 0.95)' : 'rgba(255, 255, 255, 0.95)', color: darkMode ? '#64748b' : '#94a3b8' }}>
+                or
+              </span>
+            </div>
+          </div>
+
+          <button
+            type="button"
+            onClick={handleGuestContinue}
+            disabled={loading}
+            className="w-full py-3 px-6 rounded-xl font-bold text-sm transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 flex items-center justify-center gap-2"
+            style={{
+              background: darkMode ? 'rgba(59, 130, 246, 0.12)' : 'rgba(59, 130, 246, 0.08)',
+              border: `2px solid ${darkMode ? 'rgba(59, 130, 246, 0.35)' : 'rgba(59, 130, 246, 0.25)'}`,
+              color: darkMode ? '#93c5fd' : '#2563eb',
+            }}
+          >
+            <LogIn className="w-4 h-4" />
+            Continue as Guest
+          </button>
+          <p className="text-[10px] text-center leading-relaxed mt-2" style={{ color: darkMode ? '#64748b' : '#94a3b8' }}>
+            Browse the dashboard first — you&apos;ll enter your name inside to request access.
+          </p>
 
           <div className="mt-6 text-center">
             <p className="text-xs mb-2" style={{ color: darkMode ? '#64748b' : '#94a3b8' }}>

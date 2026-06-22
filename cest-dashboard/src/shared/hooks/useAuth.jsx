@@ -104,6 +104,15 @@ export function AuthProvider({ children }) {
     }
   }, [refreshGuestProfile, loading])
 
+  const startGuestSession = () => {
+    sessionStorage.setItem(SESSION_KEYS.GUEST_MODE, '1')
+    setIsGuestMode(true)
+    setGuestProfile(null)
+    setUser(null)
+    setSession(null)
+    setLoading(false)
+  }
+
   const submitGuestAccessRequest = async (firstName, lastName) => {
     const request = await accessRequestService.submitRequest(firstName, lastName)
     sessionStorage.setItem(SESSION_KEYS.GUEST_MODE, '1')
@@ -185,6 +194,7 @@ export function AuthProvider({ children }) {
     }
   }
 
+  const guestNeedsProfile = isGuestMode && !guestProfile?.requestId
   const guestAccessStatus = guestProfile?.status ?? null
   const isAuthenticated = !!user
   const isAdmin = isAuthenticated && !isGuestMode
@@ -197,12 +207,14 @@ export function AuthProvider({ children }) {
     loading,
     signIn,
     signOut,
+    startGuestSession,
     enterGuestMode,
     exitGuestMode,
     submitGuestAccessRequest,
     refreshGuestProfile,
     isGuestMode,
     guestProfile,
+    guestNeedsProfile,
     guestAccessStatus,
     isReadOnly,
     isAuthenticated,
