@@ -15,7 +15,7 @@ const REGION_II_PROVINCES = [
   'Quirino'
 ];
 
-export const DataEntryPage = ({ projects = [], equipment = [], onAddProject, onAddEquipment, onDeleteProject, onDeleteEquipment, onUpdateProject, onUpdateEquipment, darkMode, isLoading = false }) => {
+export const DataEntryPage = ({ projects = [], equipment = [], onAddProject, onAddEquipment, onDeleteProject, onDeleteEquipment, onUpdateProject, onUpdateEquipment, darkMode, isLoading = false, readOnly = false }) => {
   const [showModal, setShowModal] = useState(false);
   const [showDetailModal, setShowDetailModal] = useState(false);
   const [selectedItem, setSelectedItem] = useState(null);
@@ -367,6 +367,7 @@ export const DataEntryPage = ({ projects = [], equipment = [], onAddProject, onA
           </div>
 
           {/* Quick Actions */}
+          {!readOnly && (
           <div className="mt-4 rounded-2xl p-4" style={cardStyle}>
             <h3 className="text-lg font-bold mb-4" style={{ color: darkMode ? '#f8fafc' : '#0f172a' }}>
               Quick Actions
@@ -383,6 +384,7 @@ export const DataEntryPage = ({ projects = [], equipment = [], onAddProject, onA
               <span className="font-semibold">Add New Record</span>
             </button>
           </div>
+          )}
         </div>
 
         {/* Content Area */}
@@ -527,6 +529,7 @@ export const DataEntryPage = ({ projects = [], equipment = [], onAddProject, onA
                                 </div>
                               )}
                             </div>
+                            {!readOnly && (
                             <button
                               onClick={(e) => { e.stopPropagation(); setConfirmDelete({ item: group.project, type: 'project' }); }}
                               className="p-1.5 rounded-lg transition-all duration-200 hover:scale-110 flex-shrink-0"
@@ -535,6 +538,7 @@ export const DataEntryPage = ({ projects = [], equipment = [], onAddProject, onA
                             >
                               <Trash2 className="w-3.5 h-3.5" />
                             </button>
+                            )}
                           </div>
                         </div>
                       )}
@@ -580,6 +584,7 @@ export const DataEntryPage = ({ projects = [], equipment = [], onAddProject, onA
                                     </div>
                                   </div>
                                 </div>
+                                {!readOnly && (
                                 <button
                                   onClick={(e) => { e.stopPropagation(); setConfirmDelete({ item, type: 'equipment' }); }}
                                   className="p-1 rounded transition-all duration-200 hover:scale-110 flex-shrink-0"
@@ -588,6 +593,7 @@ export const DataEntryPage = ({ projects = [], equipment = [], onAddProject, onA
                                 >
                                   <Trash2 className="w-3 h-3" />
                                 </button>
+                                )}
                               </div>
                             </div>
                           ))}
@@ -805,6 +811,7 @@ export const DataEntryPage = ({ projects = [], equipment = [], onAddProject, onA
                                   <p className="text-lg font-bold" style={{ color: '#10b981' }}>
                                     {fmt(project.amountFunded || 0)}
                                   </p>
+                                  {!readOnly && (
                                   <button
                                     onClick={(e) => { e.stopPropagation(); setConfirmDelete({ item: project, type: 'project' }); }}
                                     className="p-1.5 rounded-lg transition-all duration-200 hover:scale-110"
@@ -813,6 +820,7 @@ export const DataEntryPage = ({ projects = [], equipment = [], onAddProject, onA
                                   >
                                     <Trash2 className="w-3.5 h-3.5" />
                                   </button>
+                                  )}
                                 </div>
                               </div>
                             </div>
@@ -880,6 +888,7 @@ export const DataEntryPage = ({ projects = [], equipment = [], onAddProject, onA
                                     </div>
                                   </div>
                                 </div>
+                                {!readOnly && (
                                 <button
                                   onClick={(e) => { e.stopPropagation(); setConfirmDelete({ item, type: 'equipment' }); }}
                                   className="p-1.5 rounded-lg transition-all duration-200 hover:scale-110 flex-shrink-0"
@@ -888,6 +897,7 @@ export const DataEntryPage = ({ projects = [], equipment = [], onAddProject, onA
                                 >
                                   <Trash2 className="w-3.5 h-3.5" />
                                 </button>
+                                )}
                               </div>
                             </div>
                           ))}
@@ -1819,6 +1829,7 @@ export const DataEntryPage = ({ projects = [], equipment = [], onAddProject, onA
                   style={{ background: darkMode ? '#334155' : '#f1f5f9', color: darkMode ? '#94a3b8' : '#64748b' }}>
                   Close
                 </button>
+                {!readOnly && (
                 <button
                   onClick={() => {
                     setShowDetailModal(false);
@@ -1830,6 +1841,7 @@ export const DataEntryPage = ({ projects = [], equipment = [], onAddProject, onA
                   <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
                   Edit Details
                 </button>
+                )}
               </div>
             </div>
           </div>

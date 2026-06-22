@@ -7,6 +7,7 @@ import { TopBar } from "../components/layout/TopBar";
 import { Toast } from "../components/ui/Toast";
 import { AuditLog } from "../components/ui/AuditLog";
 import { LoadingScreen } from "../components/ui/LoadingScreen";
+import { ViewModeBanner } from "../components/ui/ViewModeBanner";
 import ErrorBoundary from "../components/ui/ErrorBoundary";
 import { Dashboard } from "../features/dashboard/Dashboard";
 import { ProvincesPage } from "../features/analytics/ProvincesPage";
@@ -26,12 +27,12 @@ import { db, supabase } from "../shared/services/supabaseClient";
 import { LS_KEYS } from "../shared/constants";
 import { INITIAL_PROJECTS, INITIAL_EQUIPMENT } from "../shared/utils/Utils";
 
-const INACTIVITY_TIMEOUT = 30 * 60 * 1000;
+const INACTIVITY_TIMEOUT = 60 * 60 * 1000;
 const ACTIVITY_EVENTS = ['mousedown', 'mousemove', 'keypress', 'scroll', 'touchstart', 'click'];
 
 function AppContent() {
   const navigate = useNavigate();
-  const { user, loading: authLoading, signOut } = useAuth();
+  const { user, loading: authLoading, signOut, isGuestMode, isReadOnly, canAccessApp } = useAuth();
   const [isLoading, setIsLoading] = useState(true);
   const [projects, setProjects] = useState([]);
   const [equipment, setEquipment] = useState([]);
@@ -51,14 +52,14 @@ function AppContent() {
   const unreadCount = getUnreadCount();
 
   useEffect(() => {
-    if (user && !authLoading && !dataLoadedRef.current) {
+    if (canAccessApp && !authLoading && !dataLoadedRef.current) {
       dataLoadedRef.current = true;
       loadSupabaseData();
     }
-    if (!user && !authLoading) {
+    if (!canAccessApp && !authLoading) {
       dataLoadedRef.current = false;
     }
-  }, [user, authLoading]);
+  }, [canAccessApp, authLoading]);
 
   useEffect(() => {
     const failsafeTimeout = setTimeout(() => {
@@ -197,7 +198,7 @@ function AppContent() {
   }, [activeSystem, activePage]);
 
   useEffect(() => {
-    if (!user) return;
+    if (!canAccessApp) return;
 
     let inactivityTimer;
 
@@ -206,7 +207,7 @@ function AppContent() {
       inactivityTimer = setTimeout(async () => {
         await signOut();
         navigate("/");
-        warning('You have been logged out due to inactivity');
+        warning(isGuestMode ? 'Guest session ended due to inactivity' : 'You have been logged out due to inactivity');
       }, INACTIVITY_TIMEOUT);
     };
 
@@ -222,7 +223,7 @@ function AppContent() {
         document.removeEventListener(event, resetTimer);
       });
     };
-  }, [user, navigate, signOut, warning]);
+  }, [canAccessApp, isGuestMode, navigate, signOut, warning]);
 
   const uniqueComm = new Set(projects.map((p) => p.community)).size;
 
@@ -252,6 +253,7 @@ function AppContent() {
   }, [showAuditLog]);
 
   const handleArchiveProject = async (project) => {
+    if (isReadOnly) { warning('View-only mode: cannot archive records'); return; }
     try {
       if (archivedProjects.some(p => String(p.id) === String(project.id))) return;
       
@@ -289,6 +291,7 @@ function AppContent() {
   };
 
   const handleArchiveEquipment = async (item) => {
+    if (isReadOnly) { warning('View-only mode: cannot archive records'); return; }
     try {
       if (archivedProjects.some(p => String(p.id) === String(item.id))) return;
       setEquipment(prev => prev.filter(e => e.id !== item.id));
@@ -303,6 +306,7 @@ function AppContent() {
   };
 
   const handleRestore = async (itemId) => {
+    if (isReadOnly) { warning('View-only mode: cannot restore records'); return; }
     const item = archivedProjects.find(p => String(p.id) === String(itemId));
     if (!item) return;
     try {
@@ -348,6 +352,7 @@ function AppContent() {
   };
 
   const handlePermanentDelete = async (itemId) => {
+    if (isReadOnly) { warning('View-only mode: cannot delete records'); return; }
     const item = archivedProjects.find(p => String(p.id) === String(itemId));
     if (!item) return;
     
@@ -382,6 +387,7 @@ function AppContent() {
   };
 
   const handleAddProject = async (projectData) => {
+    if (isReadOnly) { warning('View-only mode: cannot add records'); return; }
     try {
       console.log('handleAddProject called with:', projectData);
       
@@ -422,6 +428,7 @@ function AppContent() {
   };
 
   const handleAddEquipment = async (equipmentData) => {
+    if (isReadOnly) { warning('View-only mode: cannot add records'); return; }
     try {
       const newEquipment = await db.createEquipment(equipmentData);
       
@@ -440,6 +447,7 @@ function AppContent() {
   };
 
   const handleUpdateProject = async (id, projectData) => {
+    if (isReadOnly) { warning('View-only mode: cannot edit records'); return; }
     try {
       console.log('Updating project with data:', projectData);
       
@@ -470,6 +478,7 @@ function AppContent() {
   };
 
   const handleUpdateEquipment = async (id, equipmentData) => {
+    if (isReadOnly) { warning('View-only mode: cannot edit records'); return; }
     try {
       console.log('Updating equipment with data:', equipmentData);
       
@@ -507,7 +516,7 @@ function AppContent() {
     return <LoadingScreen onComplete={() => setIsLoading(false)} darkMode={darkMode} />;
   }
 
-  if (!user) {
+  if (!canAccessApp) {
     return <LoginPage darkMode={darkMode} setDarkMode={setDarkMode} />;
   }
 
@@ -585,6 +594,15 @@ function AppContent() {
           />
 
           <main className="flex-1 overflow-auto p-8 scrollbar-thin">
+            {isGuestMode && (
+              <ViewModeBanner
+                darkMode={darkMode}
+                onSignIn={async () => {
+                  await signOut();
+                  navigate('/');
+                }}
+              />
+            )}
             <Routes>
               <Route path="/" element={<Navigate to="/dashboard" replace />} />
               <Route
@@ -609,6 +627,7 @@ function AppContent() {
                       onRestore={handleRestore}
                       onPermanentDelete={handlePermanentDelete}
                       darkMode={darkMode}
+                      readOnly={isReadOnly}
                     />
                   ) : activePage === "dataentry" ? (
                     <DataEntryPage
@@ -622,13 +641,14 @@ function AppContent() {
                       onUpdateEquipment={handleUpdateEquipment}
                       darkMode={darkMode}
                       isLoading={loadingData}
+                      readOnly={isReadOnly}
                     />
                   ) : activePage === "trainings" ? (
-                    <TrainingsPage darkMode={darkMode} onArchiveTraining={(item) => setArchivedProjects(prev => [...prev, item])} />
+                    <TrainingsPage darkMode={darkMode} readOnly={isReadOnly} onArchiveTraining={(item) => setArchivedProjects(prev => [...prev, item])} />
                   ) : activePage === "starbooks" ? (
-                    <StarbooksPage darkMode={darkMode} activePage={activePage} />
+                    <StarbooksPage darkMode={darkMode} activePage={activePage} readOnly={isReadOnly} />
                   ) : activePage?.startsWith("starbooks") ? (
-                    <StarbooksPage darkMode={darkMode} activePage={activePage} />
+                    <StarbooksPage darkMode={darkMode} activePage={activePage} readOnly={isReadOnly} />
                   ) : (
                     <PlaceholderPage activePage={activePage} darkMode={darkMode} />
                   )
@@ -658,6 +678,7 @@ function AppContent() {
                     onRestore={handleRestore}
                     onPermanentDelete={handlePermanentDelete}
                     darkMode={darkMode}
+                    readOnly={isReadOnly}
                   />
                 }
               />
@@ -675,16 +696,17 @@ function AppContent() {
                     onUpdateEquipment={handleUpdateEquipment}
                     darkMode={darkMode}
                     isLoading={loadingData}
+                    readOnly={isReadOnly}
                   />
                 }
               />
               <Route
                 path="/starbooks"
-                element={<StarbooksPage darkMode={darkMode} activePage={activePage} />}
+                element={<StarbooksPage darkMode={darkMode} activePage={activePage} readOnly={isReadOnly} />}
               />
               <Route
                 path="/trainings"
-                element={<TrainingsPage darkMode={darkMode} onArchiveTraining={(item) => setArchivedProjects(prev => [...prev, item])} />}
+                element={<TrainingsPage darkMode={darkMode} readOnly={isReadOnly} onArchiveTraining={(item) => setArchivedProjects(prev => [...prev, item])} />}
               />
             </Routes>
           </main>

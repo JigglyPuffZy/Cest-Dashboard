@@ -2,7 +2,7 @@ import { useState, useEffect, useMemo } from "react";
 import { MapPin, Image as ImageIcon, Calendar, X, ZoomIn, Download, Filter, Search, RefreshCw } from "lucide-react";
 import { db } from "../../shared/services/supabaseClient";
 
-export const DocumentationPage = ({ darkMode }) => {
+export const DocumentationPage = ({ darkMode, readOnly = false }) => {
   const [selectedCity, setSelectedCity] = useState("all");
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedImage, setSelectedImage] = useState(null);

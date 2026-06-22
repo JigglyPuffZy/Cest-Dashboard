@@ -2,7 +2,7 @@ import { useState, useEffect, useMemo } from "react";
 import { Package, MapPin, Search, Plus, Eye, Edit, Trash2, CheckCircle, AlertCircle, Clock, Download, RefreshCw, X, Mail, Phone, User, Calendar, Building } from "lucide-react";
 import { supabase } from "../../shared/services/supabaseClient";
 
-export const StarbooksInventorySimple = ({ darkMode }) => {
+export const StarbooksInventorySimple = ({ darkMode, readOnly = false }) => {
   const [units, setUnits] = useState([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
@@ -162,6 +162,7 @@ export const StarbooksInventorySimple = ({ darkMode }) => {
             Region 2 STARBOOKS Units Management
           </p>
         </div>
+        {!readOnly && (
         <button
           onClick={() => window.location.reload()}
           className="flex items-center gap-2 px-5 py-2.5 rounded-xl font-semibold transition-all hover:scale-105"
@@ -174,6 +175,7 @@ export const StarbooksInventorySimple = ({ darkMode }) => {
           <Plus className="w-5 h-5" />
           Add Unit
         </button>
+        )}
       </div>
 
       {/* Stats Cards */}
@@ -537,7 +539,7 @@ export const StarbooksInventorySimple = ({ darkMode }) => {
                   </div>
                 </div>
                 <div className="flex items-center gap-2">
-                  {!isEditing ? (
+                  {!readOnly && !isEditing ? (
                     <>
                       <button
                         onClick={handleEdit}
@@ -562,7 +564,7 @@ export const StarbooksInventorySimple = ({ darkMode }) => {
                         <Trash2 className="w-5 h-5" />
                       </button>
                     </>
-                  ) : (
+                  ) : !readOnly ? (
                     <>
                       <button
                         onClick={handleSaveEdit}
@@ -588,7 +590,7 @@ export const StarbooksInventorySimple = ({ darkMode }) => {
                         Cancel
                       </button>
                     </>
-                  )}
+                  ) : null}
                   <button
                     onClick={() => {
                       setSelectedUnit(null);

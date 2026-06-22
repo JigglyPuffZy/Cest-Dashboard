@@ -4,7 +4,7 @@ import { fmt } from "../../shared/utils/helpers";
 import { COMP_COLORS } from "../../shared/constants";
 import { safeDisplayName } from "../../shared/utils/safeRender";
 
-export const ArchivePage = ({ archivedProjects, onRestore, onPermanentDelete, darkMode }) => {
+export const ArchivePage = ({ archivedProjects, onRestore, onPermanentDelete, darkMode, readOnly = false }) => {
   const [searchTerm, setSearchTerm] = useState("");
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(null); // stores the full item
 
@@ -164,6 +164,7 @@ export const ArchivePage = ({ archivedProjects, onRestore, onPermanentDelete, da
                   </div>
 
                   {/* Actions */}
+                  {!readOnly && (
                   <div className="flex flex-col gap-2 flex-shrink-0">
                     <button
                       onClick={() => onRestore(item.id)}
@@ -190,6 +191,7 @@ export const ArchivePage = ({ archivedProjects, onRestore, onPermanentDelete, da
                       Delete
                     </button>
                   </div>
+                  )}
                 </div>
               </div>
             );

@@ -190,7 +190,7 @@ function TrainingModal({ initial, onSave, onClose, darkMode }) {
 }
 
 // ─── Main Page ───────────────────────────────────────────────────────────────
-export default function TrainingsPage({ darkMode = false, onArchiveTraining }) {
+export default function TrainingsPage({ darkMode = false, onArchiveTraining, readOnly = false }) {
   const [trainings, setTrainings] = useState([]);
   const [loading, setLoading] = useState(true);
   const [modal, setModal] = useState(null); // null | {type:'add'} | {type:'edit',data} | {type:'delete',data}
@@ -298,7 +298,7 @@ export default function TrainingsPage({ darkMode = false, onArchiveTraining }) {
               <p style={{ margin: 0, fontSize: 13, color: textSub }}>Track all training activities and beneficiary data</p>
             </div>
           </div>
-          <button onClick={() => setModal({ type: "add" })} style={{ display: "flex", alignItems: "center", gap: 8, background: "linear-gradient(135deg,#004A98,#0066CC)", border: "none", color: "#fff", borderRadius: 12, padding: "12px 24px", cursor: "pointer", fontSize: 14, fontWeight: 800, boxShadow: "0 4px 12px rgba(0,74,152,0.3)" }}>
+          <button onClick={() => !readOnly && setModal({ type: "add" })} disabled={readOnly} style={{ display: "flex", alignItems: "center", gap: 8, background: readOnly ? "#94a3b8" : "linear-gradient(135deg,#004A98,#0066CC)", border: "none", color: "#fff", borderRadius: 12, padding: "12px 24px", cursor: readOnly ? "not-allowed" : "pointer", fontSize: 14, fontWeight: 800, boxShadow: readOnly ? "none" : "0 4px 12px rgba(0,74,152,0.3)", opacity: readOnly ? 0.6 : 1 }}>
             <Plus size={18} /> Add Training
           </button>
         </div>
@@ -407,6 +407,7 @@ export default function TrainingsPage({ darkMode = false, onArchiveTraining }) {
                   </div>
 
                   {/* Actions */}
+                  {!readOnly && (
                   <div style={{ display: "flex", gap: 8, marginTop: 14, paddingTop: 12, borderTop: `1px solid ${darkMode ? "#1e293b" : "#f1f5f9"}` }}>
                     <button onClick={() => setModal({ type: "edit", data: t })} style={{ display: "flex", alignItems: "center", gap: 6, padding: "7px 16px", borderRadius: 8, border: "1px solid #bfdbfe", background: "#eff6ff", color: "#1e40af", fontSize: 12, fontWeight: 700, cursor: "pointer" }}>
                       <Edit2 size={13} /> Edit
@@ -415,6 +416,7 @@ export default function TrainingsPage({ darkMode = false, onArchiveTraining }) {
                       <Trash2 size={13} /> Delete
                     </button>
                   </div>
+                  )}
                 </div>
               ))}
 

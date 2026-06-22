@@ -3,7 +3,7 @@ import { DocumentationPage } from "./DocumentationPage";
 import { StarbooksArchivePage } from "./StarbooksArchivePage";
 import { StarbooksInventorySimple } from "./StarbooksInventorySimple";
 
-export const StarbooksPage = ({ darkMode, activePage = "starbooks" }) => {
+export const StarbooksPage = ({ darkMode, activePage = "starbooks", readOnly = false }) => {
   const getPageTitle = () => {
     switch(activePage) {
       case "starbooks": return "Inventory Management";
@@ -19,11 +19,11 @@ export const StarbooksPage = ({ darkMode, activePage = "starbooks" }) => {
   return (
     <div className="max-w-[1600px] mx-auto space-y-8 animate-fade-in">
       {activePage === "starbooks-docs" ? (
-        <DocumentationPage darkMode={darkMode} />
+        <DocumentationPage darkMode={darkMode} readOnly={readOnly} />
       ) : activePage === "starbooks-archive" ? (
-        <StarbooksArchivePage darkMode={darkMode} />
+        <StarbooksArchivePage darkMode={darkMode} readOnly={readOnly} />
       ) : activePage === "starbooks" ? (
-        <StarbooksInventorySimple darkMode={darkMode} />
+        <StarbooksInventorySimple darkMode={darkMode} readOnly={readOnly} />
       ) : (
         <div className="flex items-center justify-center min-h-[400px]">
           <div 

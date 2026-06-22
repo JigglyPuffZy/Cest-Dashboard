@@ -3,7 +3,7 @@ import { Archive, RotateCcw, Trash2, Search, Calendar, MapPin, Package, AlertCir
 import { db } from "../../shared/services/supabaseClient";
 import { ConfirmDeleteModal } from "../../components/ui/ConfirmDeleteModal";
 
-export const StarbooksArchivePage = ({ darkMode }) => {
+export const StarbooksArchivePage = ({ darkMode, readOnly = false }) => {
   const [archivedUnits, setArchivedUnits] = useState([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [loading, setLoading] = useState(true);
@@ -348,6 +348,8 @@ export const StarbooksArchivePage = ({ darkMode }) => {
                         <Eye className="w-4 h-4" />
                         View
                       </button>
+                      {!readOnly && (
+                      <>
                       <button
                         onClick={() => setConfirmAction({ type: 'restore', unit })}
                         className="px-4 py-2 rounded-lg transition-all hover:scale-105 flex items-center gap-2 text-sm font-semibold"
@@ -372,6 +374,8 @@ export const StarbooksArchivePage = ({ darkMode }) => {
                         <Trash2 className="w-4 h-4" />
                         Delete
                       </button>
+                      </>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -788,6 +792,7 @@ export const StarbooksArchivePage = ({ darkMode }) => {
                 >
                   Close
                 </button>
+                {!readOnly && (
                 <button
                   onClick={() => {
                     setShowDetailModal(false);
@@ -803,6 +808,7 @@ export const StarbooksArchivePage = ({ darkMode }) => {
                   <RotateCcw className="w-5 h-5" />
                   Restore Unit
                 </button>
+                )}
               </div>
             </div>
           </div>

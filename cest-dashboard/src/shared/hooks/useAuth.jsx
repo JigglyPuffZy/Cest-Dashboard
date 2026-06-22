@@ -1,72 +1,86 @@
 import { useState, useEffect, createContext, useContext } from 'react'
 import { auth } from '../services/supabaseClient'
 
-// Create Auth Context
+export const SESSION_KEYS = {
+  GUEST_MODE: 'cest_guest_mode',
+}
+
 const AuthContext = createContext({})
 
-// Auth Provider Component
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null)
   const [session, setSession] = useState(null)
   const [loading, setLoading] = useState(true)
+  const [isGuestMode, setIsGuestMode] = useState(false)
 
   useEffect(() => {
-    let mounted = true;
-    
-    // Add timeout for auth initialization
+    let mounted = true
+
     const authTimeout = setTimeout(() => {
       if (mounted && loading) {
-        console.warn('Auth initialization timeout, proceeding without authentication');
-        setLoading(false);
-        setUser(null);
-        setSession(null);
-      }
-    }, 5000);
-
-    // Get initial session
-    auth.getSession().then((result) => {
-      if (!mounted) return;
-      
-      const session = result?.data?.session || null;
-      setSession(session)
-      setUser(session?.user ?? null)
-      setLoading(false)
-      clearTimeout(authTimeout);
-    }).catch((error) => {
-      if (!mounted) return;
-      
-      console.error('Auth initialization error:', error);
-      setSession(null);
-      setUser(null);
-      setLoading(false);
-      clearTimeout(authTimeout);
-    });
-
-    // Listen for auth changes
-    const { data: { subscription } } = auth.onAuthStateChange(
-      async (event, session) => {
-        if (!mounted) return;
-        
-        setSession(session)
-        setUser(session?.user ?? null)
+        console.warn('Auth initialization timeout, proceeding without authentication')
         setLoading(false)
       }
-    )
+    }, 5000)
+
+    const guestActive = sessionStorage.getItem(SESSION_KEYS.GUEST_MODE) === '1'
+    if (guestActive) {
+      setIsGuestMode(true)
+      setUser(null)
+      setSession(null)
+      setLoading(false)
+      clearTimeout(authTimeout)
+      return () => {
+        mounted = false
+        clearTimeout(authTimeout)
+      }
+    }
+
+    auth.getSession().then((activeSession) => {
+      if (!mounted) return
+      setSession(activeSession)
+      setUser(activeSession?.user ?? null)
+      setLoading(false)
+      clearTimeout(authTimeout)
+    }).catch((error) => {
+      if (!mounted) return
+      console.error('Auth initialization error:', error)
+      setSession(null)
+      setUser(null)
+      setLoading(false)
+      clearTimeout(authTimeout)
+    })
+
+    const { data: { subscription } } = auth.onAuthStateChange((_event, activeSession) => {
+      if (!mounted) return
+      if (sessionStorage.getItem(SESSION_KEYS.GUEST_MODE) === '1') return
+      setSession(activeSession)
+      setUser(activeSession?.user ?? null)
+      setLoading(false)
+    })
 
     return () => {
-      mounted = false;
-      clearTimeout(authTimeout);
-      subscription.unsubscribe();
+      mounted = false
+      clearTimeout(authTimeout)
+      subscription.unsubscribe()
     }
   }, [])
+
+  const enterGuestMode = () => {
+    sessionStorage.setItem(SESSION_KEYS.GUEST_MODE, '1')
+    setIsGuestMode(true)
+    setUser(null)
+    setSession(null)
+    setLoading(false)
+  }
 
   const signIn = async (email, password) => {
     setLoading(true)
     try {
+      sessionStorage.removeItem(SESSION_KEYS.GUEST_MODE)
+      setIsGuestMode(false)
       const result = await auth.signIn(email, password)
       return result
-    } catch (error) {
-      throw error
     } finally {
       setLoading(false)
     }
@@ -75,9 +89,15 @@ export function AuthProvider({ children }) {
   const signOut = async () => {
     setLoading(true)
     try {
-      await auth.signOut()
+      sessionStorage.removeItem(SESSION_KEYS.GUEST_MODE)
+      setIsGuestMode(false)
+      if (user || session) {
+        await auth.signOut()
+      }
+      setUser(null)
+      setSession(null)
     } catch (error) {
-      throw error
+      console.error('Sign out error:', error)
     } finally {
       setLoading(false)
     }
@@ -89,7 +109,11 @@ export function AuthProvider({ children }) {
     loading,
     signIn,
     signOut,
-    isAuthenticated: !!user
+    enterGuestMode,
+    isGuestMode,
+    isReadOnly: isGuestMode,
+    isAuthenticated: !!user,
+    canAccessApp: !!user || isGuestMode,
   }
 
   return (
@@ -99,7 +123,6 @@ export function AuthProvider({ children }) {
   )
 }
 
-// Hook to use auth context
 export function useAuth() {
   const context = useContext(AuthContext)
   if (context === undefined) {

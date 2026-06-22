@@ -4,7 +4,7 @@ import { useAuth } from "../../shared/hooks/useAuth.jsx";
 import dostLogo from "../../dost logo.png";
 
 export const LoginPage = ({ darkMode, setDarkMode }) => {
-  const { signIn, loading } = useAuth();
+  const { signIn, enterGuestMode, loading } = useAuth();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -310,6 +310,35 @@ export const LoginPage = ({ darkMode, setDarkMode }) => {
                 <span className="relative z-10">Sign In</span>
               )}
             </button>
+
+            <div className="relative my-2">
+              <div className="absolute inset-0 flex items-center">
+                <div className="w-full border-t" style={{ borderColor: darkMode ? '#334155' : '#e2e8f0' }} />
+              </div>
+              <div className="relative flex justify-center text-xs">
+                <span className="px-3" style={{ background: darkMode ? 'rgba(15, 23, 42, 0.95)' : 'rgba(255, 255, 255, 0.95)', color: darkMode ? '#64748b' : '#94a3b8' }}>
+                  or
+                </span>
+              </div>
+            </div>
+
+            <button
+              type="button"
+              onClick={() => enterGuestMode()}
+              disabled={loading}
+              className="w-full py-3 px-6 rounded-xl font-bold text-sm transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+              style={{
+                background: darkMode ? 'rgba(59, 130, 246, 0.12)' : 'rgba(59, 130, 246, 0.08)',
+                border: `2px solid ${darkMode ? 'rgba(59, 130, 246, 0.35)' : 'rgba(59, 130, 246, 0.25)'}`,
+                color: darkMode ? '#93c5fd' : '#2563eb',
+              }}
+            >
+              <Eye className="w-4 h-4" />
+              Continue as Guest (View Only)
+            </button>
+            <p className="text-[10px] text-center leading-relaxed" style={{ color: darkMode ? '#64748b' : '#94a3b8' }}>
+              Browse dashboards without signing in. Adding, editing, and deleting are disabled.
+            </p>
           </form>
 
           <div className="mt-6 text-center">
