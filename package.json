@@ -1,0 +1,8 @@
+{
+  "name": "cest-dashboard-repo",
+  "private": true,
+  "scripts": {
+    "build": "npm run build --prefix cest-dashboard",
+    "vercel-build": "npm run build --prefix cest-dashboard"
+  }
+}
