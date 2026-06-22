@@ -21,8 +21,9 @@
     }
   ],
   "rewrites": [
+    { "source": "/favicon.ico", "destination": "/favicon.png" },
     {
-      "source": "/((?!assets/|vite\\.svg|manifest\\.json|sw\\.js|favicon\\.ico).*)",
+      "source": "/((?!assets/|favicon\\.png|favicon\\.ico|vite\\.svg|manifest\\.json|sw\\.js).*)",
       "destination": "/index.html"
     }
   ]
