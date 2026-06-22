@@ -3,6 +3,13 @@ import { createRoot } from 'react-dom/client'
 import './index.css'
 import App from './App.jsx'
 
+// Clear legacy service workers that can serve HTML instead of JS on Vercel
+if (import.meta.env.PROD && 'serviceWorker' in navigator) {
+  navigator.serviceWorker.getRegistrations().then((registrations) => {
+    registrations.forEach((registration) => registration.unregister())
+  })
+}
+
 createRoot(document.getElementById('root')).render(
   <StrictMode>
     <App />
