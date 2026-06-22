@@ -1,14 +1,19 @@
 import { useState } from "react";
-import { Eye, EyeOff, AlertCircle, X } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import { Eye, EyeOff, AlertCircle, X, UserPlus } from "lucide-react";
 import { useAuth } from "../../shared/hooks/useAuth.jsx";
 import dostLogo from "../../dost logo.png";
 
 export const LoginPage = ({ darkMode, setDarkMode }) => {
-  const { signIn, enterGuestMode, loading } = useAuth();
+  const navigate = useNavigate();
+  const { signIn, submitGuestAccessRequest, loading } = useAuth();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
+  const [guestError, setGuestError] = useState("");
   const [isShaking, setIsShaking] = useState(false);
 
   const handleSubmit = async (e) => {
@@ -47,6 +52,17 @@ export const LoginPage = ({ darkMode, setDarkMode }) => {
       }
       
       setError(errorMessage);
+    }
+  };
+
+  const handleGuestRequest = async (e) => {
+    e.preventDefault();
+    setGuestError("");
+    try {
+      await submitGuestAccessRequest(firstName, lastName);
+      navigate("/dashboard");
+    } catch (err) {
+      setGuestError(err.message || "Could not submit request.");
     }
   };
 
@@ -317,15 +333,56 @@ export const LoginPage = ({ darkMode, setDarkMode }) => {
               </div>
               <div className="relative flex justify-center text-xs">
                 <span className="px-3" style={{ background: darkMode ? 'rgba(15, 23, 42, 0.95)' : 'rgba(255, 255, 255, 0.95)', color: darkMode ? '#64748b' : '#94a3b8' }}>
-                  or
+                  Guest access
                 </span>
+              </div>
+            </div>
+
+            <p className="text-xs leading-relaxed mb-3" style={{ color: darkMode ? '#94a3b8' : '#64748b' }}>
+              Enter your name to request view-only access. An administrator must approve your request before records become visible.
+            </p>
+
+            {guestError && (
+              <div className="mb-3 p-3 rounded-xl text-xs font-medium" style={{ background: 'rgba(239,68,68,0.1)', color: '#ef4444', border: '1px solid rgba(239,68,68,0.25)' }}>
+                {guestError}
+              </div>
+            )}
+
+            <div className="grid grid-cols-2 gap-3 mb-3">
+              <div>
+                <label className="block text-xs font-semibold mb-1.5" style={{ color: darkMode ? '#cbd5e1' : '#475569' }}>
+                  First Name <span style={{ color: '#ef4444' }}>*</span>
+                </label>
+                <input
+                  type="text"
+                  value={firstName}
+                  onChange={(e) => setFirstName(e.target.value)}
+                  placeholder="Juan"
+                  required
+                  className="w-full px-3 py-2.5 rounded-xl text-sm outline-none focus:ring-2 focus:ring-blue-500/30"
+                  style={inputStyles}
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-semibold mb-1.5" style={{ color: darkMode ? '#cbd5e1' : '#475569' }}>
+                  Last Name <span style={{ color: '#ef4444' }}>*</span>
+                </label>
+                <input
+                  type="text"
+                  value={lastName}
+                  onChange={(e) => setLastName(e.target.value)}
+                  placeholder="Dela Cruz"
+                  required
+                  className="w-full px-3 py-2.5 rounded-xl text-sm outline-none focus:ring-2 focus:ring-blue-500/30"
+                  style={inputStyles}
+                />
               </div>
             </div>
 
             <button
               type="button"
-              onClick={() => enterGuestMode()}
-              disabled={loading}
+              onClick={handleGuestRequest}
+              disabled={loading || !firstName.trim() || !lastName.trim()}
               className="w-full py-3 px-6 rounded-xl font-bold text-sm transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
               style={{
                 background: darkMode ? 'rgba(59, 130, 246, 0.12)' : 'rgba(59, 130, 246, 0.08)',
@@ -333,11 +390,11 @@ export const LoginPage = ({ darkMode, setDarkMode }) => {
                 color: darkMode ? '#93c5fd' : '#2563eb',
               }}
             >
-              <Eye className="w-4 h-4" />
-              Continue as Guest (View Only)
+              <UserPlus className="w-4 h-4" />
+              Request Guest Access
             </button>
-            <p className="text-[10px] text-center leading-relaxed" style={{ color: darkMode ? '#64748b' : '#94a3b8' }}>
-              Browse dashboards without signing in. Adding, editing, and deleting are disabled.
+            <p className="text-[10px] text-center leading-relaxed mt-2" style={{ color: darkMode ? '#64748b' : '#94a3b8' }}>
+              Files stay hidden until an admin approves your request.
             </p>
           </form>
 

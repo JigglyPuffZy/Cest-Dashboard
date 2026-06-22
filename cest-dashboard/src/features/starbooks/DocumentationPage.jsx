@@ -2,6 +2,7 @@ import { useState, useEffect, useMemo } from "react";
 import { MapPin, Image as ImageIcon, Calendar, X, ZoomIn, Download, Filter, Search, RefreshCw } from "lucide-react";
 import { db } from "../../shared/services/supabaseClient";
 import { Modal, ModalPanel } from "../../components/ui/Modal";
+import { PaginationBar } from "../../components/ui/PaginationBar";
 
 export const DocumentationPage = ({ darkMode, readOnly = false }) => {
   const [selectedCity, setSelectedCity] = useState("all");
@@ -336,70 +337,16 @@ export const DocumentationPage = ({ darkMode, readOnly = false }) => {
             ))}
           </div>
 
-          {/* Pagination Controls */}
-          {totalPages > 1 && (
-            <div className="flex items-center justify-between p-5 rounded-xl" style={{
-              background: theme.cardBg,
-              border: `1px solid ${theme.borderColor}`,
-              boxShadow: darkMode 
-                ? '0 4px 12px rgba(0, 0, 0, 0.3)' 
-                : '0 4px 12px rgba(0, 0, 0, 0.05)'
-            }}>
-              <div className="text-sm" style={{ color: theme.textSecondary }}>
-                Showing <span className="font-bold" style={{ color: theme.textPrimary }}>{startIndex + 1}</span> to <span className="font-bold" style={{ color: theme.textPrimary }}>{Math.min(endIndex, filteredData.length)}</span> of <span className="font-bold" style={{ color: theme.textPrimary }}>{filteredData.length}</span> images
-              </div>
-              <div className="flex items-center gap-2">
-                <button
-                  onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
-                  disabled={currentPage === 1}
-                  className="px-4 py-2 rounded-lg font-semibold transition-all hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed"
-                  style={{
-                    background: currentPage === 1 ? theme.inputBg : 'linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)',
-                    color: currentPage === 1 ? theme.textSecondary : '#ffffff'
-                  }}
-                >
-                  Previous
-                </button>
-                <div className="flex items-center gap-1">
-                  {[...Array(totalPages)].map((_, i) => {
-                    const page = i + 1;
-                    // Show first, last, current, and adjacent pages
-                    if (page === 1 || page === totalPages || (page >= currentPage - 1 && page <= currentPage + 1)) {
-                      return (
-                        <button
-                          key={page}
-                          onClick={() => setCurrentPage(page)}
-                          className="w-10 h-10 rounded-lg font-semibold transition-all hover:scale-105"
-                          style={{
-                            background: page === currentPage 
-                              ? 'linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)' 
-                              : theme.inputBg,
-                            color: page === currentPage ? '#ffffff' : theme.textPrimary
-                          }}
-                        >
-                          {page}
-                        </button>
-                      );
-                    } else if (page === currentPage - 2 || page === currentPage + 2) {
-                      return <span key={page} style={{ color: theme.textSecondary }}>...</span>;
-                    }
-                    return null;
-                  })}
-                </div>
-                <button
-                  onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
-                  disabled={currentPage === totalPages}
-                  className="px-4 py-2 rounded-lg font-semibold transition-all hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed"
-                  style={{
-                    background: currentPage === totalPages ? theme.inputBg : 'linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)',
-                    color: currentPage === totalPages ? theme.textSecondary : '#ffffff'
-                  }}
-                >
-                  Next
-                </button>
-              </div>
-            </div>
-          )}
+          <PaginationBar
+            darkMode={darkMode}
+            currentPage={currentPage}
+            totalPages={totalPages}
+            onPageChange={setCurrentPage}
+            rangeStart={startIndex + 1}
+            rangeEnd={Math.min(endIndex, filteredData.length)}
+            totalCount={filteredData.length}
+            itemLabel="images"
+          />
         </>
       )}
 

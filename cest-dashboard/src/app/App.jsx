@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
-import { BrowserRouter, Routes, Route, Navigate, useNavigate } from "react-router-dom";
-import { AuthProvider, useAuth } from "../shared/hooks/useAuth.jsx";
+import { BrowserRouter, Routes, Route, Navigate, useNavigate, useLocation } from "react-router-dom";
+import { AuthProvider, useAuth, getUserDisplayName } from "../shared/hooks/useAuth.jsx";
 import { Sidebar } from "../components/layout/Sidebar";
 import { StarbooksSidebar } from "../components/layout/StarbooksSidebar";
 import { TopBar } from "../components/layout/TopBar";
@@ -19,6 +19,8 @@ import { DataEntryPage } from "../features/data-entry/DataEntryPage";
 import { StarbooksPage } from "../features/starbooks/StarbooksPage";
 import { LoginPage } from "../features/auth/LoginPage";
 import TrainingsPage from "../features/trainings/TrainingsPage";
+import { AdminRequestsPage, AdminAccessLogsPage } from "../features/admin/AdminRequestsPage";
+import { GuestAccessBlocked } from "../components/ui/GuestAccessBlocked";
 import { usePersistedState } from "../shared/hooks/usePersistedState";
 import { useToastNotification } from "../shared/hooks/useToastNotification";
 import { useAuditLog } from "../shared/hooks/useAuditLog";
@@ -32,7 +34,21 @@ const ACTIVITY_EVENTS = ['mousedown', 'mousemove', 'keypress', 'scroll', 'touchs
 
 function AppContent() {
   const navigate = useNavigate();
-  const { user, loading: authLoading, signOut, exitGuestMode, isGuestMode, isReadOnly, canAccessApp } = useAuth();
+  const location = useLocation();
+  const {
+    user,
+    loading: authLoading,
+    signOut,
+    exitGuestMode,
+    isGuestMode,
+    isReadOnly,
+    canAccessApp,
+    isAdmin,
+    canViewData,
+    displayName,
+    guestAccessStatus,
+    refreshGuestProfile,
+  } = useAuth();
   const [isLoading, setIsLoading] = useState(true);
   const [projects, setProjects] = useState([]);
   const [equipment, setEquipment] = useState([]);
@@ -50,6 +66,61 @@ function AppContent() {
   const { logs, refreshLogs, getUnreadCount, useDatabase } = useAuditLog();
   const dataLoadedRef = useRef(false);
   const unreadCount = getUnreadCount();
+
+  useEffect(() => {
+    const pathToPage = {
+      "/dashboard": "dashboard",
+      "/analytics": "analytics",
+      "/monitoring": "monitoring",
+      "/archive": "archive",
+      "/dataentry": "dataentry",
+      "/trainings": "trainings",
+      "/starbooks": "starbooks",
+      "/admin/requests": "admin-requests",
+      "/admin/approved": "admin-approved",
+      "/admin/declined": "admin-declined",
+      "/admin/logs": "admin-logs",
+    };
+    if (pathToPage[location.pathname]) {
+      setActivePage(pathToPage[location.pathname]);
+    } else if (location.pathname.startsWith("/analytics")) {
+      setActivePage("analytics");
+    }
+  }, [location.pathname]);
+
+  useEffect(() => {
+    if (!isGuestMode || guestAccessStatus !== "pending") return undefined;
+    const timer = setInterval(() => {
+      refreshGuestProfile();
+    }, 4000);
+    return () => clearInterval(timer);
+  }, [isGuestMode, guestAccessStatus, refreshGuestProfile]);
+
+  const guardData = (node) => (canViewData ? node : <GuestAccessBlocked darkMode={darkMode} />);
+  const guardAdmin = (node) => (isAdmin ? node : <Navigate to="/dashboard" replace />);
+
+  const dashboardProps = {
+    projects,
+    equipment,
+    uniqueComm,
+    darkMode,
+    isGuestMode,
+    guestAccessStatus,
+    canViewData,
+    isAdmin,
+    displayName,
+    onGuestSignIn: exitGuestMode,
+    onNavigateAdmin: (page) => {
+      setActivePage(page);
+      const routes = {
+        "admin-requests": "/admin/requests",
+        "admin-approved": "/admin/approved",
+        "admin-declined": "/admin/declined",
+        "admin-logs": "/admin/logs",
+      };
+      navigate(routes[page] || "/admin/requests");
+    },
+  };
 
   useEffect(() => {
     if (canAccessApp && !authLoading && !dataLoadedRef.current) {
@@ -567,6 +638,9 @@ function AppContent() {
             darkMode={darkMode}
             isCollapsed={isCollapsed}
             setIsCollapsed={setIsCollapsed}
+            isAdmin={isAdmin}
+            isGuestMode={isGuestMode}
+            canViewData={canViewData}
             onSwitchSystem={handleSwitchSystem}
             onLogout={async () => {
               await signOut();
@@ -594,7 +668,7 @@ function AppContent() {
           />
 
           <main className="flex-1 overflow-auto overflow-x-hidden p-4 sm:p-6 lg:p-8 scrollbar-thin">
-            {isGuestMode && activePage !== 'dashboard' && (
+            {isGuestMode && guestAccessStatus === "approved" && activePage !== "dashboard" && (
               <div className="mx-auto mb-6 max-w-[1400px]">
                 <ViewModeBanner
                   darkMode={darkMode}
@@ -610,42 +684,71 @@ function AppContent() {
                   activeSystem === "starbooks" ? (
                     <Navigate to="/starbooks" replace />
                   ) : activePage === "dashboard" ? (
-                    <Dashboard 
-                      projects={projects} 
-                      equipment={equipment} 
-                      uniqueComm={uniqueComm}
-                      darkMode={darkMode}
-                      isGuestMode={isGuestMode}
-                      onGuestSignIn={exitGuestMode}
-                    />
+                    <Dashboard {...dashboardProps} />
                   ) : activePage === "analytics" ? (
-                    <ProvincesPage projects={projects} darkMode={darkMode} />
+                    guardData(<ProvincesPage projects={projects} darkMode={darkMode} />)
                   ) : activePage === "monitoring" ? (
-                    <MonitoringPage projects={projects} darkMode={darkMode} />
+                    guardData(<MonitoringPage projects={projects} darkMode={darkMode} />)
                   ) : activePage === "archive" ? (
-                    <ArchivePage 
-                      archivedProjects={archivedProjects}
-                      onRestore={handleRestore}
-                      onPermanentDelete={handlePermanentDelete}
-                      darkMode={darkMode}
-                      readOnly={isReadOnly}
-                    />
+                    guardData(
+                      <ArchivePage
+                        archivedProjects={archivedProjects}
+                        onRestore={handleRestore}
+                        onPermanentDelete={handlePermanentDelete}
+                        darkMode={darkMode}
+                        readOnly={isReadOnly}
+                      />
+                    )
                   ) : activePage === "dataentry" ? (
-                    <DataEntryPage
-                      projects={projects}
-                      equipment={equipment}
-                      onAddProject={handleAddProject}
-                      onAddEquipment={handleAddEquipment}
-                      onDeleteProject={handleArchiveProject}
-                      onDeleteEquipment={handleArchiveEquipment}
-                      onUpdateProject={handleUpdateProject}
-                      onUpdateEquipment={handleUpdateEquipment}
-                      darkMode={darkMode}
-                      isLoading={loadingData}
-                      readOnly={isReadOnly}
-                    />
+                    guardData(
+                      <DataEntryPage
+                        projects={projects}
+                        equipment={equipment}
+                        onAddProject={handleAddProject}
+                        onAddEquipment={handleAddEquipment}
+                        onDeleteProject={handleArchiveProject}
+                        onDeleteEquipment={handleArchiveEquipment}
+                        onUpdateProject={handleUpdateProject}
+                        onUpdateEquipment={handleUpdateEquipment}
+                        darkMode={darkMode}
+                        isLoading={loadingData}
+                        readOnly={isReadOnly}
+                      />
+                    )
                   ) : activePage === "trainings" ? (
-                    <TrainingsPage darkMode={darkMode} readOnly={isReadOnly} onArchiveTraining={(item) => setArchivedProjects(prev => [...prev, item])} />
+                    guardData(
+                      <TrainingsPage
+                        darkMode={darkMode}
+                        readOnly={isReadOnly}
+                        onArchiveTraining={(item) => setArchivedProjects((prev) => [...prev, item])}
+                      />
+                    )
+                  ) : activePage === "admin-requests" ? (
+                    guardAdmin(
+                      <AdminRequestsPage
+                        darkMode={darkMode}
+                        initialTab="pending"
+                        adminName={getUserDisplayName(user)}
+                      />
+                    )
+                  ) : activePage === "admin-approved" ? (
+                    guardAdmin(
+                      <AdminRequestsPage
+                        darkMode={darkMode}
+                        initialTab="approved"
+                        adminName={getUserDisplayName(user)}
+                      />
+                    )
+                  ) : activePage === "admin-declined" ? (
+                    guardAdmin(
+                      <AdminRequestsPage
+                        darkMode={darkMode}
+                        initialTab="declined"
+                        adminName={getUserDisplayName(user)}
+                      />
+                    )
+                  ) : activePage === "admin-logs" ? (
+                    guardAdmin(<AdminAccessLogsPage darkMode={darkMode} />)
                   ) : activePage === "starbooks" ? (
                     <StarbooksPage darkMode={darkMode} activePage={activePage} readOnly={isReadOnly} />
                   ) : activePage?.startsWith("starbooks") ? (
@@ -657,35 +760,35 @@ function AppContent() {
               />
               <Route
                 path="/analytics"
-                element={<ProvincesPage projects={projects} darkMode={darkMode} />}
+                element={guardData(<ProvincesPage projects={projects} darkMode={darkMode} />)}
               />
               <Route
                 path="/analytics/provinces/:provinceId"
-                element={<CitiesPage projects={projects} darkMode={darkMode} />}
+                element={guardData(<CitiesPage projects={projects} darkMode={darkMode} />)}
               />
               <Route
                 path="/analytics/provinces/:provinceId/cities/:cityName"
-                element={<BarangaysPage projects={projects} darkMode={darkMode} />}
+                element={guardData(<BarangaysPage projects={projects} darkMode={darkMode} />)}
               />
               <Route
                 path="/monitoring"
-                element={<MonitoringPage projects={projects} darkMode={darkMode} />}
+                element={guardData(<MonitoringPage projects={projects} darkMode={darkMode} />)}
               />
               <Route
                 path="/archive"
-                element={
-                  <ArchivePage 
+                element={guardData(
+                  <ArchivePage
                     archivedProjects={archivedProjects}
                     onRestore={handleRestore}
                     onPermanentDelete={handlePermanentDelete}
                     darkMode={darkMode}
                     readOnly={isReadOnly}
                   />
-                }
+                )}
               />
               <Route
                 path="/dataentry"
-                element={
+                element={guardData(
                   <DataEntryPage
                     projects={projects}
                     equipment={equipment}
@@ -699,15 +802,43 @@ function AppContent() {
                     isLoading={loadingData}
                     readOnly={isReadOnly}
                   />
-                }
+                )}
+              />
+              <Route
+                path="/admin/requests"
+                element={guardAdmin(
+                  <AdminRequestsPage darkMode={darkMode} initialTab="pending" adminName={getUserDisplayName(user)} />
+                )}
+              />
+              <Route
+                path="/admin/approved"
+                element={guardAdmin(
+                  <AdminRequestsPage darkMode={darkMode} initialTab="approved" adminName={getUserDisplayName(user)} />
+                )}
+              />
+              <Route
+                path="/admin/declined"
+                element={guardAdmin(
+                  <AdminRequestsPage darkMode={darkMode} initialTab="declined" adminName={getUserDisplayName(user)} />
+                )}
+              />
+              <Route
+                path="/admin/logs"
+                element={guardAdmin(<AdminAccessLogsPage darkMode={darkMode} />)}
               />
               <Route
                 path="/starbooks"
-                element={<StarbooksPage darkMode={darkMode} activePage={activePage} readOnly={isReadOnly} />}
+                element={guardData(<StarbooksPage darkMode={darkMode} activePage={activePage} readOnly={isReadOnly} />)}
               />
               <Route
                 path="/trainings"
-                element={<TrainingsPage darkMode={darkMode} readOnly={isReadOnly} onArchiveTraining={(item) => setArchivedProjects(prev => [...prev, item])} />}
+                element={guardData(
+                  <TrainingsPage
+                    darkMode={darkMode}
+                    readOnly={isReadOnly}
+                    onArchiveTraining={(item) => setArchivedProjects((prev) => [...prev, item])}
+                  />
+                )}
               />
             </Routes>
           </main>

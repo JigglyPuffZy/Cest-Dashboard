@@ -7,6 +7,7 @@ import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pi
 import { COMP_COLORS } from "../../shared/constants";
 import { getProvinceById, getMunicipalitiesByProvince } from "../../shared/data/regionII";
 import { transformProjects } from "../../shared/utils/dataTransform";
+import { ChartTooltip, renderChartTooltip } from "../../components/ui/ChartTooltip";
 
 export const CitiesPage = ({ projects, darkMode }) => {
   const navigate = useNavigate();
@@ -98,9 +99,9 @@ export const CitiesPage = ({ projects, darkMode }) => {
         darkMode={darkMode}
       />
 
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-semibold mb-1" style={{ color: darkMode ? "#f8fafc" : "#0f172a" }}>
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+        <div className="min-w-0 flex-1">
+          <h1 className="text-xl sm:text-2xl font-semibold mb-1 leading-snug" style={{ color: darkMode ? "#f8fafc" : "#0f172a" }}>
             {provinceName}
           </h1>
           <p className="text-sm" style={{ color: darkMode ? "#94a3b8" : "#64748b" }}>
@@ -110,7 +111,7 @@ export const CitiesPage = ({ projects, darkMode }) => {
 
         <button
           onClick={() => navigate("/analytics")}
-          className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200"
+          className="flex items-center justify-center gap-2 w-full sm:w-auto px-4 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 shrink-0"
           style={{
             background: darkMode ? "#1e293b" : "#f8fafc",
             color: darkMode ? "#f8fafc" : "#0f172a",
@@ -171,33 +172,9 @@ export const CitiesPage = ({ projects, darkMode }) => {
                   width={60}
                 />
                 <Tooltip
-                  content={({ active, payload }) => {
-                    if (active && payload && payload.length) {
-                      return (
-                        <div
-                          className="p-3 rounded-lg"
-                          style={{
-                            background: darkMode ? "#0f172a" : "#ffffff",
-                            border: `1px solid ${darkMode ? "#1e293b" : "#e5e7eb"}`,
-                            boxShadow: darkMode
-                              ? "0 4px 12px rgba(0,0,0,0.5)"
-                              : "0 4px 12px rgba(0,0,0,0.1)",
-                          }}
-                        >
-                          <p
-                            className="font-semibold text-xs mb-1"
-                            style={{ color: darkMode ? "#f8fafc" : "#0f172a" }}
-                          >
-                            {payload[0].payload.fullName}
-                          </p>
-                          <p className="font-bold text-lg" style={{ color: "#004A98" }}>
-                            {fmtChart(payload[0].value)}
-                          </p>
-                        </div>
-                      );
-                    }
-                    return null;
-                  }}
+                  content={(props) =>
+                    renderChartTooltip({ ...props, valueFormatter: fmtChart })
+                  }
                   cursor={{ fill: darkMode ? "rgba(148, 163, 184, 0.05)" : "rgba(226, 232, 240, 0.5)" }}
                 />
                 <Bar dataKey="budget" radius={[6, 6, 0, 0]} fill="#004A98" maxBarSize={60} />
@@ -238,33 +215,7 @@ export const CitiesPage = ({ projects, darkMode }) => {
                   ))}
                 </Pie>
                 <Tooltip
-                  content={({ active, payload }) => {
-                    if (active && payload && payload.length) {
-                      return (
-                        <div
-                          className="p-3 rounded-lg"
-                          style={{
-                            background: darkMode ? "#0f172a" : "#ffffff",
-                            border: `1px solid ${darkMode ? "#1e293b" : "#e5e7eb"}`,
-                            boxShadow: darkMode
-                              ? "0 4px 12px rgba(0,0,0,0.5)"
-                              : "0 4px 12px rgba(0,0,0,0.1)",
-                          }}
-                        >
-                          <p
-                            className="font-semibold text-xs mb-1"
-                            style={{ color: darkMode ? "#f8fafc" : "#0f172a" }}
-                          >
-                            {payload[0].name}
-                          </p>
-                          <p className="font-bold text-lg" style={{ color: payload[0].payload.color }}>
-                            {payload[0].value}
-                          </p>
-                        </div>
-                      );
-                    }
-                    return null;
-                  }}
+                  content={(props) => renderChartTooltip(props)}
                 />
               </PieChart>
             </ResponsiveContainer>

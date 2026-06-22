@@ -6,6 +6,7 @@ import { fmt } from "../../shared/utils/helpers";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from "recharts";
 import { getAllProvinces } from "../../shared/data/regionII";
 import { transformProjects } from "../../shared/utils/dataTransform";
+import { ChartTooltip, renderChartTooltip } from "../../components/ui/ChartTooltip";
 
 const CHART_COLORS = ["#A78BFA", "#F472B6", "#FBBF24", "#34D399", "#60A5FA"];
 
@@ -129,28 +130,31 @@ export const ProvincesPage = ({ projects, darkMode }) => {
   };
 
   return (
-    <div className="max-w-[1400px] mx-auto space-y-6">
+    <div className="max-w-[1400px] mx-auto space-y-4 sm:space-y-6 w-full min-w-0">
       <Breadcrumb items={[{ label: "Region II Analytics" }]} darkMode={darkMode} />
 
-      <div className="flex items-center justify-between">
-        <div>
-          <div className="flex items-center gap-3 mb-2">
-            <h1 className="text-2xl font-semibold" style={{ color: darkMode ? "#f8fafc" : "#0f172a" }}>
-              Region II - Cagayan Valley
-            </h1>
-            <LiveIndicator darkMode={darkMode} />
-          </div>
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+        <div className="min-w-0 flex-1">
+          <h1
+            className="text-xl sm:text-2xl font-semibold leading-snug mb-2"
+            style={{ color: darkMode ? "#f8fafc" : "#0f172a" }}
+          >
+            Region II — Cagayan Valley
+          </h1>
           <p className="text-sm" style={{ color: darkMode ? "#94a3b8" : "#64748b" }}>
             Select a province to view detailed analytics
           </p>
         </div>
-        <div className="text-right">
-          <p className="text-xs font-medium mb-1" style={{ color: darkMode ? "#64748b" : "#94a3b8" }}>
-            Last Updated
-          </p>
-          <p className="text-sm font-semibold" style={{ color: darkMode ? "#94a3b8" : "#64748b" }}>
-            {lastUpdate.toLocaleTimeString()}
-          </p>
+        <div className="flex flex-wrap items-center justify-between gap-x-6 gap-y-2 sm:flex-col sm:items-end sm:justify-start shrink-0">
+          <LiveIndicator darkMode={darkMode} />
+          <div className="text-right">
+            <p className="text-xs font-medium mb-0.5" style={{ color: darkMode ? "#64748b" : "#94a3b8" }}>
+              Last Updated
+            </p>
+            <p className="text-sm font-semibold tabular-nums" style={{ color: darkMode ? "#f8fafc" : "#0f172a" }}>
+              {lastUpdate.toLocaleTimeString()}
+            </p>
+          </div>
         </div>
       </div>
 
@@ -249,36 +253,13 @@ export const ProvincesPage = ({ projects, darkMode }) => {
                   width={60}
                 />
                 <Tooltip
-                  content={({ active, payload }) => {
-                    if (active && payload && payload.length) {
-                      return (
-                        <div
-                          className="p-3 rounded-lg"
-                          style={{
-                            background: darkMode ? "#0f172a" : "#ffffff",
-                            border: `1px solid ${darkMode ? "#1e293b" : "#e5e7eb"}`,
-                            boxShadow: darkMode
-                              ? "0 4px 12px rgba(0,0,0,0.5)"
-                              : "0 4px 12px rgba(0,0,0,0.1)",
-                          }}
-                        >
-                          <p
-                            className="font-semibold text-xs mb-1"
-                            style={{ color: darkMode ? "#f8fafc" : "#0f172a" }}
-                          >
-                            {payload[0].payload.fullName}
-                          </p>
-                          <p className="font-bold text-lg" style={{ color: "#004A98" }}>
-                            {fmtChart(payload[0].value)}
-                          </p>
-                          <p className="text-xs mt-1" style={{ color: '#3b82f6' }}>
-                            Click to view details
-                          </p>
-                        </div>
-                      );
-                    }
-                    return null;
-                  }}
+                  content={(props) =>
+                    renderChartTooltip({
+                      ...props,
+                      valueFormatter: fmtChart,
+                      hint: "Click to view details",
+                    })
+                  }
                   cursor={{ fill: darkMode ? "rgba(148, 163, 184, 0.05)" : "rgba(226, 232, 240, 0.5)" }}
                 />
                 <Bar 
@@ -365,36 +346,13 @@ export const ProvincesPage = ({ projects, darkMode }) => {
                   ))}
                 </Pie>
                 <Tooltip
-                  content={({ active, payload }) => {
-                    if (active && payload && payload.length) {
-                      return (
-                        <div
-                          className="p-3 rounded-lg"
-                          style={{
-                            background: darkMode ? "#0f172a" : "#ffffff",
-                            border: `1px solid ${darkMode ? "#1e293b" : "#e5e7eb"}`,
-                            boxShadow: darkMode
-                              ? "0 4px 12px rgba(0,0,0,0.5)"
-                              : "0 4px 12px rgba(0,0,0,0.1)",
-                          }}
-                        >
-                          <p
-                            className="font-semibold text-xs mb-1"
-                            style={{ color: darkMode ? "#f8fafc" : "#0f172a" }}
-                          >
-                            {payload[0].name}
-                          </p>
-                          <p className="font-bold text-lg" style={{ color: payload[0].payload.color }}>
-                            {fmtChart(payload[0].value)}
-                          </p>
-                          <p className="text-xs mt-1" style={{ color: '#3b82f6' }}>
-                            Click to view details
-                          </p>
-                        </div>
-                      );
-                    }
-                    return null;
-                  }}
+                  content={(props) =>
+                    renderChartTooltip({
+                      ...props,
+                      valueFormatter: fmtChart,
+                      hint: "Click to view details",
+                    })
+                  }
                 />
               </PieChart>
             </ResponsiveContainer>

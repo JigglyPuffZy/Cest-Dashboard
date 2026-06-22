@@ -5,8 +5,17 @@ import { Modal, ModalPanel } from "../ui/Modal";
 const NAV_LABELS = {
   dashboard: "Dashboard",
   dataentry: "Data Entry",
-  projects: "Projects",
+  analytics: "Analytics",
+  archive: "Archive",
   trainings: "Trainings",
+  monitoring: "Monitoring",
+  "admin-requests": "User Requests",
+  "admin-approved": "Approved Users",
+  "admin-declined": "Declined Users",
+  "admin-logs": "Access Logs",
+  starbooks: "STARBOOKS Inventory",
+  "starbooks-archive": "STARBOOKS Archive",
+  "starbooks-docs": "Documentation",
 };
 
 export const TopBar = ({
@@ -165,7 +174,7 @@ export const TopBar = ({
 
           <div>
             <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-600 via-blue-500 to-blue-400 bg-clip-text text-transparent">
-              {NAV_LABELS[activePage]}
+              {NAV_LABELS[activePage] || "CEST 2.0 Dashboard"}
             </h1>
             <p className="text-xs font-semibold" style={{ color: darkMode ? '#94a3b8' : '#64748b' }}>
               Welcome back! Here's your overview

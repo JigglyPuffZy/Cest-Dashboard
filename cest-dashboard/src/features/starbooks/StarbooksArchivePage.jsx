@@ -1,8 +1,10 @@
 import { useState, useEffect, useMemo } from "react";
-import { Archive, RotateCcw, Trash2, Search, Calendar, MapPin, Package, AlertCircle, CheckCircle, RefreshCw, Eye, Users, X } from "lucide-react";
+import { Archive, RotateCcw, Trash2, Calendar, MapPin, Package, AlertCircle, CheckCircle, RefreshCw, Eye, Users, X } from "lucide-react";
 import { db } from "../../shared/services/supabaseClient";
 import { ConfirmDeleteModal } from "../../components/ui/ConfirmDeleteModal";
 import { Modal, ModalPanel } from "../../components/ui/Modal";
+import { FilterBar } from "../../components/ui/FilterBar";
+import { PaginationBar } from "../../components/ui/PaginationBar";
 
 export const StarbooksArchivePage = ({ darkMode, readOnly = false }) => {
   const [archivedUnits, setArchivedUnits] = useState([]);
@@ -212,35 +214,20 @@ export const StarbooksArchivePage = ({ darkMode, readOnly = false }) => {
       )}
 
       {/* Search */}
-      <div className="p-5 rounded-xl" style={{
-        background: theme.cardBg,
-        border: `1px solid ${theme.borderColor}`,
-        boxShadow: darkMode 
-          ? '0 8px 32px rgba(0, 0, 0, 0.4)' 
-          : '0 8px 32px rgba(0, 0, 0, 0.06), 0 1px 3px rgba(0, 0, 0, 0.08)'
-      }}>
-        <div className="relative">
-          <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5" style={{ color: theme.textSecondary }} />
-          <input
-            type="text"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Search archived units by location, municipality, or serial number..."
-            className="w-full pl-12 pr-4 py-3 rounded-lg outline-none transition-all"
-            style={{
-              background: theme.inputBg,
-              color: theme.textPrimary,
-              border: `1px solid ${theme.borderColor}`,
-              boxShadow: darkMode 
-                ? 'none' 
-                : '0 1px 2px rgba(0, 0, 0, 0.05)'
-            }}
-          />
-        </div>
-        <div className="mt-3 text-sm" style={{ color: theme.textSecondary }}>
-          Showing <span className="font-bold" style={{ color: theme.textPrimary }}>{filteredUnits.length}</span> of <span className="font-bold" style={{ color: theme.textPrimary }}>{archivedUnits.length}</span> archived units
-        </div>
-      </div>
+      <FilterBar
+        darkMode={darkMode}
+        searchValue={searchQuery}
+        onSearchChange={(e) => setSearchQuery(e.target.value)}
+        placeholder="Search archived units by location, municipality, or serial number..."
+        onRefresh={loadArchivedUnits}
+        refreshLabel="Refresh"
+        resultText={
+          <>
+            Showing <span className="font-semibold" style={{ color: theme.textPrimary }}>{filteredUnits.length}</span> of{" "}
+            <span className="font-semibold" style={{ color: theme.textPrimary }}>{archivedUnits.length}</span> archived units
+          </>
+        }
+      />
 
       {/* Archived Units List */}
       {loading ? (
@@ -384,69 +371,16 @@ export const StarbooksArchivePage = ({ darkMode, readOnly = false }) => {
             ))}
           </div>
 
-          {/* Pagination Controls */}
-          {totalPages > 1 && (
-            <div className="flex items-center justify-between p-5 rounded-xl" style={{
-              background: theme.cardBg,
-              border: `1px solid ${theme.borderColor}`,
-              boxShadow: darkMode 
-                ? '0 4px 12px rgba(0, 0, 0, 0.3)' 
-                : '0 4px 12px rgba(0, 0, 0, 0.05)'
-            }}>
-              <div className="text-sm" style={{ color: theme.textSecondary }}>
-                Showing <span className="font-bold" style={{ color: theme.textPrimary }}>{startIndex + 1}</span> to <span className="font-bold" style={{ color: theme.textPrimary }}>{Math.min(endIndex, filteredUnits.length)}</span> of <span className="font-bold" style={{ color: theme.textPrimary }}>{filteredUnits.length}</span> units
-              </div>
-              <div className="flex items-center gap-2">
-                <button
-                  onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
-                  disabled={currentPage === 1}
-                  className="px-4 py-2 rounded-lg font-semibold transition-all hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed"
-                  style={{
-                    background: currentPage === 1 ? theme.inputBg : 'linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)',
-                    color: currentPage === 1 ? theme.textSecondary : '#ffffff'
-                  }}
-                >
-                  Previous
-                </button>
-                <div className="flex items-center gap-1">
-                  {[...Array(totalPages)].map((_, i) => {
-                    const page = i + 1;
-                    if (page === 1 || page === totalPages || (page >= currentPage - 1 && page <= currentPage + 1)) {
-                      return (
-                        <button
-                          key={page}
-                          onClick={() => setCurrentPage(page)}
-                          className="w-10 h-10 rounded-lg font-semibold transition-all hover:scale-105"
-                          style={{
-                            background: page === currentPage 
-                              ? 'linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)' 
-                              : theme.inputBg,
-                            color: page === currentPage ? '#ffffff' : theme.textPrimary
-                          }}
-                        >
-                          {page}
-                        </button>
-                      );
-                    } else if (page === currentPage - 2 || page === currentPage + 2) {
-                      return <span key={page} style={{ color: theme.textSecondary }}>...</span>;
-                    }
-                    return null;
-                  })}
-                </div>
-                <button
-                  onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
-                  disabled={currentPage === totalPages}
-                  className="px-4 py-2 rounded-lg font-semibold transition-all hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed"
-                  style={{
-                    background: currentPage === totalPages ? theme.inputBg : 'linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)',
-                    color: currentPage === totalPages ? theme.textSecondary : '#ffffff'
-                  }}
-                >
-                  Next
-                </button>
-              </div>
-            </div>
-          )}
+          <PaginationBar
+            darkMode={darkMode}
+            currentPage={currentPage}
+            totalPages={totalPages}
+            onPageChange={setCurrentPage}
+            rangeStart={startIndex + 1}
+            rangeEnd={Math.min(endIndex, filteredUnits.length)}
+            totalCount={filteredUnits.length}
+            itemLabel="units"
+          />
         </>
       )}
 

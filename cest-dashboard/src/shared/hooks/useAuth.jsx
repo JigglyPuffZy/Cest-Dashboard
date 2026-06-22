@@ -1,8 +1,18 @@
-import { useState, useEffect, createContext, useContext } from 'react'
+import { useState, useEffect, createContext, useContext, useCallback } from 'react'
 import { auth } from '../services/supabaseClient'
+import { accessRequestService } from '../services/accessRequestService'
 
 export const SESSION_KEYS = {
   GUEST_MODE: 'cest_guest_mode',
+}
+
+export function getUserDisplayName(user) {
+  if (!user) return 'Administrator'
+  const meta = user.user_metadata?.full_name || user.user_metadata?.name
+  if (meta) return String(meta).split(' ')[0]
+  const email = user.email || ''
+  const local = email.split('@')[0] || 'Administrator'
+  return local.charAt(0).toUpperCase() + local.slice(1)
 }
 
 const AuthContext = createContext({})
@@ -12,6 +22,12 @@ export function AuthProvider({ children }) {
   const [session, setSession] = useState(null)
   const [loading, setLoading] = useState(true)
   const [isGuestMode, setIsGuestMode] = useState(false)
+  const [guestProfile, setGuestProfile] = useState(null)
+
+  const refreshGuestProfile = useCallback(async () => {
+    const synced = await accessRequestService.syncGuestProfileFromServer()
+    setGuestProfile(synced ?? accessRequestService.getGuestProfile())
+  }, [])
 
   useEffect(() => {
     let mounted = true
@@ -26,12 +42,13 @@ export function AuthProvider({ children }) {
     const initAuth = async () => {
       const guestActive = sessionStorage.getItem(SESSION_KEYS.GUEST_MODE) === '1'
       if (guestActive) {
-        if (mounted) {
-          setIsGuestMode(true)
-          setUser(null)
-          setSession(null)
-          setLoading(false)
-        }
+        const synced = await accessRequestService.syncGuestProfileFromServer()
+        if (!mounted) return
+        setIsGuestMode(true)
+        setGuestProfile(synced ?? accessRequestService.getGuestProfile())
+        setUser(null)
+        setSession(null)
+        setLoading(false)
         clearTimeout(authTimeout)
         return
       }
@@ -61,14 +78,19 @@ export function AuthProvider({ children }) {
 
       if (activeSession?.user) {
         sessionStorage.removeItem(SESSION_KEYS.GUEST_MODE)
+        accessRequestService.setGuestProfile(null)
         setIsGuestMode(false)
+        setGuestProfile(null)
         setSession(activeSession)
         setUser(activeSession.user)
         setLoading(false)
         return
       }
 
-      if (sessionStorage.getItem(SESSION_KEYS.GUEST_MODE) === '1') return
+      if (sessionStorage.getItem(SESSION_KEYS.GUEST_MODE) === '1') {
+        refreshGuestProfile()
+        return
+      }
 
       setSession(activeSession)
       setUser(activeSession?.user ?? null)
@@ -80,10 +102,35 @@ export function AuthProvider({ children }) {
       clearTimeout(authTimeout)
       subscription.unsubscribe()
     }
-  }, [])
+  }, [refreshGuestProfile, loading])
+
+  const submitGuestAccessRequest = async (firstName, lastName) => {
+    const request = await accessRequestService.submitRequest(firstName, lastName)
+    sessionStorage.setItem(SESSION_KEYS.GUEST_MODE, '1')
+    const profile = {
+      requestId: request.id,
+      accessToken: request.accessToken,
+      firstName: request.firstName,
+      lastName: request.lastName,
+      fullName: request.fullName,
+      status: request.status,
+    }
+    accessRequestService.setGuestProfile(profile)
+    setGuestProfile(profile)
+    setIsGuestMode(true)
+    setUser(null)
+    setSession(null)
+    setLoading(false)
+    return request
+  }
 
   const enterGuestMode = () => {
+    const profile = accessRequestService.getGuestProfile()
+    if (!profile || profile.status !== 'approved') {
+      throw new Error('Approved guest profile required')
+    }
     sessionStorage.setItem(SESSION_KEYS.GUEST_MODE, '1')
+    setGuestProfile(profile)
     setIsGuestMode(true)
     setUser(null)
     setSession(null)
@@ -92,7 +139,9 @@ export function AuthProvider({ children }) {
 
   const exitGuestMode = () => {
     sessionStorage.removeItem(SESSION_KEYS.GUEST_MODE)
+    accessRequestService.setGuestProfile(null)
     setIsGuestMode(false)
+    setGuestProfile(null)
     setUser(null)
     setSession(null)
     setLoading(false)
@@ -102,7 +151,9 @@ export function AuthProvider({ children }) {
     setLoading(true)
     try {
       sessionStorage.removeItem(SESSION_KEYS.GUEST_MODE)
+      accessRequestService.setGuestProfile(null)
       setIsGuestMode(false)
+      setGuestProfile(null)
       const result = await auth.signIn(email, password)
       const activeSession = result?.session ?? null
       if (activeSession) {
@@ -119,7 +170,9 @@ export function AuthProvider({ children }) {
     setLoading(true)
     try {
       sessionStorage.removeItem(SESSION_KEYS.GUEST_MODE)
+      accessRequestService.setGuestProfile(null)
       setIsGuestMode(false)
+      setGuestProfile(null)
       if (user || session) {
         await auth.signOut()
       }
@@ -132,6 +185,12 @@ export function AuthProvider({ children }) {
     }
   }
 
+  const guestAccessStatus = guestProfile?.status ?? null
+  const isAuthenticated = !!user
+  const isAdmin = isAuthenticated && !isGuestMode
+  const canViewData = isAdmin || (isGuestMode && guestAccessStatus === 'approved')
+  const isReadOnly = isGuestMode && guestAccessStatus === 'approved'
+
   const value = {
     user,
     session,
@@ -140,10 +199,19 @@ export function AuthProvider({ children }) {
     signOut,
     enterGuestMode,
     exitGuestMode,
+    submitGuestAccessRequest,
+    refreshGuestProfile,
     isGuestMode,
-    isReadOnly: isGuestMode,
-    isAuthenticated: !!user,
-    canAccessApp: !!user || isGuestMode,
+    guestProfile,
+    guestAccessStatus,
+    isReadOnly,
+    isAuthenticated,
+    isAdmin,
+    canViewData,
+    canAccessApp: isAuthenticated || isGuestMode,
+    displayName: isGuestMode
+      ? guestProfile?.firstName || 'Guest'
+      : getUserDisplayName(user),
   }
 
   return (

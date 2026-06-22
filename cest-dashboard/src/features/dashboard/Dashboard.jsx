@@ -1,11 +1,16 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { TrendingUp, Users, Package, Info, FileText, MapPin, X, Eye, Building2, Landmark, Activity, ArrowRight } from "lucide-react";
+import { TrendingUp, Users, Package, Info, FileText, MapPin, X, Eye, Building2, Landmark, Activity, ArrowRight, Clock, UserCheck, ScrollText } from "lucide-react";
 import { fmt, getStatusColor, getCardStyle, formatCurrencyShort } from "../../shared/utils/helpers";
 import { COMPONENTS, COMP_COLORS } from "../../shared/constants";
 import { HoverTooltip } from "../../components/ui/Tooltip";
 import { ViewModeBanner } from "../../components/ui/ViewModeBanner";
+import { GuestPendingBanner, GuestDeclinedBanner } from "../../components/ui/GuestAccessBanners";
+import { GlassCard, StatCard } from "../../components/ui/PageHeader";
+import { useAccessRequests } from "../../shared/hooks/useAccessRequests";
+import { accessRequestService } from "../../shared/services/accessRequestService";
 import { Modal, ModalPanel } from "../../components/ui/Modal";
+import { ChartTooltip, renderChartTooltip } from "../../components/ui/ChartTooltip";
 import { getAllProvinces } from "../../shared/data/regionII";
 import { transformProjects, transformEquipmentList } from "../../shared/utils/dataTransform";
 import { safeString, safeProjectTitle, safeEquipmentName, safeDisplayName } from "../../shared/utils/safeRender";
@@ -31,8 +36,27 @@ const PesoIcon = ({ className, style }) => (
   </svg>
 );
 
-export const Dashboard = ({ projects = [], equipment = [], uniqueComm = 0, darkMode, isGuestMode = false, onGuestSignIn }) => {
+export const Dashboard = ({
+  projects = [],
+  equipment = [],
+  uniqueComm = 0,
+  darkMode,
+  isGuestMode = false,
+  guestAccessStatus = null,
+  canViewData = true,
+  isAdmin = false,
+  displayName = "Administrator",
+  onGuestSignIn,
+  onNavigateAdmin,
+}) => {
   const navigate = useNavigate();
+  const { stats: accessStats } = useAccessRequests({ enabled: isAdmin });
+
+  useEffect(() => {
+    if (isGuestMode && guestAccessStatus === "approved" && displayName) {
+      accessRequestService.recordPageVisit(displayName);
+    }
+  }, [isGuestMode, guestAccessStatus, displayName]);
 
   // Transform Supabase data structure to match expected format
   const transformedProjects = transformProjects(projects);
@@ -130,56 +154,67 @@ export const Dashboard = ({ projects = [], equipment = [], uniqueComm = 0, darkM
 
   return (
     <div className="max-w-[1400px] mx-auto space-y-4 sm:space-y-6 w-full min-w-0 px-0">
-      {isGuestMode && (
+      {isGuestMode && guestAccessStatus === "pending" && (
+        <GuestPendingBanner darkMode={darkMode} guestName={displayName} onSignIn={onGuestSignIn} />
+      )}
+      {isGuestMode && guestAccessStatus === "declined" && (
+        <GuestDeclinedBanner darkMode={darkMode} guestName={displayName} onSignIn={onGuestSignIn} />
+      )}
+      {isGuestMode && guestAccessStatus === "approved" && (
         <ViewModeBanner darkMode={darkMode} onSignIn={onGuestSignIn} />
       )}
 
-      {/* ── Unified Dashboard Hero ── */}
-      <div
-        className="rounded-2xl p-6 sm:p-8 relative overflow-hidden"
-        style={{
-          background: darkMode
-            ? 'linear-gradient(135deg, #0f172a 0%, #1e3a5f 50%, #0f172a 100%)'
-            : 'linear-gradient(135deg, #004A98 0%, #0066CC 60%, #3b82f6 100%)',
-          boxShadow: darkMode ? '0 20px 60px rgba(0,0,0,0.4)' : '0 20px 60px rgba(0,74,152,0.25)',
-        }}
-      >
-        <div className="absolute inset-0 opacity-10" style={{ backgroundImage: 'radial-gradient(circle at 80% 20%, white 1px, transparent 1px)', backgroundSize: '24px 24px' }} aria-hidden />
-        <div className="relative flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
-          <div>
-            <div className="flex items-center gap-2 mb-3">
-              <Activity className="w-4 h-4 animate-pulse text-white/90" />
-              <span className="text-xs font-bold tracking-widest text-white/80 uppercase">Live Dashboard</span>
+      {/* Welcome */}
+      <GlassCard darkMode={darkMode} className="p-6 sm:p-8 relative overflow-hidden">
+        <div
+          className="absolute inset-0 opacity-[0.07] pointer-events-none"
+          style={{
+            background: "linear-gradient(135deg, #004A98 0%, #0066CC 50%, #3b82f6 100%)",
+          }}
+        />
+        <div className="relative">
+          <p className="text-[11px] font-bold uppercase tracking-widest mb-2" style={{ color: "#004A98" }}>
+            CEST 2.0 · Region II
+          </p>
+          <h1 className="text-2xl sm:text-3xl font-bold mb-2" style={{ color: darkMode ? "#f8fafc" : "#0f172a" }}>
+            Welcome Back, {displayName} 👋
+          </h1>
+          <p className="text-sm leading-relaxed max-w-2xl" style={{ color: darkMode ? "#94a3b8" : "#64748b" }}>
+            {isAdmin
+              ? "Manage CEST records, review guest access requests, and monitor system activity from one central dashboard."
+              : isGuestMode
+                ? "Browse approved project summaries and regional analytics in view-only mode."
+                : "Complete overview of projects, budgets, and monitoring across Cagayan Valley."}
+          </p>
+
+          {isAdmin && (
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mt-6">
+              <StatCard darkMode={darkMode} label="Pending Requests" value={accessStats.pendingRequests} icon={Clock} color="#f59e0b" />
+              <StatCard darkMode={darkMode} label="Approved Users" value={accessStats.approvedUsers} icon={UserCheck} color="#10b981" />
+              <StatCard darkMode={darkMode} label="Total Visitors" value={accessStats.totalVisitors} icon={Users} color="#004A98" />
+              <StatCard darkMode={darkMode} label="Files Accessed Today" value={accessStats.filesAccessedToday} icon={ScrollText} color="#8b5cf6" />
             </div>
-            <h1 className="text-2xl sm:text-3xl font-bold text-white mb-2">CEST 2.0 — Region II</h1>
-            <p className="text-sm text-white/75 max-w-xl">Complete overview of projects, budgets, analytics, and monitoring across Cagayan Valley.</p>
-          </div>
-          <div className="flex flex-wrap gap-2">
-            {[
-              { label: 'Analytics', ref: analyticsRef },
-              { label: 'All Projects', ref: projectsRef },
-            ].map((item) => (
-              <button
-                key={item.label}
-                type="button"
-                onClick={() => scrollTo(item.ref)}
-                className="px-4 py-2 rounded-xl text-sm font-semibold transition-all duration-200 hover:scale-105"
-                style={{ background: 'rgba(255,255,255,0.15)', color: '#fff', border: '1px solid rgba(255,255,255,0.25)', backdropFilter: 'blur(8px)' }}
-              >
-                {item.label} ↓
-              </button>
-            ))}
+          )}
+
+          {isAdmin && onNavigateAdmin && (
             <button
               type="button"
-              onClick={() => setShowComponentLegend(true)}
-              className="px-4 py-2 rounded-xl text-sm font-semibold transition-all duration-200 hover:scale-105"
-              style={{ background: 'rgba(255,255,255,0.95)', color: '#004A98' }}
+              onClick={() => onNavigateAdmin("admin-requests")}
+              className="mt-5 inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold text-white"
+              style={{
+                background: "linear-gradient(135deg, #004A98 0%, #0066CC 100%)",
+                boxShadow: "0 4px 14px rgba(0, 74, 152, 0.35)",
+              }}
             >
-              Components
+              Review Guest Requests
+              <ArrowRight className="w-4 h-4" />
             </button>
-          </div>
+          )}
         </div>
-      </div>
+      </GlassCard>
+
+      {!canViewData ? null : (
+      <>
 
       {/* Key Metrics */}
       <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">
@@ -279,26 +314,18 @@ export const Dashboard = ({ projects = [], equipment = [], uniqueComm = 0, darkM
                       />
                       <Tooltip
                         content={({ active, payload }) => {
-                          if (active && payload && payload.length) {
+                          if (active && payload?.length) {
                             return (
-                              <div 
-                                className="p-3 rounded-lg cursor-pointer"
-                                style={{
-                                  background: darkMode ? '#0f172a' : '#ffffff',
-                                  border: `1px solid ${darkMode ? '#1e293b' : '#e5e7eb'}`,
-                                  boxShadow: darkMode ? '0 4px 12px rgba(0,0,0,0.5)' : '0 4px 12px rgba(0,0,0,0.1)'
-                                }}
+                              <div
+                                className="cursor-pointer"
                                 onClick={() => navigate(`/analytics/provinces/${payload[0].payload.id}`)}
                               >
-                                <p className="font-semibold text-xs mb-1" style={{ color: darkMode ? '#f8fafc' : '#0f172a' }}>
-                                  {payload[0].payload.fullName}
-                                </p>
-                                <p className="font-bold text-lg" style={{ color: '#004A98' }}>
-                                  {formatCurrencyShort(payload[0].value)}
-                                </p>
-                                <p className="text-xs mt-1" style={{ color: '#3b82f6' }}>
-                                  Click to view details →
-                                </p>
+                                <ChartTooltip
+                                  title={payload[0].payload.fullName}
+                                  value={formatCurrencyShort(payload[0].value)}
+                                  accentColor="#004A98"
+                                  hint="Click to view details →"
+                                />
                               </div>
                             );
                           }
@@ -357,29 +384,8 @@ export const Dashboard = ({ projects = [], equipment = [], uniqueComm = 0, darkM
                             />
                           ))}
                         </Pie>
-                        <Tooltip 
-                          content={({ active, payload }) => {
-                            if (active && payload && payload.length) {
-                              return (
-                                <div 
-                                  className="p-3 rounded-lg"
-                                  style={{
-                                    background: darkMode ? '#0f172a' : '#ffffff',
-                                    border: `1px solid ${darkMode ? '#1e293b' : '#e5e7eb'}`,
-                                    boxShadow: darkMode ? '0 4px 12px rgba(0,0,0,0.5)' : '0 4px 12px rgba(0,0,0,0.1)'
-                                  }}
-                                >
-                                  <p className="font-semibold text-xs mb-1" style={{ color: darkMode ? '#f8fafc' : '#0f172a' }}>
-                                    {payload[0].payload.fullName}
-                                  </p>
-                                  <p className="font-bold text-lg" style={{ color: payload[0].fill }}>
-                                    {payload[0].value}
-                                  </p>
-                                </div>
-                              );
-                            }
-                            return null;
-                          }}
+                        <Tooltip
+                          content={(props) => renderChartTooltip(props)}
                         />
                       </PieChart>
                     </ResponsiveContainer>
@@ -1087,6 +1093,9 @@ export const Dashboard = ({ projects = [], equipment = [], uniqueComm = 0, darkM
             ))}
           </div>
       </div>
+
+      </>
+      )}
 
       {/* Component Legend Modal */}
       {showComponentLegend && (

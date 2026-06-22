@@ -4,15 +4,16 @@ import {
   GraduationCap, 
   BarChart3, 
   LogOut, 
-  Activity, 
   Archive, 
   ChevronLeft,
   AlertTriangle,
   BookOpen,
   Package,
-  MapPin,
-  Users,
-  Settings
+  UserCheck,
+  UserX,
+  Clock,
+  ScrollText,
+  Shield,
 } from "lucide-react";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
@@ -24,11 +25,18 @@ import { Modal, ModalPanel } from "../ui/Modal";
 import { ConfirmModal } from "../ui/ConfirmModal";
 
 const NAV_ITEMS = [
-  { id: "dashboard", icon: LayoutDashboard, label: "Dashboard" },
-  { id: "analytics", icon: BarChart3, label: "Analytics" },
-  { id: "dataentry", icon: FileText, label: "Data Entry" },
-  { id: "trainings", icon: GraduationCap, label: "Trainings" },
-  { id: "archive", icon: Archive, label: "Archive" },
+  { id: "dashboard", icon: LayoutDashboard, label: "Dashboard", description: "Overview & summary" },
+  { id: "analytics", icon: BarChart3, label: "Analytics", description: "Charts & reports" },
+  { id: "dataentry", icon: FileText, label: "Data Entry", description: "Projects & equipment" },
+  { id: "trainings", icon: GraduationCap, label: "Trainings", description: "Training records" },
+  { id: "archive", icon: Archive, label: "Archive", description: "Archived items" },
+];
+
+const ADMIN_NAV_ITEMS = [
+  { id: "admin-requests", icon: Clock, label: "User Requests", description: "Pending approvals" },
+  { id: "admin-approved", icon: UserCheck, label: "Approved Users", description: "Active guests" },
+  { id: "admin-declined", icon: UserX, label: "Declined Users", description: "Rejected requests" },
+  { id: "admin-logs", icon: ScrollText, label: "Access Logs", description: "System activity" },
 ];
 
 const ROUTES = {
@@ -38,6 +46,10 @@ const ROUTES = {
   dataentry: "/dataentry",
   trainings: "/trainings",
   starbooks: "/starbooks",
+  "admin-requests": "/admin/requests",
+  "admin-approved": "/admin/approved",
+  "admin-declined": "/admin/declined",
+  "admin-logs": "/admin/logs",
 };
 
 export const Sidebar = ({ 
@@ -49,7 +61,10 @@ export const Sidebar = ({
   isCollapsed, 
   setIsCollapsed,
   onLogout,
-  onSwitchSystem
+  onSwitchSystem,
+  isAdmin = false,
+  isGuestMode = false,
+  canViewData = true,
 }) => {
   const navigate = useNavigate();
   const [showLogoutModal, setShowLogoutModal] = useState(false);
@@ -110,6 +125,102 @@ export const Sidebar = ({
   };
 
   const handleToggle = () => setIsCollapsed(!isCollapsed);
+
+  const renderNavButton = (item) => {
+    const Icon = item.icon;
+    const isActive = activePage === item.id;
+
+    const buttonStyles = {
+      background: isActive
+        ? "linear-gradient(135deg, #004A98 0%, #0066CC 100%)"
+        : "transparent",
+      boxShadow: isActive
+        ? darkMode
+          ? "0 4px 14px rgba(0, 74, 152, 0.45), inset 0 1px 0 rgba(255,255,255,0.08)"
+          : "0 4px 14px rgba(0, 74, 152, 0.28)"
+        : "none",
+    };
+
+    const iconContainerStyles = {
+      width: "36px",
+      height: "36px",
+      borderRadius: "12px",
+      background: isActive
+        ? "rgba(255, 255, 255, 0.2)"
+        : darkMode
+          ? "rgba(30, 41, 59, 0.5)"
+          : "rgba(241, 245, 249, 0.9)",
+      color: isActive ? "#ffffff" : darkMode ? "#94a3b8" : "#64748b",
+    };
+
+    const labelColor = isActive ? "#ffffff" : darkMode ? "#e2e8f0" : "#334155";
+
+    const handleHover = (e, isHovering) => {
+      if (!isActive) {
+        e.currentTarget.style.background = isHovering
+          ? darkMode
+            ? "rgba(30, 41, 59, 0.65)"
+            : "rgba(241, 245, 249, 0.95)"
+          : "transparent";
+      }
+    };
+
+    return (
+      <button
+        key={item.id}
+        onClick={() => handleNavigation(item.id)}
+        className={`w-full group relative rounded-2xl transition-all duration-200 ${
+          isCollapsed ? "flex justify-center" : "flex items-center"
+        }`}
+        style={buttonStyles}
+        title={isCollapsed ? item.label : ""}
+        onMouseEnter={(e) => handleHover(e, true)}
+        onMouseLeave={(e) => handleHover(e, false)}
+      >
+        {isActive && !isCollapsed && (
+          <div
+            className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-8 rounded-r-full"
+            style={{
+              background: "rgba(255, 255, 255, 0.95)",
+              boxShadow: "0 0 8px rgba(255, 255, 255, 0.4)",
+            }}
+          />
+        )}
+
+        <div
+          className={`flex items-center ${
+            isCollapsed ? "justify-center py-3" : "gap-3 px-3 py-2.5"
+          } w-full`}
+        >
+          <div
+            className="flex-shrink-0 flex items-center justify-center transition-transform duration-200 group-hover:scale-105"
+            style={iconContainerStyles}
+          >
+            <Icon className="w-[18px] h-[18px]" strokeWidth={2.25} />
+          </div>
+
+          {!isCollapsed && (
+            <div className="flex-1 min-w-0 text-left">
+              <span
+                className="block text-[13px] font-semibold tracking-wide truncate"
+                style={{ color: labelColor }}
+              >
+                {item.label}
+              </span>
+              {item.description && (
+                <span
+                  className="block text-[10px] font-medium truncate mt-0.5"
+                  style={{ color: isActive ? "rgba(255,255,255,0.75)" : darkMode ? "#64748b" : "#94a3b8" }}
+                >
+                  {item.description}
+                </span>
+              )}
+            </div>
+          )}
+        </div>
+      </button>
+    );
+  };
 
   return (
     <>
@@ -244,91 +355,38 @@ export const Sidebar = ({
         </button>
 
         <nav className={`flex-1 overflow-y-auto scrollbar-thin ${isCollapsed ? 'px-3 py-4' : 'px-4 py-4'}`}>
+          {!isCollapsed && (
+            <p
+              className="px-3 mb-2 text-[10px] font-bold uppercase tracking-widest"
+              style={{ color: darkMode ? "#64748b" : "#94a3b8" }}
+            >
+              Main Menu
+            </p>
+          )}
           <div className="space-y-1">
-            {NAV_ITEMS.map((item) => {
-              const Icon = item.icon;
-              const isActive = activePage === item.id;
-              
-              const buttonStyles = {
-                background: isActive 
-                  ? 'linear-gradient(135deg, #004A98 0%, #0066CC 100%)'
-                  : 'transparent',
-                boxShadow: isActive 
-                  ? (darkMode ? '0 2px 8px rgba(0, 74, 152, 0.4), inset 0 1px 0 rgba(255,255,255,0.1)' : '0 2px 8px rgba(0, 74, 152, 0.3)')
-                  : 'none'
-              };
-
-              const iconContainerStyles = {
-                width: '36px',
-                height: '36px',
-                borderRadius: '10px',
-                background: isActive 
-                  ? 'rgba(255, 255, 255, 0.2)'
-                  : (darkMode ? 'rgba(30, 41, 59, 0.4)' : 'rgba(241, 245, 249, 0.6)'),
-                color: isActive ? '#ffffff' : (darkMode ? '#94a3b8' : '#64748b')
-              };
-
-              const labelColor = isActive ? '#ffffff' : (darkMode ? '#cbd5e1' : '#334155');
-
-              const badgeStyles = {
-                background: isActive ? 'rgba(255, 255, 255, 0.25)' : '#004A98',
-                color: '#ffffff'
-              };
-
-              const handleHover = (e, isHovering) => {
-                if (!isActive) {
-                  e.currentTarget.style.background = isHovering
-                    ? (darkMode ? 'rgba(30, 41, 59, 0.6)' : 'rgba(241, 245, 249, 0.8)')
-                    : 'transparent';
-                }
-              };
-              
-              return (
-                <button
-                  key={item.id}
-                  onClick={() => handleNavigation(item.id)}
-                  className={`
-                    w-full group relative rounded-lg transition-all duration-200
-                    ${isCollapsed ? 'flex justify-center' : 'flex items-center'}
-                  `}
-                  style={buttonStyles}
-                  title={isCollapsed ? item.label : ""}
-                  onMouseEnter={(e) => handleHover(e, true)}
-                  onMouseLeave={(e) => handleHover(e, false)}
-                >
-                  {isActive && !isCollapsed && (
-                    <div 
-                      className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-7 rounded-r-full" 
-                      style={{
-                        background: 'rgba(255, 255, 255, 0.9)',
-                        boxShadow: '0 0 8px rgba(255, 255, 255, 0.5)'
-                      }}
-                    />
-                  )}
-
-                  <div className={`flex items-center ${isCollapsed ? 'justify-center py-3' : 'gap-3 px-3 py-2.5'} w-full`}>
-                    <div 
-                      className="flex-shrink-0 flex items-center justify-center transition-transform duration-200 group-hover:scale-105"
-                      style={iconContainerStyles}
-                    >
-                      <Icon className="w-[18px] h-[18px]" strokeWidth={2.5} />
-                    </div>
-                    
-                    {!isCollapsed && (
-                      <>
-                        <span 
-                          className="flex-1 text-left text-[13px] font-semibold tracking-wide"
-                          style={{ color: labelColor }}
-                        >
-                          {item.label}
-                        </span>
-                      </>
-                    )}
-                  </div>
-                </button>
-              );
-            })}
+            {(isGuestMode && !canViewData ? NAV_ITEMS.filter((i) => i.id === "dashboard") : NAV_ITEMS).map((item) =>
+              renderNavButton(item)
+            )}
           </div>
+
+          {isAdmin && (
+            <>
+              {!isCollapsed && (
+                <div className="flex items-center gap-2 px-3 mt-6 mb-2">
+                  <Shield className="w-3.5 h-3.5" style={{ color: "#004A98" }} />
+                  <p
+                    className="text-[10px] font-bold uppercase tracking-widest"
+                    style={{ color: darkMode ? "#64748b" : "#94a3b8" }}
+                  >
+                    Administration
+                  </p>
+                </div>
+              )}
+              <div className="space-y-1 mt-1">
+                {ADMIN_NAV_ITEMS.map((item) => renderNavButton(item))}
+              </div>
+            </>
+          )}
         </nav>
 
         <div 

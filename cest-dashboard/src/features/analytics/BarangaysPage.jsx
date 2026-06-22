@@ -12,6 +12,7 @@ import {
   Line,
 } from "recharts";
 import { Breadcrumb } from "../../components/layout/Breadcrumb";
+import { ChartTooltip } from "../../components/ui/ChartTooltip";
 import { fmt } from "../../shared/utils/helpers";
 import { COMP_COLORS } from "../../shared/constants";
 import { getProvinceById } from "../../shared/data/regionII";
@@ -112,14 +113,6 @@ export const BarangaysPage = ({ projects, darkMode }) => {
   const label = { color: darkMode ? "#f8fafc" : "#0f172a" };
   const muted = { color: darkMode ? "#94a3b8" : "#64748b" };
 
-  const tooltipStyle = {
-    background: darkMode ? "#0f172a" : "#ffffff",
-    border: `1px solid ${darkMode ? "#1e293b" : "#e5e7eb"}`,
-    boxShadow: darkMode
-      ? "0 4px 12px rgba(0,0,0,0.5)"
-      : "0 4px 12px rgba(0,0,0,0.1)",
-  };
-
   const getStatusColor = (status) => {
     if (status === "Ongoing")
       return darkMode
@@ -148,9 +141,9 @@ export const BarangaysPage = ({ projects, darkMode }) => {
       />
 
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-semibold mb-1" style={label}>
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+        <div className="min-w-0 flex-1">
+          <h1 className="text-xl sm:text-2xl font-semibold mb-1 leading-snug" style={label}>
             {decodedCityName}
           </h1>
           <p className="text-sm" style={muted}>
@@ -159,7 +152,7 @@ export const BarangaysPage = ({ projects, darkMode }) => {
         </div>
         <button
           onClick={() => navigate(`/analytics/provinces/${provinceId}`)}
-          className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200"
+          className="flex items-center justify-center gap-2 w-full sm:w-auto px-4 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 shrink-0"
           style={{
             background: darkMode ? "#1e293b" : "#f8fafc",
             color: darkMode ? "#f8fafc" : "#0f172a",
@@ -288,17 +281,12 @@ export const BarangaysPage = ({ projects, darkMode }) => {
                 <Tooltip
                   content={({ active, payload }) =>
                     active && payload?.length ? (
-                      <div className="p-3 rounded-lg" style={tooltipStyle}>
-                        <p className="font-semibold text-xs mb-1" style={label}>
-                          {payload[0].payload.fullName}
-                        </p>
-                        <p className="font-bold text-lg" style={{ color: "#004A98" }}>
-                          {fmtChart(payload[0].value)}
-                        </p>
-                        <p className="text-xs mt-1" style={muted}>
-                          {payload[0].payload.projects} projects
-                        </p>
-                      </div>
+                      <ChartTooltip
+                        title={payload[0].payload.fullName}
+                        value={fmtChart(payload[0].value)}
+                        accentColor="#004A98"
+                        subtitle={`${payload[0].payload.projects} projects`}
+                      />
                     ) : null
                   }
                   cursor={{
@@ -358,17 +346,12 @@ export const BarangaysPage = ({ projects, darkMode }) => {
                 <Tooltip
                   content={({ active, payload }) =>
                     active && payload?.length ? (
-                      <div className="p-3 rounded-lg" style={tooltipStyle}>
-                        <p className="font-semibold text-xs mb-1" style={label}>
-                          Year {payload[0].payload.year}
-                        </p>
-                        <p className="font-bold text-lg" style={{ color: "#004A98" }}>
-                          {fmtChart(payload[0].value)}
-                        </p>
-                        <p className="text-xs mt-1" style={muted}>
-                          {payload[0].payload.projects} projects
-                        </p>
-                      </div>
+                      <ChartTooltip
+                        title={`Year ${payload[0].payload.year}`}
+                        value={fmtChart(payload[0].value)}
+                        accentColor="#004A98"
+                        subtitle={`${payload[0].payload.projects} projects`}
+                      />
                     ) : null
                   }
                   cursor={{

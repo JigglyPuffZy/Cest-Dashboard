@@ -6,15 +6,7 @@ import { transformProjects, transformEquipmentList } from "../../shared/utils/da
 import { HoverTooltip } from "../../components/ui/Tooltip";
 import { safeString, safeProjectTitle, safeEquipmentName, safeDisplayName } from "../../shared/utils/safeRender";
 import { Modal, ModalPanel } from "../../components/ui/Modal";
-
-// Region II (Cagayan Valley) Provinces
-const REGION_II_PROVINCES = [
-  'Batanes',
-  'Cagayan', 
-  'Isabela',
-  'Nueva Vizcaya',
-  'Quirino'
-];
+import { DataEntryFilters, ProjectRecordCard, EquipmentRecordCard } from "../../components/data-entry/RecordCards";
 
 export const DataEntryPage = ({ projects = [], equipment = [], onAddProject, onAddEquipment, onDeleteProject, onDeleteEquipment, onUpdateProject, onUpdateEquipment, darkMode, isLoading = false, readOnly = false }) => {
   const [showModal, setShowModal] = useState(false);
@@ -269,55 +261,66 @@ export const DataEntryPage = ({ projects = [], equipment = [], onAddProject, onA
   };
 
   return (
-    <div className="max-w-[1400px] mx-auto space-y-6">
+    <div className="max-w-[1400px] mx-auto space-y-4 sm:space-y-6 w-full min-w-0">
       {/* Header */}
-      <div className="text-center mb-8">
-        <div className="inline-flex items-center gap-4 mb-4 p-6 rounded-2xl" style={{
-          background: darkMode ? 'rgba(0, 74, 152, 0.1)' : 'rgba(0, 74, 152, 0.05)',
-          border: `2px solid ${darkMode ? 'rgba(0, 74, 152, 0.2)' : 'rgba(0, 74, 152, 0.1)'}`
-        }}>
-          <div className="p-3 rounded-xl" style={{ background: 'linear-gradient(135deg, #004A98 0%, #0066CC 100%)' }}>
-            <FileText className="w-8 h-8 text-white" />
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-2 sm:mb-4">
+        <div className="flex items-center gap-4 min-w-0">
+          <div className="p-3 rounded-xl shrink-0" style={{ background: 'linear-gradient(135deg, #004A98 0%, #0066CC 100%)' }}>
+            <FileText className="w-6 h-6 sm:w-7 sm:h-7 text-white" />
           </div>
-          <div className="text-left">
-            <h1 className="text-3xl font-bold" style={{ color: darkMode ? '#f8fafc' : '#0f172a' }}>
-              Data Entry Portal
+          <div className="min-w-0">
+            <h1 className="text-xl sm:text-2xl font-bold truncate" style={{ color: darkMode ? '#f8fafc' : '#0f172a' }}>
+              Data Entry
             </h1>
-            <p className="text-sm" style={{ color: darkMode ? '#94a3b8' : '#64748b' }}>
-              Manage CEST 2.0 projects and equipment records
+            <p className="text-xs sm:text-sm" style={{ color: darkMode ? '#94a3b8' : '#64748b' }}>
+              Manage CEST 2.0 projects and equipment
             </p>
           </div>
         </div>
+        {!readOnly && (
+          <button
+            onClick={() => setShowModal(true)}
+            className="flex items-center justify-center gap-2 w-full sm:w-auto px-5 py-3 rounded-xl text-sm font-semibold transition-all duration-200 sm:hover:scale-[1.02] shrink-0"
+            style={{
+              background: 'linear-gradient(135deg, #004A98 0%, #0066CC 100%)',
+              color: '#ffffff',
+              boxShadow: '0 4px 14px rgba(0, 74, 152, 0.35)',
+            }}
+          >
+            <Plus className="w-4 h-4" />
+            Add Record
+          </button>
+        )}
       </div>
 
       {/* Statistics Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 mb-8">
+      <div className="grid grid-cols-2 lg:grid-cols-5 gap-2.5 sm:gap-4 mb-4 sm:mb-6">
         {[
           { label: "Total Projects", value: totalProjects, icon: FileText, color: "#004A98" },
           { label: "Equipment Items", value: totalEquipment, icon: Package, color: "#10b981" },
           { label: "Municipalities", value: uniqueMunicipalities, icon: Building2, color: "#8b5cf6" },
           { label: "Communities", value: uniqueCommunities, icon: Users, color: "#f59e0b" },
-          { label: "Total Budget", value: fmt(totalBudget), icon: TrendingUp, color: "#ef4444" }
-        ].map((stat, index) => {
+          { label: "Total Budget", value: fmt(totalBudget), icon: TrendingUp, color: "#ef4444", wide: true }
+        ].map((stat) => {
           const Icon = stat.icon;
           return (
             <div 
               key={stat.label}
-              className="group rounded-2xl p-5 transition-all duration-300 hover:scale-105 hover:shadow-lg"
+              className={`rounded-xl sm:rounded-2xl p-3 sm:p-5 transition-all duration-200 sm:hover:shadow-lg ${stat.wide ? 'col-span-2 lg:col-span-1' : ''}`}
               style={cardStyle}
             >
-              <div className="flex items-center gap-3 mb-3">
+              <div className="flex items-center gap-2 sm:gap-3 mb-2 sm:mb-3">
                 <div 
-                  className="p-3 rounded-lg transition-all duration-300 group-hover:scale-110"
+                  className="p-2 sm:p-3 rounded-lg shrink-0"
                   style={{ background: `${stat.color}15` }}
                 >
-                  <Icon className="w-5 h-5" style={{ color: stat.color }} />
+                  <Icon className="w-4 h-4 sm:w-5 sm:h-5" style={{ color: stat.color }} />
                 </div>
               </div>
-              <p className="text-sm font-medium mb-1" style={{ color: darkMode ? '#94a3b8' : '#64748b' }}>
+              <p className="text-[11px] sm:text-sm font-medium mb-0.5 sm:mb-1 leading-tight" style={{ color: darkMode ? '#94a3b8' : '#64748b' }}>
                 {stat.label}
               </p>
-              <p className="text-2xl font-bold" style={{ color: darkMode ? '#f8fafc' : '#0f172a' }}>
+              <p className="text-lg sm:text-2xl font-bold truncate" style={{ color: darkMode ? '#f8fafc' : '#0f172a' }}>
                 {stat.value}
               </p>
             </div>
@@ -326,11 +329,10 @@ export const DataEntryPage = ({ projects = [], equipment = [], onAddProject, onA
       </div>
 
       {/* Main Content */}
-      <div className="flex flex-col lg:flex-row gap-6">
-        {/* Navigation Sidebar */}
-        <div className="lg:w-80">
-          <div className="rounded-2xl p-4" style={cardStyle}>
-            <div className="space-y-2">
+      <div className="flex flex-col lg:flex-row gap-4 lg:gap-6">
+        {/* Navigation */}
+        <div className="lg:w-72 shrink-0">
+          <div className="rounded-xl p-2 sm:p-3 flex lg:flex-col gap-2 overflow-x-auto lg:overflow-visible scrollbar-thin" style={cardStyle}>
               {[
                 { id: 'combined', label: 'Projects & Equipment', icon: TrendingUp, count: totalProjects + totalEquipment, description: 'Unified view' },
                 { id: 'overview', label: 'Overview', icon: TrendingUp, count: totalProjects + totalEquipment, description: 'All records' },
@@ -343,8 +345,8 @@ export const DataEntryPage = ({ projects = [], equipment = [], onAddProject, onA
                   <button
                     key={tab.id}
                     onClick={() => setActiveView(tab.id)}
-                    className={`w-full flex items-center gap-3 p-4 rounded-xl transition-all duration-200 ${
-                      isActive ? 'shadow-lg' : 'hover:scale-102'
+                    className={`flex-shrink-0 lg:flex-shrink lg:w-full flex items-center gap-2 sm:gap-3 p-3 sm:p-4 rounded-xl transition-all duration-200 ${
+                      isActive ? 'shadow-md' : 'opacity-90 hover:opacity-100'
                     }`}
                     style={{
                       background: isActive 
@@ -364,255 +366,74 @@ export const DataEntryPage = ({ projects = [], equipment = [], onAddProject, onA
                   </button>
                 );
               })}
-            </div>
           </div>
-
-          {/* Quick Actions */}
-          {!readOnly && (
-          <div className="mt-4 rounded-2xl p-4" style={cardStyle}>
-            <h3 className="text-lg font-bold mb-4" style={{ color: darkMode ? '#f8fafc' : '#0f172a' }}>
-              Quick Actions
-            </h3>
-            <button
-              onClick={() => setShowModal(true)}
-              className="w-full flex items-center gap-3 p-4 rounded-xl transition-all duration-200 hover:scale-105"
-              style={{
-                background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
-                color: '#ffffff'
-              }}
-            >
-              <Plus className="w-5 h-5" />
-              <span className="font-semibold">Add New Record</span>
-            </button>
-          </div>
-          )}
         </div>
 
         {/* Content Area */}
-        <div className="flex-1">
-          <div className="rounded-2xl p-6" style={cardStyle}>
+        <div className="flex-1 min-w-0">
+          <div className="rounded-xl sm:rounded-2xl p-4 sm:p-6" style={cardStyle}>
             {activeView === 'combined' && (
               <div>
-                <div className="flex items-center justify-between mb-6">
-                  <div>
-                    <h2 className="text-2xl font-bold" style={{ color: darkMode ? '#f8fafc' : '#0f172a' }}>
-                      Projects & Equipment
-                    </h2>
-                    <p className="text-sm" style={{ color: darkMode ? '#94a3b8' : '#64748b' }}>
-                      Unified view showing projects with their linked equipment • Default view
-                    </p>
-                  </div>
+                <div className="mb-4 sm:mb-5">
+                  <h2 className="text-lg sm:text-xl font-bold" style={{ color: darkMode ? '#f8fafc' : '#0f172a' }}>
+                    Projects & Equipment
+                  </h2>
+                  <p className="text-xs sm:text-sm mt-1" style={{ color: darkMode ? '#94a3b8' : '#64748b' }}>
+                    {combinedGroups.length} group{combinedGroups.length !== 1 ? 's' : ''} · projects with linked equipment
+                  </p>
                 </div>
 
-                {/* Search & Filter */}
-                <div className="flex flex-col lg:flex-row gap-4 mb-6">
-                  <div className="flex-1 relative">
-                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4" style={{ color: darkMode ? '#94a3b8' : '#64748b' }} />
-                    <input
-                      type="text"
-                      placeholder="Search projects and equipment..."
-                      value={searchTerm}
-                      onChange={(e) => setSearchTerm(e.target.value)}
-                      className="w-full pl-10 pr-4 py-3 rounded-xl text-sm outline-none transition-all duration-200"
-                      style={{
-                        background: darkMode ? '#1e293b' : '#f8fafc',
-                        color: darkMode ? '#f8fafc' : '#0f172a',
-                        border: `2px solid ${darkMode ? '#334155' : '#e2e8f0'}`,
-                      }}
-                    />
-                  </div>
-                  <select
-                    value={filterProvince}
-                    onChange={(e) => setFilterProvince(e.target.value)}
-                    className="px-4 py-3 rounded-xl text-sm outline-none cursor-pointer"
-                    style={{
-                      background: darkMode ? '#1e293b' : '#f8fafc',
-                      color: darkMode ? '#f8fafc' : '#0f172a',
-                      border: `2px solid ${darkMode ? '#334155' : '#e2e8f0'}`,
-                    }}
-                  >
-                    <option value="All">All Provinces</option>
-                    {REGION_II_PROVINCES.map(province => (
-                      <option key={province} value={province}>{province}</option>
-                    ))}
-                  </select>
-                  <select
-                    value={filterStatus}
-                    onChange={(e) => setFilterStatus(e.target.value)}
-                    className="px-4 py-3 rounded-xl text-sm outline-none cursor-pointer"
-                    style={{
-                      background: darkMode ? '#1e293b' : '#f8fafc',
-                      color: darkMode ? '#f8fafc' : '#0f172a',
-                      border: `2px solid ${darkMode ? '#334155' : '#e2e8f0'}`,
-                    }}
-                  >
-                    <option value="All">All Status</option>
-                    <option value="Ongoing">Ongoing</option>
-                    <option value="Liquidated">Liquidated</option>
-                    <option value="Finished">Finished</option>
-                  </select>
-                </div>
+                <DataEntryFilters
+                  searchTerm={searchTerm}
+                  setSearchTerm={setSearchTerm}
+                  filterProvince={filterProvince}
+                  setFilterProvince={setFilterProvince}
+                  filterStatus={filterStatus}
+                  setFilterStatus={setFilterStatus}
+                  darkMode={darkMode}
+                  placeholder="Search projects and equipment..."
+                />
 
-                {/* Combined Groups */}
-                <div className="space-y-6">
+                <div className="space-y-4">
                   {combinedGroups.map((group, groupIndex) => (
-                    <div key={`group-${groupIndex}`} className="space-y-3">
-                      {/* Project Header (if exists) */}
+                    <div key={`group-${groupIndex}`} className="space-y-2">
                       {group.project && (
-                        <div
-                          onClick={() => handleViewDetails(group.project, group.projectIndex)}
-                          className="p-4 rounded-xl border transition-all duration-200 hover:shadow-lg hover:scale-102 cursor-pointer"
-                          style={{
-                            background: darkMode ? '#1e293b' : '#ffffff',
-                            borderColor: darkMode ? '#334155' : '#e2e8f0',
-                            borderLeft: '4px solid #004A98'
-                          }}
-                        >
-                          <div className="flex items-start justify-between gap-3">
-                            <div className="flex-1">
-                              <div className="flex items-center gap-2 mb-2">
-                                <span className="text-xs font-bold px-2 py-1 rounded" style={{ background: '#004A98', color: '#ffffff' }}>
-                                  {group.project.year || 'N/A'}
-                                </span>
-                                <span className="text-xs font-bold px-2 py-1 rounded" style={{ background: '#10b981', color: '#ffffff' }}>
-                                  Project #{group.projectIndex + 1}
-                                </span>
-                              </div>
-                              <h4 className="text-lg font-bold mb-2" style={{ color: darkMode ? '#f8fafc' : '#0f172a' }}>
-                                {safeProjectTitle(group.project) || 'Untitled Project'}
-                              </h4>
-                              <div className="flex items-center gap-3 text-sm mb-3" style={{ color: darkMode ? '#94a3b8' : '#64748b' }}>
-                                <div className="flex items-center gap-1">
-                                  <MapPin className="w-4 h-4" />
-                                  <span className="font-semibold">{group.project.municipality || 'Unknown Location'}</span>
-                                </div>
-                                <span>•</span>
-                                <span className="font-semibold">{group.project.community || 'N/A'}</span>
-                                <span>•</span>
-                                <span className="font-bold text-green-600">₱{(group.project.amountFunded || 0).toLocaleString()}</span>
-                              </div>
-                              
-                              {/* Project Components */}
-                              {group.project.components && group.project.components.length > 0 && (
-                                <div className="flex flex-wrap gap-2">
-                                  {group.project.components.slice(0, 3).map((c, i) => {
-                                    const componentKey = typeof c === 'object' ? c.id || c.component?.id || c : c;
-                                    const componentName = typeof c === 'object' ? c.name || c.component?.name || componentKey : componentKey;
-                                    return (
-                                      <HoverTooltip
-                                        key={`${componentKey}-${i}`}
-                                        content={COMPONENTS[componentKey] || componentName}
-                                        position="auto"
-                                        darkMode={darkMode}
-                                        delay={150}
-                                      >
-                                        <span 
-                                          className="text-xs font-medium px-2 py-1 rounded-lg cursor-help" 
-                                          style={{ 
-                                            background: `${COMP_COLORS[componentKey] || '#64748b'}20`,
-                                            color: COMP_COLORS[componentKey] || '#64748b',
-                                            border: `1px solid ${COMP_COLORS[componentKey] || '#64748b'}40`
-                                          }}
-                                        >
-                                          {String(componentKey)?.toUpperCase() || 'N/A'}
-                                        </span>
-                                      </HoverTooltip>
-                                    );
-                                  })}
-                                  {group.project.components.length > 3 && (
-                                    <span className="text-xs px-2 py-1 rounded-lg" style={{ 
-                                      background: darkMode ? '#374151' : '#f3f4f6',
-                                      color: darkMode ? '#9ca3af' : '#6b7280'
-                                    }}>
-                                      +{group.project.components.length - 3} more
-                                    </span>
-                                  )}
-                                </div>
-                              )}
-                            </div>
-                            {!readOnly && (
-                            <button
-                              onClick={(e) => { e.stopPropagation(); setConfirmDelete({ item: group.project, type: 'project' }); }}
-                              className="p-1.5 rounded-lg transition-all duration-200 hover:scale-110 flex-shrink-0"
-                              style={{ background: 'rgba(239,68,68,0.1)', color: '#ef4444' }}
-                              title="Move to Archive"
-                            >
-                              <Trash2 className="w-3.5 h-3.5" />
-                            </button>
-                            )}
-                          </div>
-                        </div>
+                        <ProjectRecordCard
+                          project={group.project}
+                          index={group.projectIndex}
+                          darkMode={darkMode}
+                          readOnly={readOnly}
+                          onView={() => handleViewDetails(group.project, group.projectIndex)}
+                          onDelete={readOnly ? null : () => setConfirmDelete({ item: group.project, type: 'project' })}
+                          fmt={fmt}
+                          getStatusColor={getStatusColor}
+                        />
                       )}
 
-                      {/* Equipment List */}
                       {group.equipment.length > 0 && (
-                        <div className="ml-6 space-y-2">
+                        <div className="space-y-2">
                           {group.equipment.map((item, equipIndex) => (
-                            <div
+                            <EquipmentRecordCard
                               key={`equipment-${item.id}-${equipIndex}`}
-                              onClick={() => handleViewDetails(item, equipIndex)}
-                              className="p-3 rounded-lg border transition-all duration-200 hover:shadow-md hover:scale-101 cursor-pointer"
-                              style={{
-                                background: darkMode ? 'rgba(30, 41, 59, 0.5)' : 'rgba(248, 250, 252, 0.8)',
-                                borderColor: darkMode ? '#475569' : '#d1d5db',
-                                borderLeft: '3px solid #10b981'
-                              }}
-                            >
-                              <div className="flex items-start justify-between gap-3">
-                                <div className="flex-1">
-                                  <div className="flex items-center gap-2 mb-1">
-                                    <span className="text-xs font-bold px-2 py-1 rounded" style={{ background: '#10b981', color: '#ffffff' }}>
-                                      {item.year || 'N/A'}
-                                    </span>
-                                    <span className="text-xs font-bold px-2 py-1 rounded" style={{ background: '#f59e0b', color: '#ffffff' }}>
-                                      Equipment #{equipIndex + 1}
-                                    </span>
-                                  </div>
-                                  <h5 className="text-sm font-semibold mb-1" style={{ color: darkMode ? '#f8fafc' : '#0f172a' }}>
-                                    {safeEquipmentName(item) || 'Untitled Equipment'}
-                                  </h5>
-                                  <div className="flex items-center gap-3 text-xs" style={{ color: darkMode ? '#94a3b8' : '#64748b' }}>
-                                    <div className="flex items-center gap-1">
-                                      <MapPin className="w-3 h-3" />
-                                      <span className="font-semibold">{item.municipality || 'Unknown Location'}</span>
-                                    </div>
-                                    <span>•</span>
-                                    <span className="font-semibold">{item.community || 'N/A'}</span>
-                                    <span>•</span>
-                                    <div className="flex items-center gap-1">
-                                      <Package className="w-3 h-3" />
-                                      <span className="font-semibold">{item.units || 0} units</span>
-                                    </div>
-                                  </div>
-                                </div>
-                                {!readOnly && (
-                                <button
-                                  onClick={(e) => { e.stopPropagation(); setConfirmDelete({ item, type: 'equipment' }); }}
-                                  className="p-1 rounded transition-all duration-200 hover:scale-110 flex-shrink-0"
-                                  style={{ background: 'rgba(239,68,68,0.1)', color: '#ef4444' }}
-                                  title="Move to Archive"
-                                >
-                                  <Trash2 className="w-3 h-3" />
-                                </button>
-                                )}
-                              </div>
-                            </div>
+                              item={item}
+                              index={equipIndex}
+                              darkMode={darkMode}
+                              readOnly={readOnly}
+                              nested
+                              onView={() => handleViewDetails(item, equipIndex)}
+                              onDelete={readOnly ? null : () => setConfirmDelete({ item, type: 'equipment' })}
+                            />
                           ))}
                         </div>
                       )}
 
-                      {/* No Equipment Message */}
                       {group.project && group.equipment.length === 0 && (
-                        <div className="ml-6 p-3 rounded-lg text-center" style={{
-                          background: darkMode ? 'rgba(107, 114, 128, 0.1)' : 'rgba(107, 114, 128, 0.05)',
-                          border: `1px dashed ${darkMode ? '#4b5563' : '#9ca3af'}`
+                        <div className="sm:ml-4 p-3 rounded-lg text-center text-xs" style={{
+                          background: darkMode ? 'rgba(107, 114, 128, 0.08)' : 'rgba(107, 114, 128, 0.04)',
+                          border: `1px dashed ${darkMode ? '#475569' : '#cbd5e1'}`,
+                          color: darkMode ? '#94a3b8' : '#64748b',
                         }}>
-                          <p className="text-xs" style={{ color: darkMode ? '#9ca3af' : '#6b7280' }}>
-                            No equipment linked to this project yet
-                          </p>
-                          <p className="text-xs mt-1" style={{ color: darkMode ? '#64748b' : '#94a3b8' }}>
-                            Add equipment with matching project title to link them
-                          </p>
+                          No equipment linked to this project
                         </div>
                       )}
                     </div>
@@ -650,34 +471,34 @@ export const DataEntryPage = ({ projects = [], equipment = [], onAddProject, onA
 
             {activeView === 'overview' && (
               <div>
-                <div className="flex items-center justify-between mb-6">
-                  <div>
-                    <h2 className="text-2xl font-bold" style={{ color: darkMode ? '#f8fafc' : '#0f172a' }}>
+                <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 mb-4 sm:mb-5">
+                  <div className="min-w-0">
+                    <h2 className="text-lg sm:text-xl font-bold" style={{ color: darkMode ? '#f8fafc' : '#0f172a' }}>
                       Database Overview
                     </h2>
-                    <p className="text-sm" style={{ color: darkMode ? '#94a3b8' : '#64748b' }}>
-                      Complete view of all records ({totalProjects + totalEquipment} total)
+                    <p className="text-xs sm:text-sm mt-1" style={{ color: darkMode ? '#94a3b8' : '#64748b' }}>
+                      {filteredProjects.length} projects · {filteredEquipment.length} equipment · {totalProjects + totalEquipment} total records
                     </p>
                   </div>
-                  <div className="flex items-center gap-2 px-4 py-2 rounded-full" style={{
+                  <div className="flex items-center gap-2 px-3 py-1.5 rounded-full shrink-0 self-start" style={{
                     background: darkMode ? 'rgba(16, 185, 129, 0.1)' : 'rgba(16, 185, 129, 0.05)',
                     border: `1px solid ${darkMode ? 'rgba(16, 185, 129, 0.2)' : 'rgba(16, 185, 129, 0.1)'}`
                   }}>
                     <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
-                    <span className="text-xs font-bold" style={{ color: '#10b981' }}>
+                    <span className="text-xs font-semibold" style={{ color: '#10b981' }}>
                       Live Data
                     </span>
                   </div>
                 </div>
 
                 {totalProjects === 0 && totalEquipment === 0 ? (
-                  <div className="text-center py-20">
-                    <div className="w-24 h-24 mx-auto mb-6 rounded-2xl flex items-center justify-center" style={{
+                  <div className="text-center py-16 sm:py-20">
+                    <div className="w-16 h-16 sm:w-24 sm:h-24 mx-auto mb-4 sm:mb-6 rounded-2xl flex items-center justify-center" style={{
                       background: 'linear-gradient(135deg, #004A98 0%, #0066CC 100%)'
                     }}>
-                      <FileText className="w-12 h-12 text-white" />
+                      <FileText className="w-8 h-8 sm:w-12 sm:h-12 text-white" />
                     </div>
-                    <h3 className="text-xl font-bold mb-2" style={{ color: darkMode ? '#f8fafc' : '#0f172a' }}>
+                    <h3 className="text-lg sm:text-xl font-bold mb-2" style={{ color: darkMode ? '#f8fafc' : '#0f172a' }}>
                       No Data Available
                     </h3>
                     <p className="text-sm" style={{ color: darkMode ? '#94a3b8' : '#64748b' }}>
@@ -686,227 +507,63 @@ export const DataEntryPage = ({ projects = [], equipment = [], onAddProject, onA
                   </div>
                 ) : (
                   <div className="space-y-6">
-                    {/* Search & Filter */}
-                    <div className="flex flex-col lg:flex-row gap-4">
-                      <div className="flex-1 relative">
-                        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4" style={{ color: darkMode ? '#94a3b8' : '#64748b' }} />
-                        <input
-                          type="text"
-                          placeholder="Search records..."
-                          value={searchTerm}
-                          onChange={(e) => setSearchTerm(e.target.value)}
-                          className="w-full pl-10 pr-4 py-3 rounded-xl text-sm outline-none transition-all duration-200"
-                          style={{
-                            background: darkMode ? '#1e293b' : '#f8fafc',
-                            color: darkMode ? '#f8fafc' : '#0f172a',
-                            border: `2px solid ${darkMode ? '#334155' : '#e2e8f0'}`,
-                          }}
-                        />
-                      </div>
-                      <select
-                        value={filterProvince}
-                        onChange={(e) => setFilterProvince(e.target.value)}
-                        className="px-4 py-3 rounded-xl text-sm outline-none cursor-pointer"
-                        style={{
-                          background: darkMode ? '#1e293b' : '#f8fafc',
-                          color: darkMode ? '#f8fafc' : '#0f172a',
-                          border: `2px solid ${darkMode ? '#334155' : '#e2e8f0'}`,
-                        }}
-                      >
-                        <option value="All">All Provinces</option>
-                        {REGION_II_PROVINCES.map(province => (
-                          <option key={province} value={province}>{province}</option>
-                        ))}
-                      </select>
-                      <select
-                        value={filterStatus}
-                        onChange={(e) => setFilterStatus(e.target.value)}
-                        className="px-4 py-3 rounded-xl text-sm outline-none cursor-pointer"
-                        style={{
-                          background: darkMode ? '#1e293b' : '#f8fafc',
-                          color: darkMode ? '#f8fafc' : '#0f172a',
-                          border: `2px solid ${darkMode ? '#334155' : '#e2e8f0'}`,
-                        }}
-                      >
-                        <option value="All">All Status</option>
-                        <option value="Ongoing">Ongoing</option>
-                        <option value="Liquidated">Liquidated</option>
-                        <option value="Finished">Finished</option>
-                      </select>
-                    </div>
+                    <DataEntryFilters
+                      searchTerm={searchTerm}
+                      setSearchTerm={setSearchTerm}
+                      filterProvince={filterProvince}
+                      setFilterProvince={setFilterProvince}
+                      filterStatus={filterStatus}
+                      setFilterStatus={setFilterStatus}
+                      darkMode={darkMode}
+                      placeholder="Search records..."
+                    />
 
-                    {/* Debug Info */}
-                    <div className="p-4 rounded-xl" style={{ 
-                      background: darkMode ? 'rgba(59, 130, 246, 0.1)' : 'rgba(59, 130, 246, 0.05)',
-                      border: `1px solid ${darkMode ? 'rgba(59, 130, 246, 0.2)' : 'rgba(59, 130, 246, 0.1)'}`
-                    }}>
-                      <p className="text-sm font-medium" style={{ color: '#3b82f6' }}>
-                        📊 Data Status: {totalProjects} projects, {totalEquipment} equipment items loaded
-                      </p>
-                      <p className="text-xs mt-1" style={{ color: darkMode ? '#94a3b8' : '#64748b' }}>
-                        Filtered: {filteredProjects.length} projects, {filteredEquipment.length} equipment
-                      </p>
-                    </div>
-
-                    {/* Projects Section */}
                     {filteredProjects.length > 0 && (
                       <div>
-                        <h3 className="text-lg font-bold mb-4 flex items-center gap-2" style={{ color: darkMode ? '#f8fafc' : '#0f172a' }}>
-                          <FileText className="w-5 h-5" style={{ color: '#004A98' }} />
+                        <h3 className="text-sm sm:text-base font-bold mb-3 flex items-center gap-2" style={{ color: darkMode ? '#f8fafc' : '#0f172a' }}>
+                          <FileText className="w-4 h-4 sm:w-5 sm:h-5" style={{ color: '#004A98' }} />
                           Projects ({filteredProjects.length})
                         </h3>
                         <div className="space-y-3">
-                          {filteredProjects.slice(0, 10).map((project, index) => (
-                            <div
+                          {filteredProjects.map((project, index) => (
+                            <ProjectRecordCard
                               key={`project-${project.id}-${index}`}
-                              onClick={() => handleViewDetails(project, index)}
-                              className="p-4 rounded-xl border transition-all duration-200 hover:shadow-lg hover:scale-102 cursor-pointer"
-                              style={{
-                                background: darkMode ? '#1e293b' : '#ffffff',
-                                borderColor: darkMode ? '#334155' : '#e2e8f0'
-                              }}
-                            >
-                              <div className="flex items-start justify-between gap-3">
-                                <div className="flex-1">
-                                  <div className="flex items-center gap-2 mb-2">
-                                    <span className="text-xs font-bold px-2 py-1 rounded" style={{ background: '#004A98', color: '#ffffff' }}>
-                                      {project.year || 'N/A'}
-                                    </span>
-                                    <span className="text-xs font-bold px-2 py-1 rounded" style={{ background: '#10b981', color: '#ffffff' }}>
-                                      Project #{index + 1}
-                                    </span>
-                                  </div>
-                                  <h4 className="text-sm font-bold mb-2" style={{ color: darkMode ? '#f8fafc' : '#0f172a' }}>
-                                    {safeProjectTitle(project) || 'Untitled Project'}
-                                  </h4>
-                                  <div className="flex items-center gap-3 text-xs mb-2" style={{ color: darkMode ? '#94a3b8' : '#64748b' }}>
-                                    <div className="flex items-center gap-1">
-                                      <MapPin className="w-3 h-3" />
-                                      <span className="font-semibold">{project.municipality || 'Unknown Location'}</span>
-                                    </div>
-                                    <span>•</span>
-                                    <span className="font-semibold">{project.community || 'N/A'}</span>
-                                  </div>
-                                  <div className="flex items-center gap-2 flex-wrap">
-                                    <span className={`text-xs font-medium px-2 py-1 rounded border ${getStatusColor(project.status || 'Unknown')}`}>
-                                      {project.status || 'Unknown'}
-                                    </span>
-                                    {(project.components || []).slice(0, 3).map((c, compIndex) => {
-                                      const componentKey = typeof c === 'object' ? c.id || c.component?.id || c : c;
-                                      return (
-                                        <span 
-                                          key={`${project.id}-comp-${compIndex}`}
-                                          className="text-xs font-medium px-2 py-1 rounded"
-                                          style={{
-                                            backgroundColor: `${COMP_COLORS[componentKey] || '#64748b'}20`,
-                                            color: COMP_COLORS[componentKey] || '#64748b'
-                                          }}
-                                        >
-                                          {String(componentKey)?.toUpperCase() || 'N/A'}
-                                        </span>
-                                      );
-                                    })}
-                                  </div>
-                                </div>
-                                <div className="flex flex-col items-end gap-2">
-                                  <p className="text-lg font-bold" style={{ color: '#10b981' }}>
-                                    {fmt(project.amountFunded || 0)}
-                                  </p>
-                                  {!readOnly && (
-                                  <button
-                                    onClick={(e) => { e.stopPropagation(); setConfirmDelete({ item: project, type: 'project' }); }}
-                                    className="p-1.5 rounded-lg transition-all duration-200 hover:scale-110"
-                                    style={{ background: 'rgba(239,68,68,0.1)', color: '#ef4444' }}
-                                    title="Move to Archive"
-                                  >
-                                    <Trash2 className="w-3.5 h-3.5" />
-                                  </button>
-                                  )}
-                                </div>
-                              </div>
-                            </div>
+                              project={project}
+                              index={index}
+                              darkMode={darkMode}
+                              readOnly={readOnly}
+                              onView={() => handleViewDetails(project, index)}
+                              onDelete={readOnly ? null : () => setConfirmDelete({ item: project, type: 'project' })}
+                              fmt={fmt}
+                              getStatusColor={getStatusColor}
+                            />
                           ))}
                         </div>
                       </div>
                     )}
 
-                    {/* Equipment Section */}
                     {filteredEquipment.length > 0 && (
                       <div>
-                        <h3 className="text-lg font-bold mb-4 flex items-center gap-2" style={{ color: darkMode ? '#f8fafc' : '#0f172a' }}>
-                          <Package className="w-5 h-5" style={{ color: '#10b981' }} />
+                        <h3 className="text-sm sm:text-base font-bold mb-3 flex items-center gap-2" style={{ color: darkMode ? '#f8fafc' : '#0f172a' }}>
+                          <Package className="w-4 h-4 sm:w-5 sm:h-5" style={{ color: '#10b981' }} />
                           Equipment ({filteredEquipment.length})
                         </h3>
                         <div className="space-y-3">
-                          {filteredEquipment.slice(0, 10).map((item, index) => (
-                            <div
+                          {filteredEquipment.map((item, index) => (
+                            <EquipmentRecordCard
                               key={`equipment-${item.id}-${index}`}
-                              onClick={() => handleViewDetails(item, index)}
-                              className="p-4 rounded-xl border transition-all duration-200 hover:shadow-lg hover:scale-102 cursor-pointer"
-                              style={{
-                                background: darkMode ? '#1e293b' : '#ffffff',
-                                borderColor: darkMode ? '#334155' : '#e2e8f0'
-                              }}
-                            >
-                              <div className="flex items-start justify-between gap-3">
-                                <div className="flex-1">
-                                  <div className="flex items-center gap-2 mb-2">
-                                    <span className="text-xs font-bold px-2 py-1 rounded" style={{ background: '#10b981', color: '#ffffff' }}>
-                                      {item.year || 'N/A'}
-                                    </span>
-                                    <span className="text-xs font-bold px-2 py-1 rounded" style={{ background: '#f59e0b', color: '#ffffff' }}>
-                                      Equipment #{index + 1}
-                                    </span>
-                                  </div>
-                                  
-                                  {/* Project Name Label */}
-                                  {(item.projectName || item.project?.project_title || item.project_title) && (
-                                    <div className="mb-2">
-                                      <span className="text-xs font-semibold px-2 py-1 rounded-lg" style={{ 
-                                        background: darkMode ? 'rgba(139, 92, 246, 0.2)' : 'rgba(139, 92, 246, 0.1)', 
-                                        color: '#8b5cf6',
-                                        border: '1px solid rgba(139, 92, 246, 0.3)'
-                                      }}>
-                                        📁 {safeProjectTitle(item) || 'Unknown Project'}
-                                      </span>
-                                    </div>
-                                  )}
-                                  
-                                  <h4 className="text-sm font-bold mb-2" style={{ color: darkMode ? '#f8fafc' : '#0f172a' }}>
-                                    {item.equipment_name || item.equipmentName || 'Untitled Equipment'}
-                                  </h4>
-                                  <div className="flex items-center gap-3 text-xs" style={{ color: darkMode ? '#94a3b8' : '#64748b' }}>
-                                    <div className="flex items-center gap-1">
-                                      <MapPin className="w-3 h-3" />
-                                      <span className="font-semibold">{item.municipality || 'Unknown Location'}</span>
-                                    </div>
-                                    <span>•</span>
-                                    <span className="font-semibold">{item.community || 'N/A'}</span>
-                                    <span>•</span>
-                                    <div className="flex items-center gap-1">
-                                      <Package className="w-3 h-3" />
-                                      <span className="font-semibold">{item.units || 0} units</span>
-                                    </div>
-                                  </div>
-                                </div>
-                                {!readOnly && (
-                                <button
-                                  onClick={(e) => { e.stopPropagation(); setConfirmDelete({ item, type: 'equipment' }); }}
-                                  className="p-1.5 rounded-lg transition-all duration-200 hover:scale-110 flex-shrink-0"
-                                  style={{ background: 'rgba(239,68,68,0.1)', color: '#ef4444' }}
-                                  title="Move to Archive"
-                                >
-                                  <Trash2 className="w-3.5 h-3.5" />
-                                </button>
-                                )}
-                              </div>
-                            </div>
+                              item={item}
+                              index={index}
+                              darkMode={darkMode}
+                              readOnly={readOnly}
+                              onView={() => handleViewDetails(item, index)}
+                              onDelete={readOnly ? null : () => setConfirmDelete({ item, type: 'equipment' })}
+                            />
                           ))}
                         </div>
                       </div>
                     )}
 
-                    {/* No Results Message */}
                     {filteredProjects.length === 0 && filteredEquipment.length === 0 && (totalProjects > 0 || totalEquipment > 0) && (
                       <div className="text-center py-12">
                         <div className="w-16 h-16 mx-auto mb-4 rounded-xl flex items-center justify-center" style={{
@@ -930,128 +587,40 @@ export const DataEntryPage = ({ projects = [], equipment = [], onAddProject, onA
             {/* Projects Tab */}
             {activeView === 'projects' && (
               <div>
-                <div className="flex items-center justify-between mb-6">
-                  <div>
-                    <h2 className="text-2xl font-bold" style={{ color: darkMode ? '#f8fafc' : '#0f172a' }}>
-                      Projects ({filteredProjects.length})
-                    </h2>
-                    <p className="text-sm" style={{ color: darkMode ? '#94a3b8' : '#64748b' }}>
-                      Manage all CEST 2.0 project records
-                    </p>
-                  </div>
+                <div className="mb-4 sm:mb-5">
+                  <h2 className="text-lg sm:text-xl font-bold" style={{ color: darkMode ? '#f8fafc' : '#0f172a' }}>
+                    Projects ({filteredProjects.length})
+                  </h2>
+                  <p className="text-xs sm:text-sm mt-1" style={{ color: darkMode ? '#94a3b8' : '#64748b' }}>
+                    Manage all CEST 2.0 project records
+                  </p>
                 </div>
 
-                {/* Search & Filter */}
-                <div className="flex flex-col lg:flex-row gap-4 mb-6">
-                  <div className="flex-1 relative">
-                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4" style={{ color: darkMode ? '#94a3b8' : '#64748b' }} />
-                    <input
-                      type="text"
-                      placeholder="Search projects..."
-                      value={searchTerm}
-                      onChange={(e) => setSearchTerm(e.target.value)}
-                      className="w-full pl-10 pr-4 py-3 rounded-xl text-sm outline-none transition-all duration-200"
-                      style={{
-                        background: darkMode ? '#1e293b' : '#f8fafc',
-                        color: darkMode ? '#f8fafc' : '#0f172a',
-                        border: `2px solid ${darkMode ? '#334155' : '#e2e8f0'}`,
-                      }}
-                    />
-                  </div>
-                  <select
-                    value={filterProvince}
-                    onChange={(e) => setFilterProvince(e.target.value)}
-                    className="px-4 py-3 rounded-xl text-sm outline-none cursor-pointer"
-                    style={{
-                      background: darkMode ? '#1e293b' : '#f8fafc',
-                      color: darkMode ? '#f8fafc' : '#0f172a',
-                      border: `2px solid ${darkMode ? '#334155' : '#e2e8f0'}`,
-                    }}
-                  >
-                    <option value="All">All Provinces</option>
-                    {REGION_II_PROVINCES.map(province => (
-                      <option key={province} value={province}>{province}</option>
-                    ))}
-                  </select>
-                  <select
-                    value={filterStatus}
-                    onChange={(e) => setFilterStatus(e.target.value)}
-                    className="px-4 py-3 rounded-xl text-sm outline-none cursor-pointer"
-                    style={{
-                      background: darkMode ? '#1e293b' : '#f8fafc',
-                      color: darkMode ? '#f8fafc' : '#0f172a',
-                      border: `2px solid ${darkMode ? '#334155' : '#e2e8f0'}`,
-                    }}
-                  >
-                    <option value="All">All Status</option>
-                    <option value="Ongoing">Ongoing</option>
-                    <option value="Liquidated">Liquidated</option>
-                    <option value="Finished">Finished</option>
-                  </select>
-                </div>
+                <DataEntryFilters
+                  searchTerm={searchTerm}
+                  setSearchTerm={setSearchTerm}
+                  filterProvince={filterProvince}
+                  setFilterProvince={setFilterProvince}
+                  filterStatus={filterStatus}
+                  setFilterStatus={setFilterStatus}
+                  darkMode={darkMode}
+                  placeholder="Search projects..."
+                />
 
-                {/* Projects List */}
                 {filteredProjects.length > 0 ? (
                   <div className="space-y-3">
                     {filteredProjects.map((project, index) => (
-                      <div
+                      <ProjectRecordCard
                         key={`project-${project.id}-${index}`}
-                        onClick={() => handleViewDetails(project, index)}
-                        className="p-4 rounded-xl border transition-all duration-200 hover:shadow-lg hover:scale-102 cursor-pointer"
-                        style={{
-                          background: darkMode ? '#1e293b' : '#ffffff',
-                          borderColor: darkMode ? '#334155' : '#e2e8f0'
-                        }}
-                      >
-                        <div className="flex items-start justify-between gap-3">
-                          <div className="flex-1">
-                            <div className="flex items-center gap-2 mb-2">
-                              <span className="text-xs font-bold px-2 py-1 rounded" style={{ background: '#004A98', color: '#ffffff' }}>
-                                {project.year || 'N/A'}
-                              </span>
-                              <span className="text-xs font-bold px-2 py-1 rounded" style={{ background: '#10b981', color: '#ffffff' }}>
-                                Project #{index + 1}
-                              </span>
-                            </div>
-                            <h4 className="text-sm font-bold mb-2" style={{ color: darkMode ? '#f8fafc' : '#0f172a' }}>
-                              {safeProjectTitle(project) || 'Untitled Project'}
-                            </h4>
-                            <div className="flex items-center gap-3 text-xs mb-2" style={{ color: darkMode ? '#94a3b8' : '#64748b' }}>
-                              <div className="flex items-center gap-1">
-                                <MapPin className="w-3 h-3" />
-                                <span className="font-semibold">{project.municipality || 'Unknown Location'}</span>
-                              </div>
-                              <span>•</span>
-                              <span className="font-semibold">{project.community || 'N/A'}</span>
-                            </div>
-                            <div className="flex items-center gap-2 flex-wrap">
-                              <span className={`text-xs font-medium px-2 py-1 rounded border ${getStatusColor(project.status || 'Unknown')}`}>
-                                {project.status || 'Unknown'}
-                              </span>
-                              {(project.components || []).slice(0, 3).map((c, compIndex) => {
-                                const componentKey = typeof c === 'object' ? c.id || c.component?.id || c : c;
-                                return (
-                                  <span 
-                                    key={`${project.id}-comp-${compIndex}`}
-                                    className="text-xs font-medium px-2 py-1 rounded"
-                                    style={{
-                                      backgroundColor: `${COMP_COLORS[componentKey] || '#64748b'}20`,
-                                      color: COMP_COLORS[componentKey] || '#64748b'
-                                    }}
-                                  >
-                                    {String(componentKey)?.toUpperCase() || 'N/A'}
-                                  </span>
-                                );
-                              })}
-                            </div>
-                          </div>
-                          <div className="text-right">
-                            <p className="text-lg font-bold" style={{ color: '#10b981' }}>
-                              {fmt(project.amountFunded || 0)}
-                            </p>
-                          </div>
-                        </div>
-                      </div>
+                        project={project}
+                        index={index}
+                        darkMode={darkMode}
+                        readOnly={readOnly}
+                        onView={() => handleViewDetails(project, index)}
+                        onDelete={readOnly ? null : () => setConfirmDelete({ item: project, type: 'project' })}
+                        fmt={fmt}
+                        getStatusColor={getStatusColor}
+                      />
                     ))}
                   </div>
                 ) : (
@@ -1071,107 +640,39 @@ export const DataEntryPage = ({ projects = [], equipment = [], onAddProject, onA
             {/* Equipment Tab */}
             {activeView === 'equipment' && (
               <div>
-                <div className="flex items-center justify-between mb-6">
-                  <div>
-                    <h2 className="text-2xl font-bold" style={{ color: darkMode ? '#f8fafc' : '#0f172a' }}>
-                      Equipment ({filteredEquipment.length})
-                    </h2>
-                    <p className="text-sm" style={{ color: darkMode ? '#94a3b8' : '#64748b' }}>
-                      Manage all equipment inventory
-                    </p>
-                  </div>
+                <div className="mb-4 sm:mb-5">
+                  <h2 className="text-lg sm:text-xl font-bold" style={{ color: darkMode ? '#f8fafc' : '#0f172a' }}>
+                    Equipment ({filteredEquipment.length})
+                  </h2>
+                  <p className="text-xs sm:text-sm mt-1" style={{ color: darkMode ? '#94a3b8' : '#64748b' }}>
+                    Manage all equipment inventory
+                  </p>
                 </div>
 
-                {/* Search & Filter */}
-                <div className="flex flex-col lg:flex-row gap-4 mb-6">
-                  <div className="flex-1 relative">
-                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4" style={{ color: darkMode ? '#94a3b8' : '#64748b' }} />
-                    <input
-                      type="text"
-                      placeholder="Search equipment..."
-                      value={searchTerm}
-                      onChange={(e) => setSearchTerm(e.target.value)}
-                      className="w-full pl-10 pr-4 py-3 rounded-xl text-sm outline-none transition-all duration-200"
-                      style={{
-                        background: darkMode ? '#1e293b' : '#f8fafc',
-                        color: darkMode ? '#f8fafc' : '#0f172a',
-                        border: `2px solid ${darkMode ? '#334155' : '#e2e8f0'}`,
-                      }}
-                    />
-                  </div>
-                  <select
-                    value={filterProvince}
-                    onChange={(e) => setFilterProvince(e.target.value)}
-                    className="px-4 py-3 rounded-xl text-sm outline-none cursor-pointer"
-                    style={{
-                      background: darkMode ? '#1e293b' : '#f8fafc',
-                      color: darkMode ? '#f8fafc' : '#0f172a',
-                      border: `2px solid ${darkMode ? '#334155' : '#e2e8f0'}`,
-                    }}
-                  >
-                    <option value="All">All Provinces</option>
-                    {REGION_II_PROVINCES.map(province => (
-                      <option key={province} value={province}>{province}</option>
-                    ))}
-                  </select>
-                </div>
+                <DataEntryFilters
+                  searchTerm={searchTerm}
+                  setSearchTerm={setSearchTerm}
+                  filterProvince={filterProvince}
+                  setFilterProvince={setFilterProvince}
+                  filterStatus={filterStatus}
+                  setFilterStatus={setFilterStatus}
+                  darkMode={darkMode}
+                  placeholder="Search equipment..."
+                  showStatus={false}
+                />
 
-                {/* Equipment List */}
                 {filteredEquipment.length > 0 ? (
                   <div className="space-y-3">
                     {filteredEquipment.map((item, index) => (
-                      <div
+                      <EquipmentRecordCard
                         key={`equipment-${item.id}-${index}`}
-                        onClick={() => handleViewDetails(item, index)}
-                        className="p-4 rounded-xl border transition-all duration-200 hover:shadow-lg hover:scale-102 cursor-pointer"
-                        style={{
-                          background: darkMode ? '#1e293b' : '#ffffff',
-                          borderColor: darkMode ? '#334155' : '#e2e8f0'
-                        }}
-                      >
-                        <div className="flex items-start justify-between gap-3">
-                          <div className="flex-1">
-                            <div className="flex items-center gap-2 mb-2">
-                              <span className="text-xs font-bold px-2 py-1 rounded" style={{ background: '#10b981', color: '#ffffff' }}>
-                                {item.year || 'N/A'}
-                              </span>
-                              <span className="text-xs font-bold px-2 py-1 rounded" style={{ background: '#f59e0b', color: '#ffffff' }}>
-                                Equipment #{index + 1}
-                              </span>
-                            </div>
-                            
-                            {/* Project Name Label */}
-                            {(item.projectName || item.project?.project_title || item.project_title) && (
-                              <div className="mb-2">
-                                <span className="text-xs font-semibold px-2 py-1 rounded-lg" style={{ 
-                                  background: darkMode ? 'rgba(139, 92, 246, 0.2)' : 'rgba(139, 92, 246, 0.1)', 
-                                  color: '#8b5cf6',
-                                  border: '1px solid rgba(139, 92, 246, 0.3)'
-                                }}>
-                                  📁 {safeProjectTitle(item) || 'Unknown Project'}
-                                </span>
-                              </div>
-                            )}
-                            
-                            <h4 className="text-sm font-bold mb-2" style={{ color: darkMode ? '#f8fafc' : '#0f172a' }}>
-                              {safeEquipmentName(item) || 'Untitled Equipment'}
-                            </h4>
-                            <div className="flex items-center gap-3 text-xs" style={{ color: darkMode ? '#94a3b8' : '#64748b' }}>
-                              <div className="flex items-center gap-1">
-                                <MapPin className="w-3 h-3" />
-                                <span className="font-semibold">{item.municipality || 'Unknown Location'}</span>
-                              </div>
-                              <span>•</span>
-                              <span className="font-semibold">{item.community || 'N/A'}</span>
-                              <span>•</span>
-                              <div className="flex items-center gap-1">
-                                <Package className="w-3 h-3" />
-                                <span className="font-semibold">{item.units || 0} units</span>
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
+                        item={item}
+                        index={index}
+                        darkMode={darkMode}
+                        readOnly={readOnly}
+                        onView={() => handleViewDetails(item, index)}
+                        onDelete={readOnly ? null : () => setConfirmDelete({ item, type: 'equipment' })}
+                      />
                     ))}
                   </div>
                 ) : (
