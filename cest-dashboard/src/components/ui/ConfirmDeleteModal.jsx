@@ -20,7 +20,7 @@ export const ConfirmDeleteModal = ({
   };
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} zIndex={10001}>
+    <Modal isOpen={isOpen} onClose={onClose}>
       <ModalPanel maxWidth="max-w-md">
       <div 
         className="rounded-2xl p-6 shadow-2xl"

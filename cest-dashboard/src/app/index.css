@@ -602,3 +602,29 @@
   .text-balance {
     text-wrap: balance;
   }
+
+  /* Modal overlay — viewport-centered via portal (logout, confirm, etc.) */
+  .cest-modal-overlay {
+    position: fixed;
+    inset: 0;
+    width: 100vw;
+    height: 100dvh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+    overflow-y: auto;
+    box-sizing: border-box;
+  }
+
+  .cest-modal-panel {
+    flex-shrink: 0;
+    margin: auto;
+    max-height: min(90dvh, 900px);
+    overflow-y: auto;
+    transform-origin: center center;
+  }
+
+  .animate-modal-fade-in {
+    transform-origin: center center;
+  }

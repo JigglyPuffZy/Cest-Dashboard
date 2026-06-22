@@ -1193,7 +1193,7 @@ export const DataEntryPage = ({ projects = [], equipment = [], onAddProject, onA
 
       {/* Confirm Delete Modal */}
       {confirmDelete && (
-        <Modal onClose={() => setConfirmDelete(null)} zIndex={10001}>
+        <Modal onClose={() => setConfirmDelete(null)}>
           <ModalPanel maxWidth="max-w-sm">
           <div className="rounded-2xl p-6 shadow-2xl" style={{
             background: darkMode ? '#1e293b' : '#ffffff',
@@ -1280,7 +1280,7 @@ export const DataEntryPage = ({ projects = [], equipment = [], onAddProject, onA
         const components = selectedItem.components || [];
 
         return (
-          <Modal onClose={() => setShowDetailModal(false)} zIndex={9999} className="bg-black/80 backdrop-blur-md">
+          <Modal onClose={() => setShowDetailModal(false)} className="bg-black/80 backdrop-blur-md">
             <ModalPanel maxWidth="max-w-4xl" className="rounded-3xl shadow-2xl overflow-y-auto">
             <div
               style={{

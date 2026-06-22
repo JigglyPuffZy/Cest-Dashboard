@@ -202,7 +202,7 @@ export const ArchivePage = ({ archivedProjects, onRestore, onPermanentDelete, da
 
       {/* Permanent Delete Confirm */}
       {showDeleteConfirm && (
-        <Modal onClose={() => setShowDeleteConfirm(null)} zIndex={9999}>
+        <Modal onClose={() => setShowDeleteConfirm(null)}>
           <ModalPanel maxWidth="max-w-sm">
           <div className="rounded-2xl p-6 shadow-2xl"
             style={{ background: darkMode ? '#1e293b' : '#ffffff', border: `1px solid ${darkMode ? '#334155' : '#e2e8f0'}` }}>

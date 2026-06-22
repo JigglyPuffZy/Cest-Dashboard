@@ -23,37 +23,53 @@ export function AuthProvider({ children }) {
       }
     }, 5000)
 
-    const guestActive = sessionStorage.getItem(SESSION_KEYS.GUEST_MODE) === '1'
-    if (guestActive) {
-      setIsGuestMode(true)
-      setUser(null)
-      setSession(null)
-      setLoading(false)
-      clearTimeout(authTimeout)
-      return () => {
-        mounted = false
+    const initAuth = async () => {
+      const guestActive = sessionStorage.getItem(SESSION_KEYS.GUEST_MODE) === '1'
+      if (guestActive) {
+        if (mounted) {
+          setIsGuestMode(true)
+          setUser(null)
+          setSession(null)
+          setLoading(false)
+        }
         clearTimeout(authTimeout)
+        return
+      }
+
+      try {
+        const activeSession = await auth.getSession()
+        if (!mounted) return
+        setSession(activeSession)
+        setUser(activeSession?.user ?? null)
+      } catch (error) {
+        if (!mounted) return
+        console.error('Auth initialization error:', error)
+        setSession(null)
+        setUser(null)
+      } finally {
+        if (mounted) {
+          setLoading(false)
+          clearTimeout(authTimeout)
+        }
       }
     }
 
-    auth.getSession().then((activeSession) => {
-      if (!mounted) return
-      setSession(activeSession)
-      setUser(activeSession?.user ?? null)
-      setLoading(false)
-      clearTimeout(authTimeout)
-    }).catch((error) => {
-      if (!mounted) return
-      console.error('Auth initialization error:', error)
-      setSession(null)
-      setUser(null)
-      setLoading(false)
-      clearTimeout(authTimeout)
-    })
+    initAuth()
 
     const { data: { subscription } } = auth.onAuthStateChange((_event, activeSession) => {
       if (!mounted) return
+
+      if (activeSession?.user) {
+        sessionStorage.removeItem(SESSION_KEYS.GUEST_MODE)
+        setIsGuestMode(false)
+        setSession(activeSession)
+        setUser(activeSession.user)
+        setLoading(false)
+        return
+      }
+
       if (sessionStorage.getItem(SESSION_KEYS.GUEST_MODE) === '1') return
+
       setSession(activeSession)
       setUser(activeSession?.user ?? null)
       setLoading(false)
@@ -74,12 +90,25 @@ export function AuthProvider({ children }) {
     setLoading(false)
   }
 
+  const exitGuestMode = () => {
+    sessionStorage.removeItem(SESSION_KEYS.GUEST_MODE)
+    setIsGuestMode(false)
+    setUser(null)
+    setSession(null)
+    setLoading(false)
+  }
+
   const signIn = async (email, password) => {
     setLoading(true)
     try {
       sessionStorage.removeItem(SESSION_KEYS.GUEST_MODE)
       setIsGuestMode(false)
       const result = await auth.signIn(email, password)
+      const activeSession = result?.session ?? null
+      if (activeSession) {
+        setSession(activeSession)
+        setUser(activeSession.user ?? result?.user ?? null)
+      }
       return result
     } finally {
       setLoading(false)
@@ -110,6 +139,7 @@ export function AuthProvider({ children }) {
     signIn,
     signOut,
     enterGuestMode,
+    exitGuestMode,
     isGuestMode,
     isReadOnly: isGuestMode,
     isAuthenticated: !!user,

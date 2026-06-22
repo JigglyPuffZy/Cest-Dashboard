@@ -305,7 +305,7 @@ export const MonitoringPage = ({ projects, equipment = [], darkMode }) => {
         const components = selectedItem.components || [];
 
         return (
-          <Modal onClose={() => setShowDetailModal(false)} zIndex={9999} className="bg-black/70 backdrop-blur-sm">
+          <Modal onClose={() => setShowDetailModal(false)} className="bg-black/70 backdrop-blur-sm">
             <ModalPanel maxWidth="max-w-3xl" className="rounded-3xl shadow-2xl overflow-y-auto">
             <div
               style={{

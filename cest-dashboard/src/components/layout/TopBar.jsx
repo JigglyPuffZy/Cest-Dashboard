@@ -218,7 +218,7 @@ export const TopBar = ({
       </header>
 
       {showSearch && (
-        <Modal onClose={handleCloseSearch} zIndex={9995} className="bg-black/70 backdrop-blur-md">
+        <Modal onClose={handleCloseSearch} className="bg-black/70 backdrop-blur-md">
           <ModalPanel maxWidth="max-w-3xl">
             <div 
               className="rounded-3xl shadow-2xl overflow-hidden"

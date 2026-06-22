@@ -91,7 +91,7 @@ function TrainingModal({ initial, onSave, onClose, darkMode }) {
   const lbl = { display: "block", marginBottom: 5, fontSize: 12, fontWeight: 700, color: darkMode ? "#94a3b8" : "#374151" };
 
   return (
-    <Modal onClose={onClose} zIndex={9999}>
+    <Modal onClose={onClose}>
       <ModalPanel maxWidth="max-w-[720px]">
       <div style={{ background: darkMode ? "#0f172a" : "#fff", borderRadius: 16, width: "100%", maxHeight: "90vh", overflow: "auto", boxShadow: "0 32px 80px rgba(0,0,0,0.35)", border: `1px solid ${darkMode ? "#334155" : "#e5e7eb"}` }}>
         {/* Header */}
@@ -274,7 +274,7 @@ export default function TrainingsPage({ darkMode = false, onArchiveTraining, rea
         <TrainingModal initial={modal.data} onSave={handleSave} onClose={() => setModal(null)} darkMode={darkMode} />
       )}
       {modal?.type === "delete" && (
-        <Modal onClose={() => setModal(null)} zIndex={9999}>
+        <Modal onClose={() => setModal(null)}>
           <ModalPanel maxWidth="max-w-[400px]">
           <div style={{ ...card, width: "100%", padding: 28, textAlign: "center" }}>
             <div style={{ width: 56, height: 56, borderRadius: 14, background: "rgba(239,68,68,0.1)", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 16px" }}>

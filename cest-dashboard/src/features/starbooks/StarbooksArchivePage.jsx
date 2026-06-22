@@ -483,7 +483,7 @@ export const StarbooksArchivePage = ({ darkMode, readOnly = false }) => {
 
       {/* Detail Modal */}
       {showDetailModal && selectedUnit && (
-        <Modal onClose={() => { setShowDetailModal(false); setSelectedUnit(null); }} zIndex={9999} className="bg-black/80 backdrop-blur-sm">
+        <Modal onClose={() => { setShowDetailModal(false); setSelectedUnit(null); }} className="bg-black/80 backdrop-blur-sm">
           <ModalPanel maxWidth="max-w-3xl" className="rounded-3xl overflow-hidden">
           <div 
             style={{

@@ -473,7 +473,7 @@ export const Sidebar = ({
 
       {/* Logout Confirmation Modal */}
       {showLogoutModal && (
-        <Modal onClose={() => setShowLogoutModal(false)} zIndex={60}>
+        <Modal onClose={() => setShowLogoutModal(false)}>
           <ModalPanel maxWidth="max-w-md">
             <div 
               className="rounded-2xl shadow-2xl overflow-hidden"
@@ -545,7 +545,7 @@ export const Sidebar = ({
 
       {/* System Switch Confirmation Modal */}
       {showSwitchModal && (
-        <Modal onClose={() => setShowSwitchModal(false)} zIndex={60} className="bg-black/70 backdrop-blur-md">
+        <Modal onClose={() => setShowSwitchModal(false)} className="bg-black/70 backdrop-blur-md">
           <ModalPanel maxWidth="max-w-lg">
             <div 
               className="rounded-3xl shadow-2xl overflow-hidden relative"

@@ -498,7 +498,7 @@ export const StarbooksInventorySimple = ({ darkMode, readOnly = false }) => {
 
       {/* Enhanced Detail Modal */}
       {selectedUnit && (
-        <Modal onClose={() => { setSelectedUnit(null); setIsEditing(false); }} zIndex={50}>
+        <Modal onClose={() => { setSelectedUnit(null); setIsEditing(false); }}>
           <ModalPanel maxWidth="max-w-3xl" className="rounded-3xl overflow-y-auto">
           <div
             style={{
@@ -893,7 +893,7 @@ export const StarbooksInventorySimple = ({ darkMode, readOnly = false }) => {
 
       {/* Delete Confirmation Dialog */}
       {showDeleteConfirm && (
-        <Modal onClose={() => setShowDeleteConfirm(false)} zIndex={50}>
+        <Modal onClose={() => setShowDeleteConfirm(false)}>
           <ModalPanel maxWidth="max-w-md">
           <div
             className="p-8 rounded-2xl"

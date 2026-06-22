@@ -1374,7 +1374,7 @@ export const Dashboard = ({ projects = [], equipment = [], uniqueComm = 0, darkM
 
       {/* Component Legend Modal */}
       {showComponentLegend && (
-        <Modal onClose={() => setShowComponentLegend(false)} zIndex={10050}>
+        <Modal onClose={() => setShowComponentLegend(false)}>
           <ModalPanel maxWidth="max-w-2xl" className="rounded-2xl shadow-2xl overflow-y-auto max-h-[80vh]">
         <div 
           style={{
@@ -1478,7 +1478,7 @@ export const Dashboard = ({ projects = [], equipment = [], uniqueComm = 0, darkM
       const components = selectedItem.components || [];
 
       return (
-        <Modal onClose={() => setShowDetailModal(false)} zIndex={9999} className="bg-black/80 backdrop-blur-md">
+        <Modal onClose={() => setShowDetailModal(false)} className="bg-black/80 backdrop-blur-md">
           <ModalPanel maxWidth="max-w-4xl" className="rounded-3xl shadow-2xl overflow-y-auto">
           <div
             style={{
@@ -2051,7 +2051,7 @@ export const Dashboard = ({ projects = [], equipment = [], uniqueComm = 0, darkM
 
       {/* Component Projects Modal */}
       {componentModal && (
-        <Modal onClose={() => setComponentModal(null)} zIndex={10001}>
+        <Modal onClose={() => setComponentModal(null)}>
           <ModalPanel maxWidth="max-w-4xl" className="rounded-2xl overflow-hidden shadow-2xl">
           <div style={{
             background: darkMode ? '#1e293b' : '#ffffff',

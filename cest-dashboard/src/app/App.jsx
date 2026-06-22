@@ -32,7 +32,7 @@ const ACTIVITY_EVENTS = ['mousedown', 'mousemove', 'keypress', 'scroll', 'touchs
 
 function AppContent() {
   const navigate = useNavigate();
-  const { user, loading: authLoading, signOut, isGuestMode, isReadOnly, canAccessApp } = useAuth();
+  const { user, loading: authLoading, signOut, exitGuestMode, isGuestMode, isReadOnly, canAccessApp } = useAuth();
   const [isLoading, setIsLoading] = useState(true);
   const [projects, setProjects] = useState([]);
   const [equipment, setEquipment] = useState([]);
@@ -598,10 +598,7 @@ function AppContent() {
               <div className="mx-auto mb-6 max-w-[1400px]">
                 <ViewModeBanner
                   darkMode={darkMode}
-                  onSignIn={async () => {
-                    await signOut();
-                    navigate('/');
-                  }}
+                  onSignIn={exitGuestMode}
                 />
               </div>
             )}
@@ -619,10 +616,7 @@ function AppContent() {
                       uniqueComm={uniqueComm}
                       darkMode={darkMode}
                       isGuestMode={isGuestMode}
-                      onGuestSignIn={async () => {
-                        await signOut();
-                        navigate('/');
-                      }}
+                      onGuestSignIn={exitGuestMode}
                     />
                   ) : activePage === "analytics" ? (
                     <ProvincesPage projects={projects} darkMode={darkMode} />

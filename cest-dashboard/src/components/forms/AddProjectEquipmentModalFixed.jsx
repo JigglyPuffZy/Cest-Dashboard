@@ -416,7 +416,7 @@ export const AddProjectEquipmentModal = ({ onClose, onSaveProject, onSaveEquipme
   };
 
   return (
-    <Modal onClose={onClose} zIndex={9999}>
+    <Modal onClose={onClose}>
       <div 
         className="w-full max-w-5xl max-h-[85vh] overflow-hidden rounded-2xl shadow-2xl flex flex-col animate-modal-fade-in"
         style={modalStyle}

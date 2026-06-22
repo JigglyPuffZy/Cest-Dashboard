@@ -1,14 +1,16 @@
 import { useEffect } from 'react'
 import { createPortal } from 'react-dom'
 
+const DEFAULT_Z = 10050
+
 /**
- * Portal overlay — centers children in the viewport regardless of scroll containers.
+ * Portal overlay — always centers in the viewport (not affected by sidebar scroll/transform).
  */
 export const Modal = ({
   isOpen = true,
   onClose,
   children,
-  zIndex = 10000,
+  zIndex = DEFAULT_Z,
   className = '',
   closeOnBackdrop = true,
 }) => {
@@ -31,7 +33,7 @@ export const Modal = ({
 
   return createPortal(
     <div
-      className={`fixed inset-0 flex items-center justify-center p-4 backdrop-blur-sm animate-backdrop-fade-in ${className || 'bg-black/60'}`}
+      className={`cest-modal-overlay animate-backdrop-fade-in backdrop-blur-sm ${className || 'bg-black/60'}`}
       style={{ zIndex }}
       onClick={handleBackdropClick}
       role="dialog"
@@ -43,7 +45,7 @@ export const Modal = ({
   )
 }
 
-/** Centered panel — use inside Modal; animation uses scale only (no translate conflict). */
+/** Centered panel — animation uses scale only (no translate conflict). */
 export const ModalPanel = ({
   children,
   className = '',
@@ -52,7 +54,7 @@ export const ModalPanel = ({
   onClick,
 }) => (
   <div
-    className={`w-full ${maxWidth} max-h-[90vh] overflow-y-auto ${animate ? 'animate-modal-fade-in' : ''} ${className}`}
+    className={`cest-modal-panel w-full ${maxWidth} ${animate ? 'animate-modal-fade-in' : ''} ${className}`}
     onClick={(e) => {
       e.stopPropagation()
       onClick?.(e)
