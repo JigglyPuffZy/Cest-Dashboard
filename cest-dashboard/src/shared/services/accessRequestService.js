@@ -155,15 +155,15 @@ export const accessRequestService = {
     const last = lastName.trim();
     if (!first || !last) throw new Error("First name and last name are required.");
 
-    const { data, error } = await supabase
-      .from("guest_access_requests")
-      .insert({ first_name: first, last_name: last, status: "pending" })
-      .select("*")
-      .single();
+    const { data, error } = await supabase.rpc("submit_guest_access_request", {
+      p_first_name: first,
+      p_last_name: last,
+    });
 
     if (error) throw new Error(error.message || "Failed to submit access request.");
 
-    const request = mapRequest(data);
+    const row = Array.isArray(data) ? data[0] : data;
+    const request = mapRequest(row);
 
     const profile = {
       requestId: request.id,

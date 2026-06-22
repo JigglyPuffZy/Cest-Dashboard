@@ -123,12 +123,60 @@ $$;
 
 GRANT EXECUTE ON FUNCTION public.get_guest_request_status(TEXT) TO anon, authenticated;
 
--- Guests (not logged in): submit a new request
+-- Guests submit requests via RPC (bypasses INSERT+RETURNING RLS issue for anon)
+CREATE OR REPLACE FUNCTION public.submit_guest_access_request(
+  p_first_name TEXT,
+  p_last_name TEXT
+)
+RETURNS TABLE (
+  id UUID,
+  first_name TEXT,
+  last_name TEXT,
+  full_name TEXT,
+  status TEXT,
+  access_token TEXT,
+  requested_at TIMESTAMPTZ
+)
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+DECLARE
+  v_row public.guest_access_requests%ROWTYPE;
+BEGIN
+  IF trim(coalesce(p_first_name, '')) = '' OR trim(coalesce(p_last_name, '')) = '' THEN
+    RAISE EXCEPTION 'First name and last name are required';
+  END IF;
+
+  INSERT INTO public.guest_access_requests (first_name, last_name, status)
+  VALUES (trim(p_first_name), trim(p_last_name), 'pending')
+  RETURNING * INTO v_row;
+
+  RETURN QUERY SELECT
+    v_row.id,
+    v_row.first_name,
+    v_row.last_name,
+    v_row.full_name,
+    v_row.status,
+    v_row.access_token,
+    v_row.requested_at;
+END;
+$$;
+
+GRANT EXECUTE ON FUNCTION public.submit_guest_access_request(TEXT, TEXT) TO anon, authenticated;
+
+-- Guests (not logged in): submit a new request (direct insert fallback for staff tools)
 DROP POLICY IF EXISTS "Anyone insert guest request" ON public.guest_access_requests;
 CREATE POLICY "Anyone insert guest request"
   ON public.guest_access_requests FOR INSERT
   TO anon, authenticated
   WITH CHECK (status = 'pending');
+
+-- Table grants (required alongside RLS policies)
+GRANT INSERT ON public.guest_access_requests TO anon, authenticated;
+GRANT SELECT, UPDATE ON public.guest_access_requests TO authenticated;
+GRANT INSERT ON public.guest_access_logs TO anon, authenticated;
+GRANT SELECT ON public.guest_access_logs TO authenticated;
 
 -- No direct anon SELECT on requests table (use get_guest_request_status instead)
 
