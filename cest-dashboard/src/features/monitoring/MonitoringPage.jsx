@@ -306,7 +306,7 @@ export const MonitoringPage = ({ projects, equipment = [], darkMode }) => {
 
         return (
           <Modal onClose={() => setShowDetailModal(false)} className="bg-black/70 backdrop-blur-sm">
-            <ModalPanel maxWidth="max-w-3xl" className="rounded-3xl shadow-2xl overflow-y-auto">
+            <ModalPanel maxWidth="max-w-3xl" className="rounded-3xl shadow-2xl">
             <div
               style={{
                 background: darkMode ? 'linear-gradient(145deg, #1e293b, #0f172a)' : 'linear-gradient(145deg, #ffffff, #f8fafc)',

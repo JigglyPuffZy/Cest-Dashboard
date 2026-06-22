@@ -5,7 +5,7 @@ import { supabase } from "../../shared/services/supabaseClient";
 import { LoadingButton } from "../ui/LoadingButton";
 import { useKeyboardShortcuts } from "../../shared/hooks/useKeyboardShortcuts";
 import { HoverTooltip } from "../ui/Tooltip";
-import { Modal } from "../ui/Modal";
+import { Modal, ModalPanel } from "../ui/Modal";
 
 export const AddProjectEquipmentModal = ({ onClose, onSaveProject, onSaveEquipment, darkMode, initialData }) => {
   const isEditMode = !!initialData;
@@ -417,10 +417,10 @@ export const AddProjectEquipmentModal = ({ onClose, onSaveProject, onSaveEquipme
 
   return (
     <Modal onClose={onClose}>
+      <ModalPanel maxWidth="max-w-5xl">
       <div 
-        className="w-full max-w-5xl max-h-[85vh] overflow-hidden rounded-2xl shadow-2xl flex flex-col animate-modal-fade-in"
+        className="w-full max-h-[85vh] overflow-hidden rounded-2xl shadow-2xl flex flex-col"
         style={modalStyle}
-        onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
         <div className="p-6 border-b" style={{ borderColor: darkMode ? '#334155' : '#e5e7eb' }}>
@@ -1114,6 +1114,7 @@ export const AddProjectEquipmentModal = ({ onClose, onSaveProject, onSaveEquipme
           </div>
         </div>
       </div>
+      </ModalPanel>
     </Modal>
   );
 };

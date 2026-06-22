@@ -56,7 +56,7 @@ export const SettingsPage = ({ darkMode, setDarkMode, onClose }) => {
 
   return (
     <Modal onClose={onClose} className="bg-black/70 backdrop-blur-md">
-      <ModalPanel maxWidth="max-w-5xl" className="rounded-2xl shadow-2xl overflow-hidden max-h-[90vh]">
+      <ModalPanel maxWidth="max-w-5xl" className="rounded-2xl shadow-2xl overflow-hidden">
       <div 
         style={{
           background: darkMode ? '#1e293b' : '#ffffff',

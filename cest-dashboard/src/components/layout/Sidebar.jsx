@@ -21,6 +21,7 @@ import dostLogo from "../../dost logo.png";
 import cestLogo from "../../Cest Logo.png";
 import starbooksLogo from "../../starbooks logo.png";
 import { Modal, ModalPanel } from "../ui/Modal";
+import { ConfirmModal } from "../ui/ConfirmModal";
 
 const NAV_ITEMS = [
   { id: "dashboard", icon: LayoutDashboard, label: "Dashboard" },
@@ -66,13 +67,6 @@ export const Sidebar = ({
 
   const handleLogout = () => {
     setShowLogoutModal(true);
-  };
-
-  const confirmLogout = () => {
-    setShowLogoutModal(false);
-    if (onLogout) {
-      onLogout();
-    }
   };
 
   const handleSwitchClick = () => {
@@ -471,81 +465,22 @@ export const Sidebar = ({
         )}
       </aside>
 
-      {/* Logout Confirmation Modal */}
-      {showLogoutModal && (
-        <Modal onClose={() => setShowLogoutModal(false)}>
-          <ModalPanel maxWidth="max-w-md">
-            <div 
-              className="rounded-2xl shadow-2xl overflow-hidden"
-              style={{
-                background: darkMode ? '#0f172a' : '#ffffff',
-                border: `1px solid ${darkMode ? '#1e293b' : '#e5e7eb'}`,
-                boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.1)'
-              }}
-            >
-              {/* Header */}
-              <div 
-                className="p-6 border-b"
-                style={{ borderColor: darkMode ? '#1e293b' : '#e5e7eb' }}
-              >
-                <div className="flex items-center gap-4">
-                  <div 
-                    className="w-12 h-12 rounded-2xl flex items-center justify-center"
-                    style={{ background: 'rgba(220, 38, 38, 0.15)' }}
-                  >
-                    <AlertTriangle className="w-6 h-6" style={{ color: '#dc2626' }} />
-                  </div>
-                  <div>
-                    <h3 className="text-lg font-bold" style={{ color: darkMode ? '#f8fafc' : '#0f172a' }}>
-                      Confirm Logout
-                    </h3>
-                    <p className="text-sm" style={{ color: darkMode ? '#94a3b8' : '#64748b' }}>
-                      Are you sure you want to log out?
-                    </p>
-                  </div>
-                </div>
-              </div>
-
-              {/* Content */}
-              <div className="p-6">
-                <p className="text-sm mb-6" style={{ color: darkMode ? '#cbd5e1' : '#475569' }}>
-                  You will be redirected to the login page and will need to sign in again to access the system.
-                </p>
-
-                {/* Actions */}
-                <div className="flex gap-3">
-                  <button
-                    onClick={() => setShowLogoutModal(false)}
-                    className="flex-1 px-4 py-3 rounded-xl text-sm font-bold transition-all duration-200 hover:scale-105"
-                    style={{
-                      background: darkMode ? '#1e293b' : '#f1f5f9',
-                      color: darkMode ? '#f8fafc' : '#0f172a',
-                      border: `1px solid ${darkMode ? '#334155' : '#e2e8f0'}`
-                    }}
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    onClick={confirmLogout}
-                    className="flex-1 px-4 py-3 rounded-xl text-sm font-bold transition-all duration-200 hover:scale-105"
-                    style={{
-                      background: 'linear-gradient(135deg, #dc2626 0%, #b91c1c 100%)',
-                      color: '#ffffff',
-                      boxShadow: '0 4px 12px rgba(220, 38, 38, 0.4)'
-                    }}
-                  >
-                    Logout
-                  </button>
-                </div>
-              </div>
-            </div>
-          </ModalPanel>
-        </Modal>
-      )}
+      <ConfirmModal
+        isOpen={showLogoutModal}
+        onClose={() => setShowLogoutModal(false)}
+        onConfirm={onLogout}
+        title="Confirm Logout"
+        subtitle="Are you sure you want to log out?"
+        description="You will be redirected to the login page and will need to sign in again to access the system."
+        confirmText="Logout"
+        cancelText="Cancel"
+        variant="danger"
+        darkMode={darkMode}
+      />
 
       {/* System Switch Confirmation Modal */}
       {showSwitchModal && (
-        <Modal onClose={() => setShowSwitchModal(false)} className="bg-black/70 backdrop-blur-md">
+        <Modal onClose={() => setShowSwitchModal(false)} overlayClassName="bg-black/70 backdrop-blur-md">
           <ModalPanel maxWidth="max-w-lg">
             <div 
               className="rounded-3xl shadow-2xl overflow-hidden relative"

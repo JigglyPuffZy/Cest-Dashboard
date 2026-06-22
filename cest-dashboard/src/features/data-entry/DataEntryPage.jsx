@@ -1281,7 +1281,7 @@ export const DataEntryPage = ({ projects = [], equipment = [], onAddProject, onA
 
         return (
           <Modal onClose={() => setShowDetailModal(false)} className="bg-black/80 backdrop-blur-md">
-            <ModalPanel maxWidth="max-w-4xl" className="rounded-3xl shadow-2xl overflow-y-auto">
+            <ModalPanel maxWidth="max-w-4xl" className="rounded-3xl shadow-2xl">
             <div
               style={{
                 background: darkMode 

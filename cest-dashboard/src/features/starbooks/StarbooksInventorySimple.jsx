@@ -499,7 +499,7 @@ export const StarbooksInventorySimple = ({ darkMode, readOnly = false }) => {
       {/* Enhanced Detail Modal */}
       {selectedUnit && (
         <Modal onClose={() => { setSelectedUnit(null); setIsEditing(false); }}>
-          <ModalPanel maxWidth="max-w-3xl" className="rounded-3xl overflow-y-auto">
+          <ModalPanel maxWidth="max-w-3xl" className="rounded-3xl">
           <div
             style={{
               background: darkMode ? 'rgba(30, 41, 59, 0.95)' : 'rgba(255, 255, 255, 0.95)',

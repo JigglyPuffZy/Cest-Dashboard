@@ -406,7 +406,7 @@ export const DocumentationPage = ({ darkMode, readOnly = false }) => {
       {/* Image Modal */}
       {selectedImage && (
         <Modal onClose={() => setSelectedImage(null)}>
-          <ModalPanel maxWidth="max-w-4xl" className="rounded-2xl overflow-y-auto">
+          <ModalPanel maxWidth="max-w-4xl" className="rounded-2xl">
           <div
             style={{
               background: theme.cardBg,

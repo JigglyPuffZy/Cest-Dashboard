@@ -1091,7 +1091,7 @@ export const Dashboard = ({ projects = [], equipment = [], uniqueComm = 0, darkM
       {/* Component Legend Modal */}
       {showComponentLegend && (
         <Modal onClose={() => setShowComponentLegend(false)}>
-          <ModalPanel maxWidth="max-w-2xl" className="rounded-2xl shadow-2xl overflow-y-auto max-h-[80vh]">
+          <ModalPanel maxWidth="max-w-2xl" className="rounded-2xl shadow-2xl">
         <div 
           style={{
             background: darkMode ? '#0f172a' : '#ffffff',
@@ -1194,8 +1194,8 @@ export const Dashboard = ({ projects = [], equipment = [], uniqueComm = 0, darkM
       const components = selectedItem.components || [];
 
       return (
-        <Modal onClose={() => setShowDetailModal(false)} className="bg-black/80 backdrop-blur-md">
-          <ModalPanel maxWidth="max-w-4xl" className="rounded-3xl shadow-2xl overflow-y-auto">
+        <Modal onClose={() => setShowDetailModal(false)} overlayClassName="bg-black/80 backdrop-blur-md">
+          <ModalPanel maxWidth="max-w-4xl" className="rounded-3xl shadow-2xl">
           <div
             style={{
               background: darkMode 
@@ -1716,14 +1716,8 @@ export const Dashboard = ({ projects = [], equipment = [], uniqueComm = 0, darkM
       }
       
       @keyframes modal-fade-in {
-        from { 
-          opacity: 0; 
-          transform: translate(-50%, -50%) scale(0.9);
-        }
-        to { 
-          opacity: 1; 
-          transform: translate(-50%, -50%) scale(1);
-        }
+        from { opacity: 0; }
+        to { opacity: 1; }
       }
       
       @keyframes float {
