@@ -88,11 +88,16 @@ export const transformProject = (project) => {
     ? project.municipality 
     : extractedMunicipality;
   
+  const componentIds = (project.project_components || [])
+    .map((pc) => pc.component?.id || pc.component_id)
+    .filter(Boolean)
+    .map((id) => String(id).toLowerCase());
+
   return {
     ...project,
-    // Standardize component structure
-    components: project.project_components?.map(pc => pc.component?.id) || 
-                project.components || [],
+    components: componentIds.length
+      ? componentIds
+      : (project.components || []).map((id) => String(id).toLowerCase()),
     // Standardize community types
     communities: project.project_community_types?.map(pct => pct.community_type?.id) || 
                  project.communities || [],

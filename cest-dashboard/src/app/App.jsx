@@ -112,6 +112,7 @@ function AppContent() {
     guestAccessStatus,
     guestNeedsProfile,
     canViewData,
+    isReadOnly,
     isAdmin,
     displayName,
     onGuestSignIn: exitGuestMode,
@@ -665,7 +666,7 @@ function AppContent() {
           />
 
           <main className="flex-1 overflow-auto overflow-x-hidden p-4 sm:p-6 lg:p-8 scrollbar-thin">
-            {isGuestMode && guestAccessStatus === "approved" && activePage !== "dashboard" && (
+            {isGuestMode && isReadOnly && activePage !== "dashboard" && (
               <div className="mx-auto mb-6 max-w-[1400px]">
                 <ViewModeBanner
                   darkMode={darkMode}

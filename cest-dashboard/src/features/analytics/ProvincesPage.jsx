@@ -361,67 +361,101 @@ export const ProvincesPage = ({ projects, darkMode }) => {
       </div>
 
       {/* Province Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {provinceData.map((province) => (
-          <button
-            key={province.id}
-            onClick={() => navigate(`/analytics/provinces/${province.id}`)}
-            className="text-left rounded-xl p-6 transition-all duration-200 hover:scale-[1.02] group"
-            style={cardStyle}
-          >
-            <div className="flex items-start justify-between mb-4">
+      <div>
+        <h3 className="text-lg sm:text-xl font-bold mb-1" style={{ color: darkMode ? "#f8fafc" : "#0f172a" }}>
+          All Provinces
+        </h3>
+        <p className="text-sm mb-5" style={{ color: darkMode ? "#94a3b8" : "#64748b" }}>
+          Tap a province to open city-level analytics
+        </p>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          {provinceData.map((province) => (
+            <button
+              key={province.id}
+              onClick={() => navigate(`/analytics/provinces/${province.id}`)}
+              className="text-left rounded-2xl p-5 sm:p-6 transition-all duration-200 hover:scale-[1.01] hover:shadow-lg group border-l-4"
+              style={{
+                ...cardStyle,
+                borderLeftColor: "#004A98",
+              }}
+            >
+              <div className="flex items-start justify-between gap-3 mb-5">
+                <div className="min-w-0">
+                  <p
+                    className="text-[10px] font-bold uppercase tracking-widest mb-1"
+                    style={{ color: darkMode ? "#64748b" : "#94a3b8" }}
+                  >
+                    Province
+                  </p>
+                  <h3
+                    className="text-lg sm:text-xl font-bold leading-tight"
+                    style={{ color: darkMode ? "#f8fafc" : "#0f172a" }}
+                  >
+                    {province.name}
+                  </h3>
+                </div>
+                <div
+                  className="p-2.5 rounded-xl shrink-0"
+                  style={{ background: "rgba(0, 74, 152, 0.12)" }}
+                >
+                  <Building2 className="w-5 h-5" style={{ color: "#004A98" }} />
+                </div>
+              </div>
+
+              <div className="flex items-end justify-between gap-4 mb-4">
+                <div>
+                  <p
+                    className="text-4xl sm:text-5xl font-bold tabular-nums leading-none mb-1.5"
+                    style={{ color: darkMode ? "#f8fafc" : "#0f172a" }}
+                  >
+                    {province.projectCount}
+                  </p>
+                  <p className="text-sm font-bold uppercase tracking-wide" style={{ color: "#004A98" }}>
+                    Projects
+                  </p>
+                </div>
+                <div className="text-right pb-0.5">
+                  <p className="text-lg sm:text-xl font-bold tabular-nums" style={{ color: "#3b82f6" }}>
+                    {fmt(province.totalBudget)}
+                  </p>
+                  <p className="text-xs font-medium mt-0.5" style={{ color: darkMode ? "#94a3b8" : "#64748b" }}>
+                    Total budget
+                  </p>
+                </div>
+              </div>
+
               <div
-                className="p-3 rounded-lg"
-                style={{ background: "rgba(0, 74, 152, 0.1)" }}
+                className="grid grid-cols-2 gap-3 pt-3 border-t text-sm"
+                style={{ borderColor: darkMode ? "#1e293b" : "#e5e7eb" }}
               >
-                <Building2 className="w-6 h-6" style={{ color: "#004A98" }} />
+                <div>
+                  <p className="text-2xl font-bold tabular-nums" style={{ color: darkMode ? "#e2e8f0" : "#1e293b" }}>
+                    {province.municipalities}
+                  </p>
+                  <p className="text-xs font-medium" style={{ color: darkMode ? "#94a3b8" : "#64748b" }}>
+                    Municipalities
+                  </p>
+                </div>
+                <div>
+                  <p className="text-2xl font-bold tabular-nums" style={{ color: darkMode ? "#e2e8f0" : "#1e293b" }}>
+                    {province.barangays}
+                  </p>
+                  <p className="text-xs font-medium" style={{ color: darkMode ? "#94a3b8" : "#64748b" }}>
+                    Barangays
+                  </p>
+                </div>
               </div>
-              <ArrowRight
-                className="w-5 h-5 transition-transform group-hover:translate-x-1"
-                style={{ color: darkMode ? "#64748b" : "#94a3b8" }}
-              />
-            </div>
 
-            <h3 className="text-xl font-semibold mb-2" style={{ color: darkMode ? "#f8fafc" : "#0f172a" }}>
-              {province.name}
-            </h3>
-
-            <div className="space-y-2">
-              <div className="flex items-center justify-between">
-                <span className="text-sm" style={{ color: darkMode ? "#94a3b8" : "#64748b" }}>
-                  Projects
-                </span>
-                <span className="text-sm font-semibold" style={{ color: darkMode ? "#f8fafc" : "#0f172a" }}>
-                  {province.projectCount}
-                </span>
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="text-sm" style={{ color: darkMode ? "#94a3b8" : "#64748b" }}>
-                  Municipalities/Cities
-                </span>
-                <span className="text-sm font-semibold" style={{ color: darkMode ? "#f8fafc" : "#0f172a" }}>
-                  {province.municipalities}
-                </span>
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="text-sm" style={{ color: darkMode ? "#94a3b8" : "#64748b" }}>
-                  Barangays
-                </span>
-                <span className="text-sm font-semibold" style={{ color: darkMode ? "#f8fafc" : "#0f172a" }}>
-                  {province.barangays}
-                </span>
-              </div>
-              <div className="flex items-center justify-between pt-2 border-t" style={{ borderColor: darkMode ? "#1e293b" : "#e5e7eb" }}>
-                <span className="text-sm font-medium" style={{ color: darkMode ? "#94a3b8" : "#64748b" }}>
-                  Total Budget
-                </span>
-                <span className="text-lg font-bold" style={{ color: "#3b82f6" }}>
-                  {fmt(province.totalBudget)}
-                </span>
-              </div>
-            </div>
-          </button>
-        ))}
+              <p
+                className="text-xs font-semibold mt-4 flex items-center gap-1.5 group-hover:gap-2 transition-all"
+                style={{ color: "#004A98" }}
+              >
+                View cities
+                <ArrowRight className="w-3.5 h-3.5" />
+              </p>
+            </button>
+          ))}
+        </div>
       </div>
     </div>
   );

@@ -46,6 +46,7 @@ export const Dashboard = ({
   guestNeedsProfile = false,
   guestAccessStatus = null,
   canViewData = true,
+  isReadOnly = false,
   isAdmin = false,
   displayName = "Administrator",
   onGuestSignIn,
@@ -132,7 +133,9 @@ export const Dashboard = ({
     .map(([k]) => ({
       name: k.toUpperCase(),
       fullName: COMPONENTS[k],
-      value: transformedProjects.filter((p) => p.components?.includes(k)).length,
+      value: transformedProjects.filter((p) =>
+        (p.components || []).some((c) => String(c).toLowerCase() === k.toLowerCase())
+      ).length,
     }))
     .filter((d) => d.value > 0);
 
@@ -165,7 +168,7 @@ export const Dashboard = ({
       {isGuestMode && guestAccessStatus === "declined" && (
         <GuestDeclinedBanner darkMode={darkMode} guestName={displayName} onSignIn={onGuestSignIn} />
       )}
-      {isGuestMode && guestAccessStatus === "approved" && (
+      {isGuestMode && isReadOnly && guestAccessStatus === "approved" && (
         <ViewModeBanner darkMode={darkMode} onSignIn={onGuestSignIn} />
       )}
 
@@ -409,28 +412,82 @@ export const Dashboard = ({
 
               {/* Province Overview */}
               <div>
-                <h3 className="text-lg font-semibold mb-1" style={{ color: darkMode ? '#f8fafc' : '#0f172a' }}>Provinces</h3>
-                <p className="text-sm mb-4" style={{ color: darkMode ? '#94a3b8' : '#6b7280' }}>Click a province for city-level analytics</p>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                <h3 className="text-lg sm:text-xl font-bold mb-1" style={{ color: darkMode ? '#f8fafc' : '#0f172a' }}>Provinces</h3>
+                <p className="text-sm mb-5" style={{ color: darkMode ? '#94a3b8' : '#64748b' }}>
+                  Tap a province to see cities and barangays
+                </p>
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                   {provinceData.map((province) => (
                     <button
                       key={province.id}
                       type="button"
                       onClick={() => navigate(`/analytics/provinces/${province.id}`)}
-                      className="text-left rounded-xl p-5 transition-all duration-200 hover:scale-[1.02] group"
-                      style={cardStyle}
+                      className="text-left rounded-2xl p-5 sm:p-6 transition-all duration-200 hover:scale-[1.01] hover:shadow-lg group border-l-4"
+                      style={{
+                        ...cardStyle,
+                        borderLeftColor: '#004A98',
+                      }}
                     >
-                      <div className="flex items-start justify-between mb-3">
-                        <div className="p-2.5 rounded-lg" style={{ background: 'rgba(0, 74, 152, 0.1)' }}>
-                          <Building2 className="w-5 h-5" style={{ color: '#004A98' }} />
+                      <div className="flex items-start justify-between gap-3 mb-5">
+                        <div className="min-w-0">
+                          <p
+                            className="text-[10px] font-bold uppercase tracking-widest mb-1"
+                            style={{ color: darkMode ? '#64748b' : '#94a3b8' }}
+                          >
+                            Province
+                          </p>
+                          <h4
+                            className="text-lg sm:text-xl font-bold leading-tight truncate"
+                            style={{ color: darkMode ? '#f8fafc' : '#0f172a' }}
+                          >
+                            {province.name}
+                          </h4>
                         </div>
-                        <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" style={{ color: darkMode ? '#64748b' : '#94a3b8' }} />
+                        <div
+                          className="p-2.5 rounded-xl shrink-0 transition-transform group-hover:translate-x-0.5"
+                          style={{ background: 'rgba(0, 74, 152, 0.12)' }}
+                        >
+                          <ArrowRight className="w-5 h-5" style={{ color: '#004A98' }} />
+                        </div>
                       </div>
-                      <h4 className="text-base font-semibold mb-2" style={{ color: darkMode ? '#f8fafc' : '#0f172a' }}>{province.name}</h4>
-                      <div className="grid grid-cols-2 gap-2 text-xs">
-                        <div><span style={{ color: darkMode ? '#94a3b8' : '#64748b' }}>Projects </span><span className="font-bold" style={{ color: darkMode ? '#f8fafc' : '#0f172a' }}>{province.projectCount}</span></div>
-                        <div><span style={{ color: darkMode ? '#94a3b8' : '#64748b' }}>Budget </span><span className="font-bold" style={{ color: '#004A98' }}>{formatCurrencyShort(province.totalBudget)}</span></div>
+
+                      <div className="flex items-end justify-between gap-4">
+                        <div>
+                          <p
+                            className="text-4xl sm:text-5xl font-bold tabular-nums leading-none mb-1.5"
+                            style={{ color: darkMode ? '#f8fafc' : '#0f172a' }}
+                          >
+                            {province.projectCount}
+                          </p>
+                          <p
+                            className="text-sm font-bold uppercase tracking-wide"
+                            style={{ color: '#004A98' }}
+                          >
+                            Projects
+                          </p>
+                        </div>
+                        <div className="text-right pb-0.5">
+                          <p
+                            className="text-lg sm:text-xl font-bold tabular-nums"
+                            style={{ color: '#3b82f6' }}
+                          >
+                            {formatCurrencyShort(province.totalBudget)}
+                          </p>
+                          <p className="text-xs font-medium mt-0.5" style={{ color: darkMode ? '#94a3b8' : '#64748b' }}>
+                            Budget
+                          </p>
+                        </div>
                       </div>
+
+                      <p
+                        className="text-[11px] font-medium mt-4 pt-3 border-t"
+                        style={{
+                          color: darkMode ? '#64748b' : '#94a3b8',
+                          borderColor: darkMode ? '#1e293b' : '#e5e7eb',
+                        }}
+                      >
+                        {province.municipalities} municipalities · {province.barangays} barangays
+                      </p>
                     </button>
                   ))}
                 </div>
@@ -447,9 +504,14 @@ export const Dashboard = ({
                 
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                   {Object.entries(COMPONENTS).map(([key, name]) => {
-                    const count = transformedProjects.filter((p) => p.components?.includes(key)).length;
+                    const keyLower = key.toLowerCase();
+                    const count = transformedProjects.filter((p) =>
+                      (p.components || []).some((c) => String(c).toLowerCase() === keyLower)
+                    ).length;
                     const percentage = transformedProjects.length > 0 ? ((count / transformedProjects.length) * 100).toFixed(1) : 0;
-                    const componentProjects = transformedProjects.filter((p) => p.components?.includes(key));
+                    const componentProjects = transformedProjects.filter((p) =>
+                      (p.components || []).some((c) => String(c).toLowerCase() === keyLower)
+                    );
                     
                     return (
                       <div 

@@ -198,8 +198,9 @@ export function AuthProvider({ children }) {
   const guestAccessStatus = guestProfile?.status ?? null
   const isAuthenticated = !!user
   const isAdmin = isAuthenticated && !isGuestMode
-  const canViewData = isAdmin || (isGuestMode && guestAccessStatus === 'approved')
-  const isReadOnly = isGuestMode && guestAccessStatus === 'approved'
+  // Guests see all dashboard data; add/delete blocked via isReadOnly in the UI
+  const canViewData = isAdmin || (isGuestMode && guestAccessStatus !== 'declined')
+  const isReadOnly = isGuestMode && !isAdmin
 
   const value = {
     user,
