@@ -2,6 +2,7 @@ import { MapPin, Package, Trash2, ChevronRight } from "lucide-react";
 import { COMPONENTS, COMP_COLORS } from "../../shared/constants";
 import { HoverTooltip } from "../ui/Tooltip";
 import { FilterBar, FilterSelect } from "../ui/FilterBar";
+import { SyncStatusBadge } from "../ui/SyncStatusBadge";
 import { safeProjectTitle, safeEquipmentName } from "../../shared/utils/safeRender";
 
 const REGION_II_PROVINCES = ["Batanes", "Cagayan", "Isabela", "Nueva Vizcaya", "Quirino"];
@@ -125,6 +126,7 @@ export function ProjectRecordCard({
                 {project.status}
               </span>
             )}
+            <SyncStatusBadge syncStatus={project._syncStatus} darkMode={darkMode} />
           </div>
           <div className="flex items-center gap-1 shrink-0">
             {!readOnly && onDelete && (
@@ -208,6 +210,7 @@ export function EquipmentRecordCard({
             <span className="text-[11px] font-semibold px-2 py-0.5 rounded-md" style={{ background: darkMode ? "#1e293b" : "#f1f5f9", color: darkMode ? "#cbd5e1" : "#475569" }}>
               Equipment #{index + 1}
             </span>
+            <SyncStatusBadge syncStatus={item._syncStatus} darkMode={darkMode} />
           </div>
           {!readOnly && onDelete && (
             <button

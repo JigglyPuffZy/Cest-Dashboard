@@ -3,6 +3,10 @@ import { GraduationCap, Plus, Search, Edit2, Trash2, BarChart3, X, AlertTriangle
 import { COMPONENTS, COMP_COLORS, BENEF_TYPES } from "../../shared/constants";
 import { supabase } from "../../shared/services/supabaseClient";
 import { Modal, ModalPanel } from "../../components/ui/Modal";
+import { SyncStatusBadge } from "../../components/ui/SyncStatusBadge";
+import { useOffline } from "../../shared/hooks/useOfflineSync.jsx";
+import { offlineStore } from "../../shared/services/offlineStore";
+import { isBrowserOnline, isNetworkError } from "../../shared/services/offlineSyncService";
 
 const dbTrainings = {
   async getAll() {
@@ -194,6 +198,7 @@ function TrainingModal({ initial, onSave, onClose, darkMode }) {
 
 // ─── Main Page ───────────────────────────────────────────────────────────────
 export default function TrainingsPage({ darkMode = false, onArchiveTraining, readOnly = false }) {
+  const { isOnline, queueChange } = useOffline();
   const [trainings, setTrainings] = useState([]);
   const [loading, setLoading] = useState(true);
   const [modal, setModal] = useState(null); // null | {type:'add'} | {type:'edit',data} | {type:'delete',data}
@@ -205,39 +210,89 @@ export default function TrainingsPage({ darkMode = false, onArchiveTraining, rea
   useEffect(() => { load(); }, []);
 
   const load = async () => {
-    try { setTrainings(await dbTrainings.getAll()); }
-    catch (e) { showToast("Failed to load trainings", "#ef4444"); }
-    finally { setLoading(false); }
+    try {
+      if (isBrowserOnline()) {
+        const rows = await dbTrainings.getAll();
+        setTrainings(rows);
+        await offlineStore.setCacheKey('trainings', rows);
+      } else {
+        setTrainings((await offlineStore.getCacheKey('trainings')) || []);
+      }
+    } catch (e) {
+      const cached = (await offlineStore.getCacheKey('trainings')) || [];
+      setTrainings(cached);
+      if (!cached.length) showToast("Failed to load trainings", "#ef4444");
+    } finally { setLoading(false); }
   };
 
   const handleSave = async (data) => {
+    if (readOnly) return;
     try {
       if (data.id) {
         const { id, created_at, ...rest } = data;
-        const updated = await dbTrainings.update(id, rest);
-        setTrainings(ts => ts.map(t => t.id === id ? updated : t));
-        showToast("Training updated");
+        if (!isOnline || String(id).startsWith('pending-')) {
+          await queueChange({ entity: 'training', action: 'update', entityId: id, payload: rest });
+          setTrainings((ts) => ts.map((t) => (t.id === id ? { ...t, ...rest, _syncStatus: 'pending' } : t)));
+          showToast("Saved offline — will sync when online", "#f59e0b");
+        } else {
+          const updated = await dbTrainings.update(id, rest);
+          setTrainings((ts) => ts.map((t) => (t.id === id ? updated : t)));
+          showToast("Training updated");
+        }
+      } else if (!isOnline) {
+        const item = await queueChange({ entity: 'training', action: 'create', payload: data });
+        const pending = { id: item.tempId, ...data, _syncStatus: 'pending', created_at: item.createdAt };
+        setTrainings((ts) => [pending, ...ts]);
+        showToast("Saved offline — will sync when online", "#f59e0b");
       } else {
         const created = await dbTrainings.create(data);
-        setTrainings(ts => [created, ...ts]);
+        setTrainings((ts) => [created, ...ts]);
         showToast("Training added");
       }
       setModal(null);
-    } catch (e) { showToast(e.message, "#ef4444"); }
+    } catch (e) {
+      if (isNetworkError(e)) {
+        if (data.id) {
+          const { id, created_at, ...rest } = data;
+          await queueChange({ entity: 'training', action: 'update', entityId: id, payload: rest });
+          showToast("Saved offline — will sync when online", "#f59e0b");
+        } else {
+          const item = await queueChange({ entity: 'training', action: 'create', payload: data });
+          setTrainings((ts) => [{ id: item.tempId, ...data, _syncStatus: 'pending' }, ...ts]);
+          showToast("Saved offline — will sync when online", "#f59e0b");
+        }
+        setModal(null);
+        return;
+      }
+      showToast(e.message, "#ef4444");
+    }
   };
 
   const handleDelete = async (id) => {
+    if (readOnly) return;
     const item = trainings.find(t => t.id === id);
     try {
-      await dbTrainings.archive(id);
+      if (!isOnline || String(id).startsWith('pending-')) {
+        await queueChange({ entity: 'training', action: 'archive', entityId: id, payload: {} });
+      } else {
+        await dbTrainings.archive(id);
+      }
       setTrainings(ts => ts.filter(t => t.id !== id));
-      // Send to archive in parent
       if (onArchiveTraining && item) {
-        onArchiveTraining({ ...item, _type: 'training', archived_at: new Date().toISOString() });
+        onArchiveTraining({ ...item, _type: 'training', archived_at: new Date().toISOString(), _syncStatus: 'pending' });
       }
       showToast("Training moved to archive", "#f59e0b");
       setModal(null);
-    } catch (e) { showToast(e.message, "#ef4444"); }
+    } catch (e) {
+      if (isNetworkError(e)) {
+        await queueChange({ entity: 'training', action: 'archive', entityId: id, payload: {} });
+        setTrainings(ts => ts.filter(t => t.id !== id));
+        showToast("Archived offline — will sync when online", "#f59e0b");
+        setModal(null);
+        return;
+      }
+      showToast(e.message, "#ef4444");
+    }
   };
 
   const years = ["All", ...Array.from(new Set(trainings.map(t => t.year).filter(Boolean))).sort()];
@@ -388,6 +443,7 @@ export default function TrainingsPage({ darkMode = false, onArchiveTraining, rea
                             {t.component.toUpperCase()}
                           </span>
                         )}
+                        <SyncStatusBadge syncStatus={t._syncStatus} darkMode={darkMode} />
                       </div>
                       <h3 style={{ margin: "0 0 6px", fontSize: 15, fontWeight: 800, color: textPrimary, lineHeight: 1.4, whiteSpace: "pre-line" }}>{t.title || "(no title)"}</h3>
                       <p style={{ margin: "0 0 8px", fontSize: 13, color: textSub }}><strong>Community:</strong> {t.community || "—"}</p>
