@@ -4,6 +4,7 @@ import { TrendingUp, Users, Package, Info, FileText, MapPin, X, Eye } from "luci
 import { fmt, getStatusColor, getCardStyle, formatCurrencyShort } from "../../shared/utils/helpers";
 import { COMPONENTS, COMP_COLORS } from "../../shared/constants";
 import { HoverTooltip } from "../../components/ui/Tooltip";
+import { ViewModeBanner } from "../../components/ui/ViewModeBanner";
 import { getAllProvinces } from "../../shared/data/regionII";
 import { transformProjects, transformEquipmentList } from "../../shared/utils/dataTransform";
 import { safeString, safeProjectTitle, safeEquipmentName, safeDisplayName } from "../../shared/utils/safeRender";
@@ -29,7 +30,7 @@ const PesoIcon = ({ className, style }) => (
   </svg>
 );
 
-export const Dashboard = ({ projects = [], equipment = [], uniqueComm = 0, darkMode }) => {
+export const Dashboard = ({ projects = [], equipment = [], uniqueComm = 0, darkMode, isGuestMode = false, onGuestSignIn }) => {
   const navigate = useNavigate();
 
   // Transform Supabase data structure to match expected format
@@ -105,9 +106,13 @@ export const Dashboard = ({ projects = [], equipment = [], uniqueComm = 0, darkM
   };
 
   return (
-    <div className="max-w-[1400px] mx-auto space-y-8">
+    <div className="max-w-[1400px] mx-auto space-y-6">
+      {isGuestMode && (
+        <ViewModeBanner darkMode={darkMode} onSignIn={onGuestSignIn} />
+      )}
+
       {/* Enhanced Premium Tab Design - Minimized with Blue Theme */}
-      <div className="flex items-center justify-center mb-6 px-2 sm:px-4">
+      <div className="flex items-center justify-center mb-2 px-2 sm:px-4">
         <div className="flex gap-1.5 sm:gap-3 p-1.5 sm:p-2.5 rounded-2xl w-full max-w-2xl" style={{ 
           background: darkMode 
             ? 'linear-gradient(135deg, rgba(17, 24, 39, 0.8), rgba(31, 41, 55, 0.6))'

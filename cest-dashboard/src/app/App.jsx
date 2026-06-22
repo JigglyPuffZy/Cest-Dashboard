@@ -594,17 +594,17 @@ function AppContent() {
           />
 
           <main className="flex-1 overflow-auto p-8 scrollbar-thin">
-            <div className="mx-auto max-w-[1400px]">
-            {isGuestMode && (
-              <ViewModeBanner
-                darkMode={darkMode}
-                onSignIn={async () => {
-                  await signOut();
-                  navigate('/');
-                }}
-              />
+            {isGuestMode && activePage !== 'dashboard' && (
+              <div className="mx-auto mb-6 max-w-[1400px]">
+                <ViewModeBanner
+                  darkMode={darkMode}
+                  onSignIn={async () => {
+                    await signOut();
+                    navigate('/');
+                  }}
+                />
+              </div>
             )}
-            </div>
             <Routes>
               <Route path="/" element={<Navigate to="/dashboard" replace />} />
               <Route
@@ -618,6 +618,11 @@ function AppContent() {
                       equipment={equipment} 
                       uniqueComm={uniqueComm}
                       darkMode={darkMode}
+                      isGuestMode={isGuestMode}
+                      onGuestSignIn={async () => {
+                        await signOut();
+                        navigate('/');
+                      }}
                     />
                   ) : activePage === "analytics" ? (
                     <ProvincesPage projects={projects} darkMode={darkMode} />
