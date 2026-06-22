@@ -4,13 +4,8 @@ import { supabase } from "../../shared/services/supabaseClient";
 import { Modal, ModalPanel } from "../../components/ui/Modal";
 import { FilterBar, FilterSelect } from "../../components/ui/FilterBar";
 import { PaginationBar } from "../../components/ui/PaginationBar";
-import { SyncStatusBadge } from "../../components/ui/SyncStatusBadge";
-import { useOffline } from "../../shared/hooks/useOfflineSync.jsx";
-import { offlineStore } from "../../shared/services/offlineStore";
-import { isBrowserOnline, isNetworkError } from "../../shared/services/offlineSyncService";
 
 export const StarbooksInventorySimple = ({ darkMode, readOnly = false }) => {
-  const { isOnline, queueChange } = useOffline();
   const [units, setUnits] = useState([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
@@ -30,25 +25,17 @@ export const StarbooksInventorySimple = ({ darkMode, readOnly = false }) => {
   const loadUnits = async () => {
     try {
       setLoading(true);
-      if (isBrowserOnline()) {
-        const { data, error } = await supabase
-          .from('starbooks_units')
-          .select('*')
-          .or('is_archived.is.null,is_archived.eq.false')
-          .order('created_at', { ascending: false });
-
-        if (error) throw error;
-        const rows = data || [];
-        setUnits(rows);
-        await offlineStore.setCacheKey('starbooksUnits', rows);
-      } else {
-        const cached = (await offlineStore.getCacheKey('starbooksUnits')) || [];
-        setUnits(cached);
-      }
+      const { data, error } = await supabase
+        .from('starbooks_units')
+        .select('*')
+        .or('is_archived.is.null,is_archived.eq.false')
+        .order('created_at', { ascending: false });
+      
+      if (error) throw error;
+      setUnits(data || []);
     } catch (err) {
       console.error('Error loading units:', err);
-      const cached = (await offlineStore.getCacheKey('starbooksUnits')) || [];
-      setUnits(cached);
+      setUnits([]);
     } finally {
       setLoading(false);
     }
@@ -67,22 +54,7 @@ export const StarbooksInventorySimple = ({ darkMode, readOnly = false }) => {
   };
 
   const handleSaveEdit = async () => {
-    if (readOnly) return;
     try {
-      if (!isOnline || String(selectedUnit.id).startsWith('pending-')) {
-        await queueChange({
-          entity: 'starbooks_unit',
-          action: 'update',
-          entityId: selectedUnit.id,
-          payload: editForm,
-        });
-        setUnits(units.map(u => u.id === selectedUnit.id ? { ...u, ...editForm, _syncStatus: 'pending' } : u));
-        setSelectedUnit({ ...selectedUnit, ...editForm, _syncStatus: 'pending' });
-        setIsEditing(false);
-        alert('Saved offline — will sync when online');
-        return;
-      }
-
       const { error } = await supabase
         .from('starbooks_units')
         .update(editForm)
@@ -90,45 +62,19 @@ export const StarbooksInventorySimple = ({ darkMode, readOnly = false }) => {
       
       if (error) throw error;
       
+      // Update local state
       setUnits(units.map(u => u.id === selectedUnit.id ? { ...u, ...editForm } : u));
       setSelectedUnit({ ...selectedUnit, ...editForm });
       setIsEditing(false);
       alert('Unit updated successfully!');
     } catch (err) {
-      if (isNetworkError(err)) {
-        await queueChange({
-          entity: 'starbooks_unit',
-          action: 'update',
-          entityId: selectedUnit.id,
-          payload: editForm,
-        });
-        setUnits(units.map(u => u.id === selectedUnit.id ? { ...u, ...editForm, _syncStatus: 'pending' } : u));
-        setIsEditing(false);
-        alert('Saved offline — will sync when online');
-        return;
-      }
       console.error('Error updating unit:', err);
       alert('Failed to update unit: ' + err.message);
     }
   };
 
   const handleDelete = async () => {
-    if (readOnly) return;
     try {
-      if (!isOnline || String(selectedUnit.id).startsWith('pending-')) {
-        await queueChange({
-          entity: 'starbooks_unit',
-          action: 'delete',
-          entityId: selectedUnit.id,
-          payload: {},
-        });
-        setUnits(units.filter(u => u.id !== selectedUnit.id));
-        setSelectedUnit(null);
-        setShowDeleteConfirm(false);
-        alert('Delete queued offline — will sync when online');
-        return;
-      }
-
       const { error } = await supabase
         .from('starbooks_units')
         .delete()
@@ -136,24 +82,12 @@ export const StarbooksInventorySimple = ({ darkMode, readOnly = false }) => {
       
       if (error) throw error;
       
+      // Update local state
       setUnits(units.filter(u => u.id !== selectedUnit.id));
       setSelectedUnit(null);
       setShowDeleteConfirm(false);
       alert('Unit deleted successfully!');
     } catch (err) {
-      if (isNetworkError(err)) {
-        await queueChange({
-          entity: 'starbooks_unit',
-          action: 'delete',
-          entityId: selectedUnit.id,
-          payload: {},
-        });
-        setUnits(units.filter(u => u.id !== selectedUnit.id));
-        setSelectedUnit(null);
-        setShowDeleteConfirm(false);
-        alert('Delete queued offline — will sync when online');
-        return;
-      }
       console.error('Error deleting unit:', err);
       alert('Failed to delete unit: ' + err.message);
     }
@@ -413,7 +347,6 @@ export const StarbooksInventorySimple = ({ darkMode, readOnly = false }) => {
                       >
                         {unit.status || "Unknown"}
                       </span>
-                      <SyncStatusBadge syncStatus={unit._syncStatus} darkMode={darkMode} />
                     </div>
                     <button
                       onClick={(e) => {

@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useRef } from "react";
 import { HashRouter, Routes, Route, Navigate, useNavigate, useLocation } from "react-router-dom";
 import { AuthProvider, useAuth, getUserDisplayName } from "../shared/hooks/useAuth.jsx";
 import { Sidebar } from "../components/layout/Sidebar";
@@ -21,10 +21,6 @@ import { LoginPage } from "../features/auth/LoginPage";
 import TrainingsPage from "../features/trainings/TrainingsPage";
 import { AdminRequestsPage } from "../features/admin/AdminRequestsPage";
 import { GuestAccessBlocked } from "../components/ui/GuestAccessBlocked";
-import { OfflineIndicator } from "../components/ui/OfflineIndicator";
-import { OfflineProvider, useOffline } from "../shared/hooks/useOfflineSync.jsx";
-import { offlineStore } from "../shared/services/offlineStore";
-import { isBrowserOnline, isNetworkError } from "../shared/services/offlineSyncService";
 import { useToastNotification } from "../shared/hooks/useToastNotification";
 import { useAuditLog } from "../shared/hooks/useAuditLog";
 import { auditService, ENTITY_TYPES } from "../shared/services/auditService";
@@ -33,7 +29,7 @@ import { db, supabase } from "../shared/services/supabaseClient";
 const INACTIVITY_TIMEOUT = 60 * 60 * 1000;
 const ACTIVITY_EVENTS = ['mousedown', 'mousemove', 'keypress', 'scroll', 'touchstart', 'click'];
 
-function AppMain({ loadRef }) {
+function AppContent() {
   const navigate = useNavigate();
   const location = useLocation();
   const {
@@ -66,17 +62,8 @@ function AppMain({ loadRef }) {
 
   const { toasts, success, warning, error, removeToast } = useToastNotification();
   const { logs, refreshLogs, getUnreadCount } = useAuditLog();
-  const { isOnline, pendingCount, isSyncing, syncNow, queueChange, applyPendingOverlay } = useOffline();
   const dataLoadedRef = useRef(false);
   const unreadCount = getUnreadCount();
-
-  const applyDataToState = useCallback(async (base) => {
-    const merged = await applyPendingOverlay(base);
-    setProjects(merged.projects || []);
-    setEquipment(merged.equipment || []);
-    setStarbooksUnits(merged.starbooksUnits || []);
-    setArchivedProjects(merged.archivedProjects || []);
-  }, [applyPendingOverlay]);
 
   useEffect(() => {
     const pathToPage = {
@@ -153,105 +140,93 @@ function AppMain({ loadRef }) {
     return () => clearTimeout(failsafeTimeout);
   }, [loadingData]);
 
-  const loadSupabaseData = useCallback(async () => {
+  const loadSupabaseData = async () => {
     try {
       setLoadingData(true);
-      console.log('Loading data...');
-
-      let base = {
-        projects: [],
-        equipment: [],
-        starbooksUnits: [],
-        archivedProjects: [],
-        trainings: [],
-      };
-
-      const loadFromNetwork = async () => {
-        const timeoutPromise = new Promise((_, reject) =>
-          setTimeout(() => reject(new Error('Data loading timeout')), 10000)
-        );
-
-        const [projectsData, equipmentData, starbooksData] = await Promise.race([
-          Promise.allSettled([
-            db.getProjects(),
-            db.getEquipment(),
-            db.getActiveStarbooksUnits(),
-          ]),
-          timeoutPromise,
-        ]);
-
-        base.projects = projectsData.status === 'fulfilled' ? (projectsData.value || []) : [];
-        base.equipment = equipmentData.status === 'fulfilled' ? (equipmentData.value || []) : [];
-        base.starbooksUnits = starbooksData.status === 'fulfilled' ? (starbooksData.value || []) : [];
-
-        try {
-          const [archivedP, archivedE, archivedTRes] = await Promise.race([
-            Promise.allSettled([
-              db.getArchivedProjects(),
-              db.getArchivedEquipment(),
-              supabase.from('trainings').select('*').eq('is_archived', true).order('archived_at', { ascending: false }),
-            ]),
-            new Promise((_, reject) => setTimeout(() => reject(new Error('Archive loading timeout')), 5000)),
-          ]);
-
-          base.archivedProjects = [
-            ...(archivedP.status === 'fulfilled' ? archivedP.value : []).map((p) => ({ ...p, _type: 'project' })),
-            ...(archivedE.status === 'fulfilled' ? archivedE.value : []).map((e) => ({ ...e, _type: 'equipment' })),
-            ...((archivedTRes.status === 'fulfilled' ? archivedTRes.value.data : null) || []).map((t) => ({ ...t, _type: 'training' })),
-          ];
-        } catch (archiveErr) {
-          console.warn('Archive loading failed:', archiveErr);
-        }
-
-        await offlineStore.saveFullCache(base);
-      };
-
-      if (isBrowserOnline()) {
-        try {
-          await loadFromNetwork();
-        } catch (networkErr) {
-          console.warn('Network load failed, using offline cache:', networkErr);
-          const cached = await offlineStore.getFullCache();
-          if (cached.projects?.length || cached.equipment?.length) {
-            base = cached;
-            warning('Showing cached data — will sync when connection returns');
-          } else {
-            throw networkErr;
-          }
-        }
+      console.log('Loading data from Supabase...');
+      
+      const timeoutPromise = new Promise((_, reject) => 
+        setTimeout(() => reject(new Error('Data loading timeout')), 10000)
+      );
+      
+      const [projectsData, equipmentData, starbooksData] = await Promise.race([
+        Promise.allSettled([
+          db.getProjects(),
+          db.getEquipment(),
+          db.getActiveStarbooksUnits(),
+        ]),
+        timeoutPromise
+      ]);
+      
+      if (projectsData.status === 'fulfilled') {
+        setProjects(projectsData.value || []);
+        console.log('Projects loaded:', projectsData.value?.length || 0);
       } else {
-        const cached = await offlineStore.getFullCache();
-        base = cached;
-        if (!cached.projects?.length && !cached.equipment?.length) {
-          warning('No cached data available yet. Connect once while online to enable offline viewing.');
-        }
+        console.error('Failed to load projects:', projectsData.reason);
+        setProjects([]);
+        console.warn('Projects loading failed, continuing with empty array');
+      }
+      
+      if (equipmentData.status === 'fulfilled') {
+        setEquipment(equipmentData.value || []);
+        console.log('Equipment loaded:', equipmentData.value?.length || 0);
+      } else {
+        console.error('Failed to load equipment:', equipmentData.reason);
+        setEquipment([]);
+        console.warn('Equipment loading failed, continuing with empty array');
       }
 
-      await applyDataToState(base);
-      console.log('Data loading completed');
-    } catch (err) {
-      console.error('Critical error loading data:', err);
-      const cached = await offlineStore.getFullCache();
-      if (cached.projects?.length || cached.equipment?.length) {
-        await applyDataToState(cached);
+      if (starbooksData.status === 'fulfilled') {
+        setStarbooksUnits(starbooksData.value || []);
+        console.log('STARBOOKS units loaded:', starbooksData.value?.length || 0);
       } else {
-        setProjects([]);
-        setEquipment([]);
+        console.error('Failed to load STARBOOKS units:', starbooksData.reason);
         setStarbooksUnits([]);
+        console.warn('STARBOOKS units loading failed, continuing with empty array');
+      }
+
+      try {
+        const archivedPromise = Promise.allSettled([
+          db.getArchivedProjects(),
+          db.getArchivedEquipment(),
+          supabase.from('trainings').select('*').eq('is_archived', true).order('archived_at', { ascending: false }),
+        ]);
+        
+        const [archivedP, archivedE, archivedTRes] = await Promise.race([
+          archivedPromise,
+          new Promise((_, reject) => setTimeout(() => reject(new Error('Archive loading timeout')), 5000))
+        ]);
+
+        const archivedItems = [
+          ...(archivedP.status === 'fulfilled' ? archivedP.value : []).map(p => ({ ...p, _type: 'project' })),
+          ...(archivedE.status === 'fulfilled' ? archivedE.value : []).map(e => ({ ...e, _type: 'equipment' })),
+          ...((archivedTRes.status === 'fulfilled' ? archivedTRes.value.data : null) || []).map(t => ({ ...t, _type: 'training' })),
+        ];
+        
+        setArchivedProjects(archivedItems);
+        console.log('Archived items loaded:', archivedItems.length);
+      } catch (archiveErr) {
+        console.warn('Archive loading failed, continuing without archived items:', archiveErr);
         setArchivedProjects([]);
       }
 
-      if (!err.message?.includes('timeout')) {
+      console.log('Data loading completed successfully');
+    } catch (err) {
+      console.error('Critical error loading data:', err);
+      setProjects([]);
+      setEquipment([]);
+      setStarbooksUnits([]);
+      setArchivedProjects([]);
+      
+      if (!err.message.includes('timeout')) {
         error('Failed to load data: ' + err.message);
+      } else {
+        console.warn('Data loading timed out, continuing with empty data');
       }
     } finally {
       setLoadingData(false);
     }
-  }, [applyDataToState, error, warning]);
-
-  useEffect(() => {
-    loadRef.current = loadSupabaseData;
-  }, [loadRef, loadSupabaseData]);
+  };
 
   useEffect(() => {
     if (!user) return;
@@ -343,31 +318,19 @@ function AppMain({ loadRef }) {
         eq.project_title === project.project_title
       );
       
-      const applyArchive = () => {
-        setProjects(prev => prev.filter(p => p.id !== project.id));
-        setEquipment(prev => prev.filter(eq => 
-          String(eq.project_id) !== String(project.id) && 
-          eq.project_title !== project.project_title
-        ));
-        setArchivedProjects(prev => [
-          { ...project, _type: 'project', archived_at: new Date().toISOString(), _syncStatus: 'pending' },
-          ...linkedEquipment.map(eq => ({ ...eq, _type: 'equipment', archived_at: new Date().toISOString(), _syncStatus: 'pending' })),
-          ...prev
-        ]);
-      };
-
-      if (!isOnline || String(project.id).startsWith('pending-')) {
-        await queueChange({ entity: 'project', action: 'archive', entityId: project.id, payload: {} });
-        for (const eq of linkedEquipment) {
-          await queueChange({ entity: 'equipment', action: 'archive', entityId: eq.id, payload: {} });
-        }
-        applyArchive();
-        success(`Project archived offline — will sync when online`);
-        return;
-      }
-
-      applyArchive();
+      setProjects(prev => prev.filter(p => p.id !== project.id));
+      setEquipment(prev => prev.filter(eq => 
+        String(eq.project_id) !== String(project.id) && 
+        eq.project_title !== project.project_title
+      ));
+      
       await db.deleteProject(project.id);
+      
+      setArchivedProjects(prev => [
+        { ...project, _type: 'project', archived_at: new Date().toISOString() },
+        ...linkedEquipment.map(eq => ({ ...eq, _type: 'equipment', archived_at: new Date().toISOString() })),
+        ...prev
+      ]);
       
       auditService.logDelete(
         ENTITY_TYPES.PROJECT, 
@@ -377,11 +340,7 @@ function AppMain({ loadRef }) {
       
       success(`Project and ${linkedEquipment.length} equipment item(s) moved to archive`);
     } catch (err) {
-      if (isNetworkError(err)) {
-        await queueChange({ entity: 'project', action: 'archive', entityId: project.id, payload: {} });
-        warning('Archived offline — will sync when online');
-        return;
-      }
+      setProjects(prev => [...prev, project]);
       await loadSupabaseData();
       error('Failed to archive project: ' + err.message);
     }
@@ -391,26 +350,13 @@ function AppMain({ loadRef }) {
     if (isReadOnly) { warning('View-only mode: cannot archive records'); return; }
     try {
       if (archivedProjects.some(p => String(p.id) === String(item.id))) return;
-
-      if (!isOnline || String(item.id).startsWith('pending-')) {
-        await queueChange({ entity: 'equipment', action: 'archive', entityId: item.id, payload: {} });
-        setEquipment(prev => prev.filter(e => e.id !== item.id));
-        setArchivedProjects(prev => [...prev, { ...item, _type: 'equipment', archived_at: new Date().toISOString(), _syncStatus: 'pending' }]);
-        success('Equipment archived offline — will sync when online');
-        return;
-      }
-
       setEquipment(prev => prev.filter(e => e.id !== item.id));
       await db.deleteEquipment(item.id);
       setArchivedProjects(prev => [...prev, { ...item, _type: 'equipment', archived_at: new Date().toISOString() }]);
       auditService.logDelete(ENTITY_TYPES.EQUIPMENT, item.equipment_name || item.equipmentName);
       success(`Equipment moved to archive`);
     } catch (err) {
-      if (isNetworkError(err)) {
-        await queueChange({ entity: 'equipment', action: 'archive', entityId: item.id, payload: {} });
-        warning('Archived offline — will sync when online');
-        return;
-      }
+      setEquipment(prev => [...prev, item]);
       error('Failed to archive equipment: ' + err.message);
     }
   };
@@ -499,28 +445,26 @@ function AppMain({ loadRef }) {
   const handleAddProject = async (projectData) => {
     if (isReadOnly) { warning('View-only mode: cannot add records'); return; }
     try {
-      if (!isOnline) {
-        const item = await queueChange({ entity: 'project', action: 'create', payload: projectData });
-        const pending = { id: item.tempId, ...projectData, _syncStatus: 'pending', created_at: item.createdAt };
-        setProjects((prev) => [pending, ...prev]);
-        success('Project saved offline — will sync when online');
-        return pending;
-      }
-
-      const newProject = await db.createProject(projectData);
+      console.log('handleAddProject called with:', projectData);
       
-      if (projectData.components?.length) {
+      const newProject = await db.createProject(projectData);
+      console.log('Project created successfully:', newProject);
+      
+      if (projectData.components && projectData.components.length > 0) {
+        console.log('Adding components:', projectData.components);
         for (const componentCode of projectData.components) {
           await db.addProjectComponent(newProject.id, componentCode);
         }
       }
       
-      if (projectData.communities?.length) {
+      if (projectData.communities && projectData.communities.length > 0) {
+        console.log('Adding communities:', projectData.communities);
         for (const communityCode of projectData.communities) {
           await db.addProjectCommunityType(newProject.id, communityCode);
         }
       }
       
+      console.log('Reloading data...');
       await loadSupabaseData();
       
       auditService.logCreate(
@@ -532,13 +476,8 @@ function AppMain({ loadRef }) {
       
       return newProject;
     } catch (err) {
-      if (isNetworkError(err)) {
-        const item = await queueChange({ entity: 'project', action: 'create', payload: projectData });
-        const pending = { id: item.tempId, ...projectData, _syncStatus: 'pending', created_at: item.createdAt };
-        setProjects((prev) => [pending, ...prev]);
-        warning('Connection lost — project saved offline for later sync');
-        return pending;
-      }
+      console.error('Error adding project:', err);
+      console.error('Error details:', err.message, err.details, err.hint);
       error('Failed to add project: ' + (err.message || 'Unknown error'));
       throw err;
     }
@@ -547,15 +486,8 @@ function AppMain({ loadRef }) {
   const handleAddEquipment = async (equipmentData) => {
     if (isReadOnly) { warning('View-only mode: cannot add records'); return; }
     try {
-      if (!isOnline) {
-        const item = await queueChange({ entity: 'equipment', action: 'create', payload: equipmentData });
-        const pending = { id: item.tempId, ...equipmentData, _syncStatus: 'pending', created_at: item.createdAt };
-        setEquipment((prev) => [pending, ...prev]);
-        success('Equipment saved offline — will sync when online');
-        return pending;
-      }
-
-      await db.createEquipment(equipmentData);
+      const newEquipment = await db.createEquipment(equipmentData);
+      
       await loadSupabaseData();
       
       auditService.logCreate(
@@ -565,13 +497,7 @@ function AppMain({ loadRef }) {
       );
       success('Equipment added successfully!');
     } catch (err) {
-      if (isNetworkError(err)) {
-        const item = await queueChange({ entity: 'equipment', action: 'create', payload: equipmentData });
-        const pending = { id: item.tempId, ...equipmentData, _syncStatus: 'pending', created_at: item.createdAt };
-        setEquipment((prev) => [pending, ...prev]);
-        warning('Connection lost — equipment saved offline for later sync');
-        return pending;
-      }
+      console.error('Error adding equipment:', err);
       error('Failed to add equipment: ' + (err.message || 'Unknown error'));
     }
   };
@@ -579,16 +505,20 @@ function AppMain({ loadRef }) {
   const handleUpdateProject = async (id, projectData) => {
     if (isReadOnly) { warning('View-only mode: cannot edit records'); return; }
     try {
+      console.log('Updating project with data:', projectData);
+      
       const { components, communities, ...rest } = projectData;
-
-      if (!isOnline || String(id).startsWith('pending-')) {
-        await queueChange({ entity: 'project', action: 'update', entityId: id, payload: rest });
-        setProjects((prev) => prev.map((p) => (String(p.id) === String(id) ? { ...p, ...rest, _syncStatus: 'pending' } : p)));
-        success('Project updated offline — will sync when online');
-        return;
+      const updated = await db.updateProject(id, rest);
+      console.log('Project updated successfully:', updated);
+      
+      if (components && Array.isArray(components)) {
+        console.log('Updating project components:', components);
       }
-
-      await db.updateProject(id, rest);
+      
+      if (communities && Array.isArray(communities)) {
+        console.log('Updating project communities:', communities);
+      }
+      
       await loadSupabaseData();
       
       auditService.logUpdate(
@@ -598,12 +528,7 @@ function AppMain({ loadRef }) {
       );
       success('Project updated successfully!');
     } catch (err) {
-      if (isNetworkError(err)) {
-        const { components, communities, ...rest } = projectData;
-        await queueChange({ entity: 'project', action: 'update', entityId: id, payload: rest });
-        warning('Updated offline — will sync when online');
-        return;
-      }
+      console.error('Error updating project:', err);
       error('Failed to update project: ' + err.message);
     }
   };
@@ -611,6 +536,8 @@ function AppMain({ loadRef }) {
   const handleUpdateEquipment = async (id, equipmentData) => {
     if (isReadOnly) { warning('View-only mode: cannot edit records'); return; }
     try {
+      console.log('Updating equipment with data:', equipmentData);
+      
       const updatePayload = {
         year: equipmentData.year,
         municipality_id: equipmentData.municipality_id,
@@ -621,15 +548,12 @@ function AppMain({ loadRef }) {
         component_id: equipmentData.component_id || equipmentData.component,
         project_title: equipmentData.project_title || null
       };
-
-      if (!isOnline || String(id).startsWith('pending-')) {
-        await queueChange({ entity: 'equipment', action: 'update', entityId: id, payload: updatePayload });
-        setEquipment((prev) => prev.map((e) => (String(e.id) === String(id) ? { ...e, ...updatePayload, _syncStatus: 'pending' } : e)));
-        success('Equipment updated offline — will sync when online');
-        return;
-      }
-
-      await db.updateEquipment(id, updatePayload);
+      
+      console.log('Update payload:', updatePayload);
+      
+      const updated = await db.updateEquipment(id, updatePayload);
+      console.log('Equipment updated successfully:', updated);
+      
       await loadSupabaseData();
       
       auditService.logUpdate(
@@ -639,21 +563,7 @@ function AppMain({ loadRef }) {
       );
       success('Equipment updated successfully!');
     } catch (err) {
-      if (isNetworkError(err)) {
-        const updatePayload = {
-          year: equipmentData.year,
-          municipality_id: equipmentData.municipality_id,
-          community: equipmentData.community,
-          equipment_name: equipmentData.equipment_name || equipmentData.equipmentName,
-          units: parseInt(equipmentData.units) || 0,
-          units_per_year: equipmentData.units_per_year ? parseInt(equipmentData.units_per_year) : null,
-          component_id: equipmentData.component_id || equipmentData.component,
-          project_title: equipmentData.project_title || null,
-        };
-        await queueChange({ entity: 'equipment', action: 'update', entityId: id, payload: updatePayload });
-        warning('Updated offline — will sync when online');
-        return;
-      }
+      console.error('Error updating equipment:', err);
       error('Failed to update equipment: ' + err.message);
     }
   };
@@ -743,13 +653,6 @@ function AppMain({ loadRef }) {
           />
 
           <main className="flex-1 overflow-auto overflow-x-hidden p-4 sm:p-6 lg:p-8 scrollbar-thin">
-            <OfflineIndicator
-              isOnline={isOnline}
-              pendingCount={pendingCount}
-              isSyncing={isSyncing}
-              darkMode={darkMode}
-              onSyncNow={syncNow}
-            />
             {isGuestMode && isReadOnly && activePage !== "dashboard" && (
               <div className="mx-auto mb-6 max-w-[1400px]">
                 <ViewModeBanner
@@ -955,13 +858,10 @@ function PlaceholderPage({ activePage, darkMode }) {
 }
 
 export default function App() {
-  const loadRef = useRef(null);
   return (
     <HashRouter>
       <AuthProvider>
-        <OfflineProvider onSyncComplete={() => loadRef.current?.()}>
-          <AppMain loadRef={loadRef} />
-        </OfflineProvider>
+        <AppContent />
       </AuthProvider>
     </HashRouter>
   );
