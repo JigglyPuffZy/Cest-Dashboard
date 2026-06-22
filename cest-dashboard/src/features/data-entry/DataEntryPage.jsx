@@ -1176,8 +1176,6 @@ export const DataEntryPage = ({ projects = [], equipment = [], onAddProject, onA
                 )}
               </div>
             )}
-
-            )}
           </div>
         </div>
       </div>
