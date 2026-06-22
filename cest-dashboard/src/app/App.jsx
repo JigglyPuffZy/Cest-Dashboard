@@ -593,7 +593,7 @@ function AppContent() {
             }}
           />
 
-          <main className="flex-1 overflow-auto p-8 scrollbar-thin">
+          <main className="flex-1 overflow-auto overflow-x-hidden p-4 sm:p-6 lg:p-8 scrollbar-thin">
             {isGuestMode && activePage !== 'dashboard' && (
               <div className="mx-auto mb-6 max-w-[1400px]">
                 <ViewModeBanner

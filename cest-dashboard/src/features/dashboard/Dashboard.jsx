@@ -129,7 +129,7 @@ export const Dashboard = ({ projects = [], equipment = [], uniqueComm = 0, darkM
   };
 
   return (
-    <div className="max-w-[1400px] mx-auto space-y-6">
+    <div className="max-w-[1400px] mx-auto space-y-4 sm:space-y-6 w-full min-w-0 px-0">
       {isGuestMode && (
         <ViewModeBanner darkMode={darkMode} onSignIn={onGuestSignIn} />
       )}
@@ -750,7 +750,7 @@ export const Dashboard = ({ projects = [], equipment = [], uniqueComm = 0, darkM
           </div>
         </div>
           {/* Enhanced Filters Section */}
-          <div className="rounded-2xl p-6" style={{
+          <div className="rounded-2xl p-4 sm:p-6" style={{
             ...cardStyle,
             background: darkMode 
               ? 'linear-gradient(135deg, rgba(30, 41, 59, 0.8) 0%, rgba(15, 23, 42, 0.8) 100%)'
@@ -781,9 +781,9 @@ export const Dashboard = ({ projects = [], equipment = [], uniqueComm = 0, darkM
             </div>
 
             {/* Filter Controls */}
-            <div className="flex flex-col lg:flex-row gap-4">
+            <div className="flex flex-col sm:flex-row sm:flex-wrap gap-3 sm:gap-4">
               {/* Search Input */}
-              <div className="flex-1 relative group">
+              <div className="flex-1 min-w-0 w-full relative group">
                 <div className="absolute left-4 top-1/2 -translate-y-1/2 pointer-events-none">
                   <svg className="w-5 h-5 transition-colors duration-200" style={{ color: darkMode ? '#64748b' : '#94a3b8' }} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                     <circle cx="11" cy="11" r="8"></circle>
@@ -813,7 +813,7 @@ export const Dashboard = ({ projects = [], equipment = [], uniqueComm = 0, darkM
               </div>
               
               {/* Status Dropdown */}
-              <div className="relative">
+              <div className="relative w-full sm:w-auto sm:min-w-[180px] sm:flex-1 lg:flex-none">
                 <div className="absolute left-4 top-1/2 -translate-y-1/2 pointer-events-none z-10">
                   <svg className="w-5 h-5" style={{ color: darkMode ? '#64748b' : '#94a3b8' }} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                     <circle cx="12" cy="12" r="10"></circle>
@@ -823,12 +823,11 @@ export const Dashboard = ({ projects = [], equipment = [], uniqueComm = 0, darkM
                 <select
                   value={statusFilter}
                   onChange={(e) => setStatusFilter(e.target.value)}
-                  className="pl-12 pr-10 py-3.5 rounded-xl text-sm font-medium outline-none cursor-pointer transition-all duration-300 appearance-none status-dropdown"
+                  className="w-full pl-12 pr-10 py-3.5 rounded-xl text-sm font-medium outline-none cursor-pointer transition-all duration-300 appearance-none status-dropdown"
                   style={{
                     background: darkMode ? 'rgba(30, 41, 59, 0.6)' : 'rgba(248, 250, 252, 0.8)',
                     color: darkMode ? '#f8fafc' : '#0f172a',
                     border: `2px solid ${darkMode ? '#334155' : '#e2e8f0'}`,
-                    minWidth: '180px',
                     boxShadow: 'inset 0 2px 4px rgba(0, 0, 0, 0.05)'
                   }}
                   onFocus={(e) => {
@@ -854,19 +853,18 @@ export const Dashboard = ({ projects = [], equipment = [], uniqueComm = 0, darkM
               </div>
 
               {/* Province Dropdown */}
-              <div className="relative">
+              <div className="relative w-full sm:w-auto sm:min-w-[180px] sm:flex-1 lg:flex-none">
                 <div className="absolute left-4 top-1/2 -translate-y-1/2 pointer-events-none z-10">
                   <MapPin className="w-5 h-5" style={{ color: darkMode ? '#64748b' : '#94a3b8' }} />
                 </div>
                 <select
                   value={provinceFilter}
                   onChange={(e) => setProvinceFilter(e.target.value)}
-                  className="pl-12 pr-10 py-3.5 rounded-xl text-sm font-medium outline-none cursor-pointer transition-all duration-300 appearance-none"
+                  className="w-full pl-12 pr-10 py-3.5 rounded-xl text-sm font-medium outline-none cursor-pointer transition-all duration-300 appearance-none"
                   style={{
                     background: darkMode ? 'rgba(30, 41, 59, 0.6)' : 'rgba(248, 250, 252, 0.8)',
                     color: darkMode ? '#f8fafc' : '#0f172a',
                     border: `2px solid ${darkMode ? '#334155' : '#e2e8f0'}`,
-                    minWidth: '180px',
                     boxShadow: 'inset 0 2px 4px rgba(0, 0, 0, 0.05)'
                   }}
                   onFocus={(e) => {
@@ -893,7 +891,7 @@ export const Dashboard = ({ projects = [], equipment = [], uniqueComm = 0, darkM
               </div>
 
               {/* Year Dropdown */}
-              <div className="relative">
+              <div className="relative w-full sm:w-auto sm:min-w-[180px] sm:flex-1 lg:flex-none">
                 <div className="absolute left-4 top-1/2 -translate-y-1/2 pointer-events-none z-10">
                   <svg className="w-5 h-5" style={{ color: darkMode ? '#64748b' : '#94a3b8' }} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                     <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
@@ -905,12 +903,11 @@ export const Dashboard = ({ projects = [], equipment = [], uniqueComm = 0, darkM
                 <select
                   value={yearFilter}
                   onChange={(e) => setYearFilter(e.target.value)}
-                  className="pl-12 pr-10 py-3.5 rounded-xl text-sm font-medium outline-none cursor-pointer transition-all duration-300 appearance-none"
+                  className="w-full pl-12 pr-10 py-3.5 rounded-xl text-sm font-medium outline-none cursor-pointer transition-all duration-300 appearance-none"
                   style={{
                     background: darkMode ? 'rgba(30, 41, 59, 0.6)' : 'rgba(248, 250, 252, 0.8)',
                     color: darkMode ? '#f8fafc' : '#0f172a',
                     border: `2px solid ${darkMode ? '#334155' : '#e2e8f0'}`,
-                    minWidth: '180px',
                     boxShadow: 'inset 0 2px 4px rgba(0, 0, 0, 0.05)'
                   }}
                   onFocus={(e) => {
@@ -934,7 +931,7 @@ export const Dashboard = ({ projects = [], equipment = [], uniqueComm = 0, darkM
               </div>
 
               {/* Components Dropdown */}
-              <div className="relative">
+              <div className="relative w-full sm:w-auto sm:min-w-[200px] sm:flex-1 lg:flex-none">
                 <div className="absolute left-4 top-1/2 -translate-y-1/2 pointer-events-none z-10">
                   <svg className="w-5 h-5" style={{ color: darkMode ? '#64748b' : '#94a3b8' }} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                     <rect x="3" y="3" width="7" height="7"></rect>
@@ -946,12 +943,11 @@ export const Dashboard = ({ projects = [], equipment = [], uniqueComm = 0, darkM
                 <select
                   value={componentFilter}
                   onChange={(e) => setComponentFilter(e.target.value)}
-                  className="pl-12 pr-10 py-3.5 rounded-xl text-sm font-medium outline-none cursor-pointer transition-all duration-300 appearance-none"
+                  className="w-full pl-12 pr-10 py-3.5 rounded-xl text-sm font-medium outline-none cursor-pointer transition-all duration-300 appearance-none"
                   style={{
                     background: darkMode ? 'rgba(30, 41, 59, 0.6)' : 'rgba(248, 250, 252, 0.8)',
                     color: darkMode ? '#f8fafc' : '#0f172a',
                     border: `2px solid ${darkMode ? '#334155' : '#e2e8f0'}`,
-                    minWidth: '200px',
                     boxShadow: 'inset 0 2px 4px rgba(0, 0, 0, 0.05)'
                   }}
                   onFocus={(e) => {
@@ -977,7 +973,7 @@ export const Dashboard = ({ projects = [], equipment = [], uniqueComm = 0, darkM
             </div>
 
             {/* Results Counter */}
-            <div className="mt-4 flex items-center justify-between">
+            <div className="mt-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
               <div className="flex items-center gap-2">
                 <div className="w-2 h-2 rounded-full animate-pulse" style={{ background: '#3B82F6' }}></div>
                 <p className="text-sm font-semibold" style={{ color: darkMode ? '#cbd5e1' : '#475569' }}>
@@ -1011,45 +1007,50 @@ export const Dashboard = ({ projects = [], equipment = [], uniqueComm = 0, darkM
               <div 
                 key={`${p.id}-${index}`} 
                 onClick={() => handleViewDetails(p, index)}
-                className="rounded-xl p-6 transition-all duration-200 hover:scale-[1.01] cursor-pointer" 
+                className="rounded-xl p-4 sm:p-6 transition-all duration-200 sm:hover:scale-[1.01] cursor-pointer min-w-0 overflow-hidden" 
                 style={cardStyle}
               >
-                <div className="flex items-start justify-between gap-6">
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2 mb-3">
-                      <span className="text-xs font-semibold px-2 py-1 rounded" style={{ background: '#004A98', color: '#ffffff' }}>
+                <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between sm:gap-6">
+                  <div className="flex-1 min-w-0">
+                    <div className="flex flex-wrap items-center gap-2 mb-2">
+                      <span className="text-xs font-semibold px-2 py-1 rounded shrink-0" style={{ background: '#004A98', color: '#ffffff' }}>
                         {p.year}
                       </span>
-                      <span className="text-xs font-semibold px-2 py-1 rounded" style={{ background: '#3b82f6', color: '#ffffff' }}>
+                      <span className="text-xs font-semibold px-2 py-1 rounded shrink-0" style={{ background: '#3b82f6', color: '#ffffff' }}>
                         Project #{index + 1}
                       </span>
-                      <span className="text-sm font-medium" style={{ color: darkMode ? '#cbd5e1' : '#6b7280' }}>
+                    </div>
+
+                    <p className="text-xs sm:text-sm mb-3 break-words leading-relaxed" style={{ color: darkMode ? '#94a3b8' : '#6b7280' }}>
+                      <span className="font-medium" style={{ color: darkMode ? '#cbd5e1' : '#475569' }}>
                         {typeof p.municipality === 'object' ? p.municipality?.name || 'Unknown' : p.municipality || 'Unknown'}
                       </span>
-                      <span style={{ color: darkMode ? '#6b7280' : '#cbd5e1' }}>•</span>
-                      <span className="text-sm" style={{ color: darkMode ? '#94a3b8' : '#6b7280' }}>
-                        {p.community}
-                      </span>
-                    </div>
+                      {p.community && (
+                        <>
+                          <span className="mx-1.5 opacity-50">•</span>
+                          <span>{p.community}</span>
+                        </>
+                      )}
+                    </p>
                     
-                    <h3 className="text-base font-semibold mb-3" style={{ color: darkMode ? '#f8fafc' : '#0f172a' }}>
+                    <h3 className="text-sm sm:text-base font-semibold mb-3 break-words leading-snug" style={{ color: darkMode ? '#f8fafc' : '#0f172a' }}>
                       {p.project}
                     </h3>
                     
                     <div className="flex items-center gap-2 flex-wrap">
-                      <span className={`text-xs font-medium px-2 py-1 rounded border ${getStatusColor(p.status, darkMode)}`}>
+                      <span className={`text-xs font-medium px-2 py-1 rounded border shrink-0 ${getStatusColor(p.status, darkMode)}`}>
                         {p.status}
                       </span>
-                      {(p.components || []).filter(Boolean).map((c, index) => (
+                      {(p.components || []).filter(Boolean).map((c, compIndex) => (
                         <HoverTooltip
-                          key={`${c}-${index}`}
+                          key={`${c}-${compIndex}`}
                           content={COMPONENTS[c] || c}
                           position="auto"
                           darkMode={darkMode}
                           delay={150}
                         >
                           <span 
-                            className="text-xs font-medium px-3 py-1.5 rounded-xl cursor-help transition-all duration-300 hover:scale-110 hover:shadow-lg relative overflow-hidden group" 
+                            className="text-xs font-medium px-3 py-1.5 rounded-xl cursor-help transition-all duration-300 sm:hover:scale-110 sm:hover:shadow-lg relative overflow-hidden group shrink-0" 
                             style={{ 
                               background: `linear-gradient(135deg, ${COMP_COLORS[c] || '#64748b'}15, ${COMP_COLORS[c] || '#64748b'}25)`,
                               color: COMP_COLORS[c] || '#64748b',
@@ -1057,7 +1058,6 @@ export const Dashboard = ({ projects = [], equipment = [], uniqueComm = 0, darkM
                               boxShadow: `0 3px 10px ${COMP_COLORS[c] || '#64748b'}20`
                             }}
                           >
-                            {/* Shine effect */}
                             <div 
                               className="absolute inset-0 bg-gradient-to-r from-transparent via-white to-transparent opacity-0 group-hover:opacity-20 transition-all duration-500 transform -skew-x-12 translate-x-[-100%] group-hover:translate-x-[100%]"
                               style={{ width: '50%' }}
@@ -1069,15 +1069,15 @@ export const Dashboard = ({ projects = [], equipment = [], uniqueComm = 0, darkM
                     </div>
                   </div>
                   
-                  <div className="text-right">
-                    <p className="text-xs font-medium mb-1 uppercase tracking-wide" style={{ color: darkMode ? '#94a3b8' : '#6b7280' }}>
+                  <div className="flex items-center justify-between sm:flex-col sm:items-end sm:text-right shrink-0 border-t sm:border-t-0 pt-3 sm:pt-0 gap-2" style={{ borderColor: darkMode ? '#334155' : '#e2e8f0' }}>
+                    <p className="text-xs font-medium uppercase tracking-wide sm:mb-1" style={{ color: darkMode ? '#94a3b8' : '#6b7280' }}>
                       Budget
                     </p>
-                    <p className="text-2xl font-semibold" style={{ color: p.amountFunded > 0 ? '#3b82f6' : (darkMode ? '#94a3b8' : '#6b7280') }}>
+                    <p className="text-lg sm:text-2xl font-semibold text-right break-all sm:break-normal" style={{ color: p.amountFunded > 0 ? '#3b82f6' : (darkMode ? '#94a3b8' : '#6b7280') }}>
                       {p.amountFunded > 0 ? fmt(p.amountFunded) : 'Not Specified'}
                     </p>
                     {p.amountPerYear > 0 && (
-                      <p className="text-sm mt-1" style={{ color: darkMode ? '#94a3b8' : '#6b7280' }}>
+                      <p className="text-xs sm:text-sm sm:mt-1 text-right" style={{ color: darkMode ? '#94a3b8' : '#6b7280' }}>
                         {fmt(p.amountPerYear)}/year
                       </p>
                     )}
