@@ -1,5 +1,4 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
 import {
   UserCheck,
   UserX,
@@ -13,10 +12,19 @@ import { PageHeader, GlassCard, StatCard } from "../../components/ui/PageHeader"
 import { useAccessRequests } from "../../shared/hooks/useAccessRequests";
 
 const TABS = [
-  { id: "pending", label: "Pending Requests", icon: Clock },
-  { id: "approved", label: "Approved Users", icon: UserCheck },
-  { id: "declined", label: "Declined Users", icon: UserX },
+  { id: "pending", label: "Pending", icon: Clock },
+  { id: "approved", label: "Approved", icon: UserCheck },
+  { id: "declined", label: "Declined", icon: UserX },
+  { id: "logs", label: "Access Logs", icon: ScrollText },
 ];
+
+const LOG_TYPE_LABELS = {
+  request_submitted: "Request submitted",
+  request_approved: "Approved",
+  request_declined: "Declined",
+  file_access: "File viewed",
+  page_visit: "Page visit",
+};
 
 function formatDate(iso) {
   if (!iso) return "—";
@@ -107,13 +115,71 @@ function RequestCard({ request, darkMode, onApprove, onDecline, showActions }) {
   );
 }
 
+function AccessLogsTable({ logs, darkMode }) {
+  return (
+    <GlassCard darkMode={darkMode} className="overflow-hidden">
+      <div className="overflow-x-auto">
+        <table className="w-full text-sm">
+          <thead>
+            <tr
+              style={{
+                borderBottom: `1px solid ${darkMode ? "#1e293b" : "#e2e8f0"}`,
+                color: darkMode ? "#94a3b8" : "#64748b",
+              }}
+            >
+              <th className="text-left font-semibold px-4 py-3">Time</th>
+              <th className="text-left font-semibold px-4 py-3">User</th>
+              <th className="text-left font-semibold px-4 py-3">Activity</th>
+              <th className="text-left font-semibold px-4 py-3 hidden sm:table-cell">Details</th>
+            </tr>
+          </thead>
+          <tbody>
+            {logs.length === 0 ? (
+              <tr>
+                <td colSpan={4} className="px-4 py-10 text-center" style={{ color: darkMode ? "#94a3b8" : "#64748b" }}>
+                  No access logs yet.
+                </td>
+              </tr>
+            ) : (
+              logs.map((log) => (
+                <tr
+                  key={log.id}
+                  style={{ borderBottom: `1px solid ${darkMode ? "#1e293b" : "#f1f5f9"}` }}
+                >
+                  <td className="px-4 py-3 whitespace-nowrap text-xs tabular-nums" style={{ color: darkMode ? "#cbd5e1" : "#475569" }}>
+                    {formatDate(log.timestamp)}
+                  </td>
+                  <td className="px-4 py-3 font-medium" style={{ color: darkMode ? "#f8fafc" : "#0f172a" }}>
+                    {log.userName}
+                  </td>
+                  <td className="px-4 py-3">
+                    <span
+                      className="text-[10px] font-bold uppercase px-2 py-0.5 rounded-md"
+                      style={{ background: "#004A9818", color: "#004A98" }}
+                    >
+                      {LOG_TYPE_LABELS[log.type] || log.type}
+                    </span>
+                  </td>
+                  <td className="px-4 py-3 hidden sm:table-cell text-xs" style={{ color: darkMode ? "#94a3b8" : "#64748b" }}>
+                    {log.message}
+                    {log.actor && ` · by ${log.actor}`}
+                  </td>
+                </tr>
+              ))
+            )}
+          </tbody>
+        </table>
+      </div>
+    </GlassCard>
+  );
+}
+
 export function AdminRequestsPage({ darkMode, initialTab = "pending", adminName = "Administrator" }) {
   const [activeTab, setActiveTab] = useState(initialTab);
-  const { stats, pending, approved, declined, approveRequest, declineRequest } = useAccessRequests({
+  const { stats, pending, approved, declined, logs, approveRequest, declineRequest } = useAccessRequests({
     enabled: true,
     pollMs: 10000,
   });
-  const navigate = useNavigate();
 
   const handleApprove = async (id) => {
     try {
@@ -141,8 +207,8 @@ export function AdminRequestsPage({ darkMode, initialTab = "pending", adminName 
       <PageHeader
         darkMode={darkMode}
         eyebrow="Administration"
-        title="Guest Access Requests"
-        description="Review visitor requests, approve or decline access, and manage who can view CEST records."
+        title="User Access"
+        description="Review guest requests, approve or decline access, and view system activity."
       />
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
@@ -156,7 +222,7 @@ export function AdminRequestsPage({ darkMode, initialTab = "pending", adminName 
         {TABS.map((tab) => {
           const Icon = tab.icon;
           const isActive = activeTab === tab.id;
-          const count = lists[tab.id]?.length ?? 0;
+          const count = tab.id === "logs" ? logs.length : (lists[tab.id]?.length ?? 0);
           return (
             <button
               key={tab.id}
@@ -179,141 +245,50 @@ export function AdminRequestsPage({ darkMode, initialTab = "pending", adminName 
             >
               <Icon className="w-4 h-4" />
               {tab.label}
-              <span
-                className="text-[10px] font-bold px-1.5 py-0.5 rounded-md tabular-nums"
-                style={{
-                  background: isActive ? "rgba(255,255,255,0.2)" : darkMode ? "#0f172a" : "#e2e8f0",
-                }}
-              >
-                {count}
-              </span>
+              {tab.id !== "logs" && (
+                <span
+                  className="text-[10px] font-bold px-1.5 py-0.5 rounded-md tabular-nums"
+                  style={{
+                    background: isActive ? "rgba(255,255,255,0.2)" : darkMode ? "#0f172a" : "#e2e8f0",
+                  }}
+                >
+                  {count}
+                </span>
+              )}
             </button>
           );
         })}
-        <button
-          type="button"
-          onClick={() => navigate("/admin/logs")}
-          className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold ml-auto"
-          style={{
-            color: "#2563eb",
-            border: `1px solid ${darkMode ? "rgba(59,130,246,0.3)" : "rgba(59,130,246,0.25)"}`,
-            background: darkMode ? "rgba(59,130,246,0.1)" : "rgba(59,130,246,0.06)",
-          }}
-        >
-          <ScrollText className="w-4 h-4" />
-          View Access Logs
-        </button>
       </div>
 
-      <div className="space-y-3">
-        {currentList.length === 0 ? (
-          <GlassCard darkMode={darkMode} className="p-10 text-center">
-            <p className="text-sm" style={{ color: darkMode ? "#94a3b8" : "#64748b" }}>
-              No {activeTab} requests at this time.
-            </p>
-          </GlassCard>
-        ) : (
-          currentList.map((request) => (
-            <RequestCard
-              key={request.id}
-              request={request}
-              darkMode={darkMode}
-              showActions={activeTab === "pending"}
-              onApprove={() => handleApprove(request.id)}
-              onDecline={() => handleDecline(request.id)}
-            />
-          ))
-        )}
-      </div>
+      {activeTab === "logs" ? (
+        <AccessLogsTable logs={logs} darkMode={darkMode} />
+      ) : (
+        <div className="space-y-3">
+          {currentList.length === 0 ? (
+            <GlassCard darkMode={darkMode} className="p-10 text-center">
+              <p className="text-sm" style={{ color: darkMode ? "#94a3b8" : "#64748b" }}>
+                No {activeTab} requests at this time.
+              </p>
+            </GlassCard>
+          ) : (
+            currentList.map((request) => (
+              <RequestCard
+                key={request.id}
+                request={request}
+                darkMode={darkMode}
+                showActions={activeTab === "pending"}
+                onApprove={() => handleApprove(request.id)}
+                onDecline={() => handleDecline(request.id)}
+              />
+            ))
+          )}
+        </div>
+      )}
     </div>
   );
 }
 
-export function AdminAccessLogsPage({ darkMode }) {
-  const { logs } = useAccessRequests({ enabled: true, pollMs: 20000 });
-  const navigate = useNavigate();
-
-  const typeLabel = {
-    request_submitted: "Request submitted",
-    request_approved: "Approved",
-    request_declined: "Declined",
-    file_access: "File viewed",
-    page_visit: "Page visit",
-  };
-
-  return (
-    <div className="max-w-[1200px] mx-auto space-y-6 w-full min-w-0">
-      <PageHeader
-        darkMode={darkMode}
-        eyebrow="Administration"
-        title="Access Logs"
-        description="A chronological record of guest requests, approvals, and file access across the system."
-        actions={
-          <button
-            type="button"
-            onClick={() => navigate("/admin/requests")}
-            className="px-4 py-2.5 rounded-xl text-sm font-semibold text-white"
-            style={{ background: "linear-gradient(135deg, #004A98 0%, #0066CC 100%)" }}
-          >
-            Manage Requests
-          </button>
-        }
-      />
-
-      <GlassCard darkMode={darkMode} className="overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="w-full text-sm">
-            <thead>
-              <tr
-                style={{
-                  borderBottom: `1px solid ${darkMode ? "#1e293b" : "#e2e8f0"}`,
-                  color: darkMode ? "#94a3b8" : "#64748b",
-                }}
-              >
-                <th className="text-left font-semibold px-4 py-3">Time</th>
-                <th className="text-left font-semibold px-4 py-3">User</th>
-                <th className="text-left font-semibold px-4 py-3">Activity</th>
-                <th className="text-left font-semibold px-4 py-3 hidden sm:table-cell">Details</th>
-              </tr>
-            </thead>
-            <tbody>
-              {logs.length === 0 ? (
-                <tr>
-                  <td colSpan={4} className="px-4 py-10 text-center" style={{ color: darkMode ? "#94a3b8" : "#64748b" }}>
-                    No access logs yet.
-                  </td>
-                </tr>
-              ) : (
-                logs.map((log) => (
-                  <tr
-                    key={log.id}
-                    style={{ borderBottom: `1px solid ${darkMode ? "#1e293b" : "#f1f5f9"}` }}
-                  >
-                    <td className="px-4 py-3 whitespace-nowrap text-xs tabular-nums" style={{ color: darkMode ? "#cbd5e1" : "#475569" }}>
-                      {formatDate(log.timestamp)}
-                    </td>
-                    <td className="px-4 py-3 font-medium" style={{ color: darkMode ? "#f8fafc" : "#0f172a" }}>
-                      {log.userName}
-                    </td>
-                    <td className="px-4 py-3">
-                      <span
-                        className="text-[10px] font-bold uppercase px-2 py-0.5 rounded-md"
-                        style={{ background: "#004A9818", color: "#004A98" }}
-                      >
-                        {typeLabel[log.type] || log.type}
-                      </span>
-                    </td>
-                    <td className="px-4 py-3 hidden sm:table-cell text-xs" style={{ color: darkMode ? "#94a3b8" : "#64748b" }}>
-                      {log.message}
-                      {log.actor && ` · by ${log.actor}`}
-                    </td>
-                  </tr>
-                ))
-              )}
-            </tbody>
-          </table>
-        </div>
-      </GlassCard>
-    </div>
-  );
+/** @deprecated Use AdminRequestsPage with logs tab */
+export function AdminAccessLogsPage(props) {
+  return <AdminRequestsPage {...props} initialTab="logs" />;
 }

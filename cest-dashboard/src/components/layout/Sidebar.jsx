@@ -35,10 +35,7 @@ const NAV_ITEMS = [
 ];
 
 const ADMIN_NAV_ITEMS = [
-  { id: "admin-requests", icon: Clock, label: "User Requests", description: "Pending approvals" },
-  { id: "admin-approved", icon: UserCheck, label: "Approved Users", description: "Active guests" },
-  { id: "admin-declined", icon: UserX, label: "Declined Users", description: "Rejected requests" },
-  { id: "admin-logs", icon: ScrollText, label: "Access Logs", description: "System activity" },
+  { id: "admin", icon: Shield, label: "User Access", description: "Guests & activity" },
 ];
 
 const ROUTES = {
@@ -48,10 +45,7 @@ const ROUTES = {
   dataentry: "/dataentry",
   trainings: "/trainings",
   starbooks: "/starbooks",
-  "admin-requests": "/admin/requests",
-  "admin-approved": "/admin/approved",
-  "admin-declined": "/admin/declined",
-  "admin-logs": "/admin/logs",
+  admin: "/admin",
 };
 
 export const Sidebar = ({ 

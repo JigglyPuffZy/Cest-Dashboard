@@ -19,7 +19,7 @@ import { DataEntryPage } from "../features/data-entry/DataEntryPage";
 import { StarbooksPage } from "../features/starbooks/StarbooksPage";
 import { LoginPage } from "../features/auth/LoginPage";
 import TrainingsPage from "../features/trainings/TrainingsPage";
-import { AdminRequestsPage, AdminAccessLogsPage } from "../features/admin/AdminRequestsPage";
+import { AdminRequestsPage } from "../features/admin/AdminRequestsPage";
 import { GuestAccessBlocked } from "../components/ui/GuestAccessBlocked";
 import { usePersistedState } from "../shared/hooks/usePersistedState";
 import { useToastNotification } from "../shared/hooks/useToastNotification";
@@ -76,10 +76,11 @@ function AppContent() {
       "/dataentry": "dataentry",
       "/trainings": "trainings",
       "/starbooks": "starbooks",
-      "/admin/requests": "admin-requests",
-      "/admin/approved": "admin-approved",
-      "/admin/declined": "admin-declined",
-      "/admin/logs": "admin-logs",
+      "/admin": "admin",
+      "/admin/requests": "admin",
+      "/admin/approved": "admin",
+      "/admin/declined": "admin",
+      "/admin/logs": "admin",
     };
     if (pathToPage[location.pathname]) {
       setActivePage(pathToPage[location.pathname]);
@@ -112,15 +113,9 @@ function AppContent() {
     isAdmin,
     displayName,
     onGuestSignIn: exitGuestMode,
-    onNavigateAdmin: (page) => {
-      setActivePage(page);
-      const routes = {
-        "admin-requests": "/admin/requests",
-        "admin-approved": "/admin/approved",
-        "admin-declined": "/admin/declined",
-        "admin-logs": "/admin/logs",
-      };
-      navigate(routes[page] || "/admin/requests");
+    onNavigateAdmin: () => {
+      setActivePage("admin");
+      navigate("/admin");
     },
   };
 
@@ -723,32 +718,13 @@ function AppContent() {
                         onArchiveTraining={(item) => setArchivedProjects((prev) => [...prev, item])}
                       />
                     )
-                  ) : activePage === "admin-requests" ? (
+                  ) : activePage === "admin" ? (
                     guardAdmin(
                       <AdminRequestsPage
                         darkMode={darkMode}
-                        initialTab="pending"
                         adminName={getUserDisplayName(user)}
                       />
                     )
-                  ) : activePage === "admin-approved" ? (
-                    guardAdmin(
-                      <AdminRequestsPage
-                        darkMode={darkMode}
-                        initialTab="approved"
-                        adminName={getUserDisplayName(user)}
-                      />
-                    )
-                  ) : activePage === "admin-declined" ? (
-                    guardAdmin(
-                      <AdminRequestsPage
-                        darkMode={darkMode}
-                        initialTab="declined"
-                        adminName={getUserDisplayName(user)}
-                      />
-                    )
-                  ) : activePage === "admin-logs" ? (
-                    guardAdmin(<AdminAccessLogsPage darkMode={darkMode} />)
                   ) : activePage === "starbooks" ? (
                     <StarbooksPage darkMode={darkMode} activePage={activePage} readOnly={isReadOnly} />
                   ) : activePage?.startsWith("starbooks") ? (
@@ -805,27 +781,15 @@ function AppContent() {
                 )}
               />
               <Route
-                path="/admin/requests"
+                path="/admin"
                 element={guardAdmin(
-                  <AdminRequestsPage darkMode={darkMode} initialTab="pending" adminName={getUserDisplayName(user)} />
+                  <AdminRequestsPage darkMode={darkMode} adminName={getUserDisplayName(user)} />
                 )}
               />
-              <Route
-                path="/admin/approved"
-                element={guardAdmin(
-                  <AdminRequestsPage darkMode={darkMode} initialTab="approved" adminName={getUserDisplayName(user)} />
-                )}
-              />
-              <Route
-                path="/admin/declined"
-                element={guardAdmin(
-                  <AdminRequestsPage darkMode={darkMode} initialTab="declined" adminName={getUserDisplayName(user)} />
-                )}
-              />
-              <Route
-                path="/admin/logs"
-                element={guardAdmin(<AdminAccessLogsPage darkMode={darkMode} />)}
-              />
+              <Route path="/admin/requests" element={<Navigate to="/admin" replace />} />
+              <Route path="/admin/approved" element={<Navigate to="/admin" replace />} />
+              <Route path="/admin/declined" element={<Navigate to="/admin" replace />} />
+              <Route path="/admin/logs" element={<Navigate to="/admin" replace />} />
               <Route
                 path="/starbooks"
                 element={guardData(<StarbooksPage darkMode={darkMode} activePage={activePage} readOnly={isReadOnly} />)}
