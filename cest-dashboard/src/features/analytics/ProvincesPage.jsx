@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { Building2, TrendingUp, ArrowRight, MapPin, Activity } from "lucide-react";
+import { Building2, TrendingUp, ArrowRight, MapPin, Activity, Landmark } from "lucide-react";
 import { Breadcrumb } from "../../components/layout/Breadcrumb";
 import { fmt } from "../../shared/utils/helpers";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from "recharts";
@@ -159,36 +159,42 @@ export const ProvincesPage = ({ projects, darkMode }) => {
         {[
           { label: "Total Budget", value: totalBudget, icon: TrendingUp, color: "#004A98", isAmount: true },
           { label: "Total Projects", value: totalProjects, icon: Building2, color: "#3b82f6", isAmount: false },
-          { label: "Municipalities/Cities", value: totalMunicipalities, icon: Building2, color: "#f59e0b", isAmount: false },
+          { label: "Municipalities/Cities", value: totalMunicipalities, icon: Landmark, color: "#f59e0b", isAmount: false },
           { label: "Barangays", value: totalBarangays, icon: MapPin, color: "#8b5cf6", isAmount: false },
         ].map((stat) => {
           const Icon = stat.icon;
           return (
-            <div key={stat.label} className="rounded-xl p-5 relative overflow-hidden group" style={cardStyle}>
-              <div className="absolute top-0 right-0 w-20 h-20 opacity-5 transform translate-x-6 -translate-y-6">
-                <Icon className="w-full h-full" style={{ color: stat.color }} />
+            <div key={stat.label} className="rounded-xl p-5 relative overflow-hidden group min-h-[140px]" style={cardStyle}>
+              {/* Decorative watermark — fully inside card, bottom-right */}
+              <div
+                className="absolute right-2 bottom-2 w-20 h-20 opacity-[0.07] pointer-events-none"
+                aria-hidden="true"
+              >
+                <Icon className="w-full h-full" style={{ color: stat.color }} strokeWidth={1.25} />
               </div>
-              
-              <div className="flex items-center gap-3 mb-3">
-                <div 
-                  className="p-2 rounded-lg transition-transform duration-300 group-hover:scale-110" 
-                  style={{ background: `${stat.color}15` }}
+
+              {/* LIVE badge — top-right */}
+              <div className="absolute top-3 right-3 flex items-center gap-1.5 z-10">
+                <Activity className="w-3 h-3 animate-pulse" style={{ color: '#3b82f6' }} />
+                <span className="text-[10px] font-bold tracking-wide" style={{ color: '#3b82f6' }}>
+                  LIVE
+                </span>
+              </div>
+
+              <div className="relative z-10 pr-14">
+                <div
+                  className="w-11 h-11 rounded-xl flex items-center justify-center mb-3 transition-transform duration-300 group-hover:scale-110"
+                  style={{ background: `${stat.color}18`, boxShadow: `0 4px 14px ${stat.color}22` }}
                 >
-                  <Icon className="w-5 h-5" style={{ color: stat.color }} />
+                  <Icon className="w-5 h-5" style={{ color: stat.color }} strokeWidth={2.25} />
                 </div>
-                <div className="flex items-center gap-1.5">
-                  <Activity className="w-3 h-3 animate-pulse" style={{ color: '#3b82f6' }} />
-                  <span className="text-[10px] font-bold" style={{ color: '#3b82f6' }}>
-                    LIVE
-                  </span>
-                </div>
+                <p className="text-sm font-medium mb-1" style={{ color: darkMode ? "#94a3b8" : "#64748b" }}>
+                  {stat.label}
+                </p>
+                <p className="text-2xl font-semibold" style={{ color: darkMode ? "#f8fafc" : "#0f172a" }}>
+                  {stat.isAmount ? fmt(stat.value) : <AnimatedCounter value={stat.value} />}
+                </p>
               </div>
-              <p className="text-sm font-medium mb-1" style={{ color: darkMode ? "#94a3b8" : "#64748b" }}>
-                {stat.label}
-              </p>
-              <p className="text-2xl font-semibold" style={{ color: darkMode ? "#f8fafc" : "#0f172a" }}>
-                {stat.isAmount ? fmt(stat.value) : <AnimatedCounter value={stat.value} />}
-              </p>
             </div>
           );
         })}

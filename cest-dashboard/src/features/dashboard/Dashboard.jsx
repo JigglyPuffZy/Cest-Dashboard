@@ -1,6 +1,6 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
-import { TrendingUp, Users, Package, Info, FileText, MapPin, X, Eye } from "lucide-react";
+import { TrendingUp, Users, Package, Info, FileText, MapPin, X, Eye, Building2, Landmark, Activity, ArrowRight } from "lucide-react";
 import { fmt, getStatusColor, getCardStyle, formatCurrencyShort } from "../../shared/utils/helpers";
 import { COMPONENTS, COMP_COLORS } from "../../shared/constants";
 import { HoverTooltip } from "../../components/ui/Tooltip";
@@ -37,7 +37,8 @@ export const Dashboard = ({ projects = [], equipment = [], uniqueComm = 0, darkM
   // Transform Supabase data structure to match expected format
   const transformedProjects = transformProjects(projects);
   const transformedEquipment = transformEquipmentList(equipment || []);
-  const [selectedView, setSelectedView] = useState("overview");
+  const projectsRef = useRef(null);
+  const analyticsRef = useRef(null);
   const [yearFilter, setYearFilter] = useState("All");
   const [componentModal, setComponentModal] = useState(null); // NEW: For component modal
   const [provinceFilter, setProvinceFilter] = useState("All");
@@ -80,6 +81,27 @@ export const Dashboard = ({ projects = [], equipment = [], uniqueComm = 0, darkM
     })
     .sort((a, b) => b.budget - a.budget);
 
+  const provinceData = officialProvinces.map((province) => {
+    const provinceProjects = transformedProjects.filter(
+      (p) => p.province?.toLowerCase() === province.name.toLowerCase()
+    );
+    return {
+      ...province,
+      projectCount: provinceProjects.length,
+      totalBudget: provinceProjects.reduce((sum, p) => sum + Number(p.amountFunded || 0), 0),
+      municipalities: new Set(provinceProjects.map((p) => p.municipality)).size,
+      barangays: new Set(provinceProjects.map((p) => p.community)).size,
+    };
+  });
+
+  const totalMunicipalities = new Set(transformedProjects.map((p) => p.municipality)).size;
+  const totalBarangays = uniqueComm || new Set(transformedProjects.map((p) => p.community)).size;
+  const totalEquipmentUnits = transformedEquipment.reduce((s, e) => s + Number(e.units || 0), 0);
+  const ongoingCount = transformedProjects.filter((p) => p.status?.toLowerCase() === "ongoing").length;
+  const finishedCount = transformedProjects.filter((p) => ["finished", "liquidated"].includes(p.status?.toLowerCase())).length;
+
+  const scrollTo = (ref) => ref.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+
   const compCounts = Object.entries(COMPONENTS)
     .map(([k]) => ({
       name: k.toUpperCase(),
@@ -112,434 +134,621 @@ export const Dashboard = ({ projects = [], equipment = [], uniqueComm = 0, darkM
         <ViewModeBanner darkMode={darkMode} onSignIn={onGuestSignIn} />
       )}
 
-      {/* Enhanced Premium Tab Design - Minimized with Blue Theme */}
-      <div className="flex items-center justify-center mb-2 px-2 sm:px-4">
-        <div className="flex gap-1.5 sm:gap-3 p-1.5 sm:p-2.5 rounded-2xl w-full max-w-2xl" style={{ 
-          background: darkMode 
-            ? 'linear-gradient(135deg, rgba(17, 24, 39, 0.8), rgba(31, 41, 55, 0.6))'
-            : 'linear-gradient(135deg, rgba(255, 255, 255, 0.9), rgba(249, 250, 251, 0.8))',
-          backdropFilter: 'blur(20px)',
-          border: `1px solid ${darkMode ? 'rgba(55, 65, 81, 0.5)' : 'rgba(229, 231, 235, 0.8)'}`,
-          boxShadow: darkMode 
-            ? '0 10px 25px -5px rgba(0, 0, 0, 0.3)'
-            : '0 10px 25px -5px rgba(0, 0, 0, 0.1)'
-        }}>
-          {[
-            { 
-              id: "overview", 
-              label: "Overview", 
-              gradient: "linear-gradient(135deg, #3B82F6 0%, #2563EB 100%)",
-              iconColor: "#3B82F6",
-              glowColor: "rgba(59, 130, 246, 0.4)"
-            },
-            { 
-              id: "projects", 
-              label: "Projects", 
-              gradient: "linear-gradient(135deg, #3B82F6 0%, #2563EB 100%)",
-              iconColor: "#3B82F6",
-              glowColor: "rgba(59, 130, 246, 0.4)"
-            },
-            { 
-              id: "analytics", 
-              label: "Analytics", 
-              gradient: "linear-gradient(135deg, #3B82F6 0%, #2563EB 100%)",
-              iconColor: "#3B82F6",
-              glowColor: "rgba(59, 130, 246, 0.4)"
-            },
-          ].map((tab) => (
-            <button
-              key={tab.id}
-              onClick={() => setSelectedView(tab.id)}
-              className="relative flex-1 px-2 sm:px-6 py-2 sm:py-3 text-xs sm:text-sm font-semibold rounded-xl transition-all duration-300 flex items-center gap-1.5 sm:gap-3 group justify-center whitespace-nowrap"
-              style={
-                selectedView === tab.id
-                  ? {
-                      background: tab.gradient,
-                      color: '#ffffff',
-                      boxShadow: `0 8px 20px -5px ${tab.glowColor}, 0 0 0 1px rgba(255, 255, 255, 0.1) inset`,
-                      transform: 'translateY(-1px)',
-                      border: '1px solid rgba(255, 255, 255, 0.2)'
-                    }
-                  : {
-                      background: darkMode 
-                        ? 'linear-gradient(135deg, rgba(55, 65, 81, 0.3), rgba(31, 41, 55, 0.3))'
-                        : 'linear-gradient(135deg, rgba(249, 250, 251, 0.8), rgba(243, 244, 246, 0.6))',
-                      color: darkMode ? '#9CA3AF' : '#6B7280',
-                      border: `1px solid ${darkMode ? 'rgba(75, 85, 99, 0.4)' : 'rgba(229, 231, 235, 0.8)'}`,
-                      boxShadow: 'none'
-                    }
-              }
-            >
-              {/* Hover gradient overlay */}
-              {selectedView !== tab.id && (
-                <div 
-                  className="absolute inset-0 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"
-                  style={{ 
-                    background: darkMode
-                      ? 'linear-gradient(135deg, rgba(75, 85, 99, 0.5), rgba(55, 65, 81, 0.5))'
-                      : 'linear-gradient(135deg, rgba(255, 255, 255, 0.9), rgba(249, 250, 251, 0.8))',
-                  }}
-                ></div>
-              )}
-              
-              {/* Icon Container */}
-              <div 
-                className="relative z-10 w-5 h-5 sm:w-8 sm:h-8 rounded-lg flex items-center justify-center transition-all duration-300 group-hover:scale-110 flex-shrink-0"
-                style={
-                  selectedView === tab.id
-                    ? {
-                        background: 'rgba(255, 255, 255, 0.2)',
-                        backdropFilter: 'blur(10px)',
-                        border: '1px solid rgba(255, 255, 255, 0.3)',
-                        boxShadow: '0 4px 8px rgba(0, 0, 0, 0.15)'
-                      }
-                    : {
-                        background: darkMode 
-                          ? 'linear-gradient(135deg, rgba(75, 85, 99, 0.4), rgba(55, 65, 81, 0.4))'
-                          : 'linear-gradient(135deg, rgba(255, 255, 255, 0.8), rgba(249, 250, 251, 0.6))',
-                        border: `1px solid ${darkMode ? 'rgba(107, 114, 128, 0.3)' : 'rgba(229, 231, 235, 0.8)'}`,
-                        boxShadow: 'none'
-                      }
-                }
+      {/* ── Unified Dashboard Hero ── */}
+      <div
+        className="rounded-2xl p-6 sm:p-8 relative overflow-hidden"
+        style={{
+          background: darkMode
+            ? 'linear-gradient(135deg, #0f172a 0%, #1e3a5f 50%, #0f172a 100%)'
+            : 'linear-gradient(135deg, #004A98 0%, #0066CC 60%, #3b82f6 100%)',
+          boxShadow: darkMode ? '0 20px 60px rgba(0,0,0,0.4)' : '0 20px 60px rgba(0,74,152,0.25)',
+        }}
+      >
+        <div className="absolute inset-0 opacity-10" style={{ backgroundImage: 'radial-gradient(circle at 80% 20%, white 1px, transparent 1px)', backgroundSize: '24px 24px' }} aria-hidden />
+        <div className="relative flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
+          <div>
+            <div className="flex items-center gap-2 mb-3">
+              <Activity className="w-4 h-4 animate-pulse text-white/90" />
+              <span className="text-xs font-bold tracking-widest text-white/80 uppercase">Live Dashboard</span>
+            </div>
+            <h1 className="text-2xl sm:text-3xl font-bold text-white mb-2">CEST 2.0 — Region II</h1>
+            <p className="text-sm text-white/75 max-w-xl">Complete overview of projects, budgets, analytics, and monitoring across Cagayan Valley.</p>
+          </div>
+          <div className="flex flex-wrap gap-2">
+            {[
+              { label: 'Analytics', ref: analyticsRef },
+              { label: 'All Projects', ref: projectsRef },
+            ].map((item) => (
+              <button
+                key={item.label}
+                type="button"
+                onClick={() => scrollTo(item.ref)}
+                className="px-4 py-2 rounded-xl text-sm font-semibold transition-all duration-200 hover:scale-105"
+                style={{ background: 'rgba(255,255,255,0.15)', color: '#fff', border: '1px solid rgba(255,255,255,0.25)', backdropFilter: 'blur(8px)' }}
               >
-                {tab.id === "overview" && (
-                  <svg className="w-3.5 h-3.5 sm:w-4 sm:h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"
-                    style={{ 
-                      color: selectedView === tab.id ? '#ffffff' : (darkMode ? '#9CA3AF' : '#6B7280'),
-                      filter: selectedView === tab.id ? 'drop-shadow(0 1px 2px rgba(0,0,0,0.2))' : 'none'
-                    }}>
-                    <rect x="3" y="3" width="7" height="7" rx="1.5"></rect>
-                    <rect x="14" y="3" width="7" height="7" rx="1.5"></rect>
-                    <rect x="14" y="14" width="7" height="7" rx="1.5"></rect>
-                    <rect x="3" y="14" width="7" height="7" rx="1.5"></rect>
-                  </svg>
-                )}
-                {tab.id === "projects" && (
-                  <svg className="w-3.5 h-3.5 sm:w-4 sm:h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"
-                    style={{ 
-                      color: selectedView === tab.id ? '#ffffff' : (darkMode ? '#9CA3AF' : '#6B7280'),
-                      filter: selectedView === tab.id ? 'drop-shadow(0 1px 2px rgba(0,0,0,0.2))' : 'none'
-                    }}>
-                    <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path>
-                  </svg>
-                )}
-                {tab.id === "analytics" && (
-                  <svg className="w-3.5 h-3.5 sm:w-4 sm:h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"
-                    style={{ 
-                      color: selectedView === tab.id ? '#ffffff' : (darkMode ? '#9CA3AF' : '#6B7280'),
-                      filter: selectedView === tab.id ? 'drop-shadow(0 1px 2px rgba(0,0,0,0.2))' : 'none'
-                    }}>
-                    <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline>
-                  </svg>
-                )}
-              </div>
-              
-              <span className="relative z-10 font-semibold tracking-wide">{tab.label}</span>
+                {item.label} ↓
+              </button>
+            ))}
+            <button
+              type="button"
+              onClick={() => setShowComponentLegend(true)}
+              className="px-4 py-2 rounded-xl text-sm font-semibold transition-all duration-200 hover:scale-105"
+              style={{ background: 'rgba(255,255,255,0.95)', color: '#004A98' }}
+            >
+              Components
             </button>
-          ))}
+          </div>
         </div>
       </div>
 
-      {/* Overview Tab */}
-      {selectedView === "overview" && (
-        <>
-          {/* Overall Summary Section - Clean Modern Design */}
-          <div className="rounded-xl sm:rounded-2xl p-4 sm:p-6 mb-4 sm:mb-6" style={{
-            background: darkMode 
-              ? 'linear-gradient(135deg, rgba(30, 41, 59, 0.95) 0%, rgba(15, 23, 42, 0.95) 100%)'
-              : 'linear-gradient(135deg, rgba(255, 255, 255, 0.98) 0%, rgba(248, 250, 252, 0.98) 100%)',
-            border: `1px solid ${darkMode ? 'rgba(71, 85, 105, 0.3)' : 'rgba(226, 232, 240, 0.6)'}`,
-            boxShadow: darkMode 
-              ? '0 10px 40px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.05)'
-              : '0 10px 40px rgba(0, 0, 0, 0.06), inset 0 1px 0 rgba(255, 255, 255, 0.9)'
-          }}>
-            <div className="flex items-center gap-2 sm:gap-3 mb-4 sm:mb-5">
-              <div className="w-9 h-9 sm:w-11 sm:h-11 rounded-lg sm:rounded-xl flex items-center justify-center flex-shrink-0" style={{
-                background: 'linear-gradient(135deg, #3B82F6 0%, #2563EB 100%)',
-                boxShadow: '0 6px 20px rgba(59, 130, 246, 0.35)'
-              }}>
-                <TrendingUp className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
+      {/* Key Metrics */}
+      <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">
+        {[
+          { label: 'Total Budget', value: fmt(totalFunds), icon: TrendingUp, color: '#004A98' },
+          { label: 'Projects', value: transformedProjects.length, icon: Building2, color: '#3b82f6' },
+          { label: 'Municipalities', value: totalMunicipalities, icon: Landmark, color: '#f59e0b' },
+          { label: 'Barangays', value: totalBarangays, icon: MapPin, color: '#8b5cf6' },
+          { label: 'Equipment Units', value: totalEquipmentUnits, icon: Package, color: '#10b981' },
+        ].map((stat) => {
+          const Icon = stat.icon;
+          return (
+            <div key={stat.label} className="rounded-xl p-4 sm:p-5 relative overflow-hidden group min-h-[120px]" style={cardStyle}>
+              <div className="absolute right-2 bottom-2 w-16 h-16 opacity-[0.07] pointer-events-none" aria-hidden>
+                <Icon className="w-full h-full" style={{ color: stat.color }} strokeWidth={1.25} />
               </div>
-              <div>
-                <h2 className="text-base sm:text-xl font-bold" style={{ color: darkMode ? '#f8fafc' : '#0f172a' }}>
-                  Overall Summary
-                </h2>
-                <p className="text-[10px] sm:text-xs font-medium hidden sm:block" style={{ color: darkMode ? '#94a3b8' : '#64748b' }}>
-                  Combined results across all CEST 2.0 projects in Region II
-                </p>
+              <div className="relative z-10">
+                <div className="w-10 h-10 rounded-xl flex items-center justify-center mb-3" style={{ background: stat.color + '18' }}>
+                  <Icon className="w-5 h-5" style={{ color: stat.color }} strokeWidth={2.25} />
+                </div>
+                <p className="text-xs font-medium mb-1" style={{ color: darkMode ? '#94a3b8' : '#64748b' }}>{stat.label}</p>
+                <p className="text-xl sm:text-2xl font-bold" style={{ color: darkMode ? '#f8fafc' : '#0f172a' }}>{stat.value}</p>
               </div>
             </div>
-            
-            <div className="grid grid-cols-2 md:grid-cols-3 gap-2 sm:gap-4 max-w-4xl mx-auto">
-              <div className="text-center p-3 sm:p-4 rounded-lg sm:rounded-xl transition-all duration-300 hover:scale-105" style={{
-                background: darkMode 
-                  ? 'linear-gradient(135deg, rgba(59, 130, 246, 0.12) 0%, rgba(37, 99, 235, 0.08) 100%)'
-                  : 'linear-gradient(135deg, rgba(59, 130, 246, 0.08) 0%, rgba(37, 99, 235, 0.05) 100%)',
-                border: `1px solid ${darkMode ? 'rgba(59, 130, 246, 0.25)' : 'rgba(59, 130, 246, 0.2)'}`,
-                boxShadow: darkMode 
-                  ? '0 4px 12px rgba(59, 130, 246, 0.15)'
-                  : '0 4px 12px rgba(59, 130, 246, 0.1)'
-              }}>
-                <p className="text-[10px] sm:text-xs font-bold uppercase tracking-wider mb-1 sm:mb-2" style={{ color: '#3B82F6' }}>
-                  Total Projects
-                </p>
-                <p className="text-xl sm:text-3xl font-black mb-0.5 sm:mb-1" style={{ color: darkMode ? '#f8fafc' : '#0f172a' }}>
-                  {transformedProjects.length}
-                </p>
-                <p className="text-[10px] sm:text-xs font-medium" style={{ color: darkMode ? '#94a3b8' : '#64748b' }}>
-                  Active & Completed
-                </p>
-              </div>
-              
-              <div className="text-center p-3 sm:p-4 rounded-lg sm:rounded-xl transition-all duration-300 hover:scale-105" style={{
-                background: darkMode 
-                  ? 'linear-gradient(135deg, rgba(16, 185, 129, 0.12) 0%, rgba(5, 150, 105, 0.08) 100%)'
-                  : 'linear-gradient(135deg, rgba(16, 185, 129, 0.08) 0%, rgba(5, 150, 105, 0.05) 100%)',
-                border: `1px solid ${darkMode ? 'rgba(16, 185, 129, 0.25)' : 'rgba(16, 185, 129, 0.2)'}`,
-                boxShadow: darkMode 
-                  ? '0 4px 12px rgba(16, 185, 129, 0.15)'
-                  : '0 4px 12px rgba(16, 185, 129, 0.1)'
-              }}>
-                <p className="text-[10px] sm:text-xs font-bold uppercase tracking-wider mb-1 sm:mb-2" style={{ color: '#3B82F6' }}>
-                  Total Budget
-                </p>
-                <p className="text-xl sm:text-3xl font-black mb-0.5 sm:mb-1" style={{ color: darkMode ? '#f8fafc' : '#0f172a' }}>
-                  {formatCurrencyShort(totalFunds)}
-                </p>
-                <p className="text-[10px] sm:text-xs font-medium" style={{ color: darkMode ? '#94a3b8' : '#64748b' }}>
-                  Amount Funded
-                </p>
-              </div>
-              
-              <div className="text-center p-3 sm:p-4 rounded-lg sm:rounded-xl transition-all duration-300 hover:scale-105" style={{
-                background: darkMode 
-                  ? 'linear-gradient(135deg, rgba(139, 92, 246, 0.12) 0%, rgba(124, 58, 237, 0.08) 100%)'
-                  : 'linear-gradient(135deg, rgba(139, 92, 246, 0.08) 0%, rgba(124, 58, 237, 0.05) 100%)',
-                border: `1px solid ${darkMode ? 'rgba(139, 92, 246, 0.25)' : 'rgba(139, 92, 246, 0.2)'}`,
-                boxShadow: darkMode 
-                  ? '0 4px 12px rgba(139, 92, 246, 0.15)'
-                  : '0 4px 12px rgba(139, 92, 246, 0.1)'
-              }}>
-                <p className="text-[10px] sm:text-xs font-bold uppercase tracking-wider mb-1 sm:mb-2" style={{ color: '#8B5CF6' }}>
-                  Communities
-                </p>
-                <p className="text-xl sm:text-3xl font-black mb-0.5 sm:mb-1" style={{ color: darkMode ? '#f8fafc' : '#0f172a' }}>
-                  {uniqueComm}
-                </p>
-                <p className="text-[10px] sm:text-xs font-medium" style={{ color: darkMode ? '#94a3b8' : '#64748b' }}>
-                  Served
-                </p>
-              </div>
+          );
+        })}
+      </div>
+
+      {/* Status strip */}
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+        {[
+          { label: 'Ongoing', value: ongoingCount, color: '#34D399' },
+          { label: 'Finished / Liquidated', value: finishedCount, color: '#60A5FA' },
+          { label: 'Provinces Covered', value: provinceData.filter(p => p.projectCount > 0).length, color: '#A78BFA' },
+          { label: 'CEST Components', value: compCounts.length, color: '#F472B6' },
+        ].map((item) => (
+          <div key={item.label} className="rounded-xl px-4 py-3 flex items-center justify-between" style={{ ...cardStyle, borderLeft: '3px solid ' + item.color }}>
+            <span className="text-xs font-medium" style={{ color: darkMode ? '#94a3b8' : '#64748b' }}>{item.label}</span>
+            <span className="text-lg font-bold" style={{ color: item.color }}>{item.value}</span>
+          </div>
+        ))}
+      </div>
+
+      <div ref={analyticsRef} className="scroll-mt-6 space-y-6">
+          {/* Header with Component Legend Button */}
+          <div className="mb-6 flex items-center justify-between">
+            <div>
+              <h2 className="text-xl font-semibold mb-1" style={{ color: darkMode ? '#f8fafc' : '#0f172a' }}>
+                Region II Analytics
+              </h2>
+              <p className="text-sm" style={{ color: darkMode ? '#94a3b8' : '#6b7280' }}>
+                Aggregated data across Region II provinces - Click any province to drill down
+              </p>
             </div>
+            <button
+              onClick={() => setShowComponentLegend(true)}
+              className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200"
+              style={{
+                background: darkMode ? '#1e293b' : '#f8fafc',
+                color: '#004A98',
+                border: `1px solid ${darkMode ? '#334155' : '#e2e8f0'}`,
+              }}
+            >
+              <Info className="w-4 h-4" />
+              Component Legend
+            </button>
           </div>
 
-          {/* Enhanced Premium Stats Grid with Micro-interactions */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-6xl mx-auto">
-            {[
-              { 
-                label: "Total Projects", 
-                value: transformedProjects.length, 
-                icon: TrendingUp, 
-                color: "#004A98", 
-                bgColor: "rgba(0, 74, 152, 0.1)",
-                gradient: "linear-gradient(135deg, #004A98 0%, #0066CC 100%)"
-              },
-              { 
-                label: "Communities", 
-                value: uniqueComm, 
-                icon: Users, 
-                color: "#60A5FA", 
-                bgColor: "rgba(96, 165, 250, 0.1)",
-                gradient: "linear-gradient(135deg, #60A5FA 0%, #3B82F6 100%)"
-              },
-              { 
-                label: "Total Budget", 
-                value: fmt(totalFunds), 
-                icon: PesoIcon, 
-                color: "#004A98", 
-                bgColor: "rgba(0, 74, 152, 0.1)",
-                gradient: "linear-gradient(135deg, #f59e0b 0%, #d97706 100%)"
-              },
-            ].map((stat, index) => {
-              const Icon = stat.icon;
-              return (
-                <div 
-                  key={stat.label} 
-                  className="group rounded-2xl p-6 transition-all duration-500 hover:scale-[1.05] hover:shadow-2xl relative overflow-hidden cursor-pointer" 
-                  style={{
-                    ...cardStyle,
-                    animationDelay: `${index * 150}ms`,
-                    background: darkMode 
-                      ? 'linear-gradient(145deg, rgba(30, 41, 59, 0.8) 0%, rgba(15, 23, 42, 0.9) 100%)'
-                      : 'linear-gradient(145deg, #ffffff 0%, #f8fafc 100%)',
-                    border: `1px solid ${darkMode ? 'rgba(148, 163, 184, 0.1)' : 'rgba(226, 232, 240, 0.5)'}`,
-                    boxShadow: darkMode 
-                      ? '0 10px 40px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.1)'
-                      : '0 10px 40px rgba(0, 74, 152, 0.1), inset 0 1px 0 rgba(255, 255, 255, 0.8)'
-                  }}
-                >
-                  {/* Animated background gradient on hover */}
-                  <div 
-                    className="absolute inset-0 opacity-0 group-hover:opacity-10 transition-opacity duration-500"
-                    style={{ background: stat.gradient }}
-                  ></div>
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                {/* Modern Bar Chart - Provinces */}
+                <div className="rounded-xl p-6" style={cardStyle}>
+                  <h3 className="text-lg font-semibold mb-1" style={{ color: darkMode ? '#f8fafc' : '#0f172a' }}>
+                    Budget Distribution
+                  </h3>
+                  <p className="text-sm mb-6" style={{ color: darkMode ? '#94a3b8' : '#6b7280' }}>
+                    Top provinces by budget - Click to drill down
+                  </p>
                   
-                  {/* Floating particles effect */}
-                  <div className="absolute top-2 right-2 w-2 h-2 rounded-full opacity-20 group-hover:opacity-60 transition-opacity duration-500" style={{ background: stat.color }}></div>
-                  <div className="absolute bottom-4 left-4 w-1 h-1 rounded-full opacity-30 group-hover:opacity-80 transition-opacity duration-700" style={{ background: stat.color }}></div>
+                  <ResponsiveContainer width="100%" height={350}>
+                    <BarChart data={barData} margin={{ top: 10, right: 10, left: 10, bottom: 40 }}>
+                      <XAxis
+                        dataKey="name"
+                        tick={{ fontSize: 10, fill: darkMode ? "#94a3b8" : "#6b7280", fontWeight: 500 }}
+                        angle={0}
+                        textAnchor="middle"
+                        interval={0}
+                        tickLine={false}
+                        axisLine={{ stroke: darkMode ? "#334155" : "#e5e7eb", strokeWidth: 1 }}
+                        height={35}
+                      />
+                      <YAxis 
+                        tick={{ fontSize: 11, fill: darkMode ? "#94a3b8" : "#6b7280", fontWeight: 500 }} 
+                        tickFormatter={formatCurrencyShort} 
+                        tickLine={false} 
+                        axisLine={false}
+                        width={60}
+                      />
+                      <Tooltip
+                        content={({ active, payload }) => {
+                          if (active && payload && payload.length) {
+                            return (
+                              <div 
+                                className="p-3 rounded-lg cursor-pointer"
+                                style={{
+                                  background: darkMode ? '#0f172a' : '#ffffff',
+                                  border: `1px solid ${darkMode ? '#1e293b' : '#e5e7eb'}`,
+                                  boxShadow: darkMode ? '0 4px 12px rgba(0,0,0,0.5)' : '0 4px 12px rgba(0,0,0,0.1)'
+                                }}
+                                onClick={() => navigate(`/analytics/provinces/${payload[0].payload.id}`)}
+                              >
+                                <p className="font-semibold text-xs mb-1" style={{ color: darkMode ? '#f8fafc' : '#0f172a' }}>
+                                  {payload[0].payload.fullName}
+                                </p>
+                                <p className="font-bold text-lg" style={{ color: '#004A98' }}>
+                                  {formatCurrencyShort(payload[0].value)}
+                                </p>
+                                <p className="text-xs mt-1" style={{ color: '#3b82f6' }}>
+                                  Click to view details →
+                                </p>
+                              </div>
+                            );
+                          }
+                          return null;
+                        }}
+                        cursor={{ fill: darkMode ? 'rgba(148, 163, 184, 0.05)' : 'rgba(226, 232, 240, 0.5)' }}
+                      />
+                      <Bar 
+                        dataKey="budget" 
+                        radius={[8, 8, 0, 0]} 
+                        maxBarSize={50}
+                        onClick={(data) => navigate(`/analytics/provinces/${data.id}`)}
+                        style={{ cursor: 'pointer' }}
+                      >
+                        {barData.map((entry, index) => (
+                          <Cell 
+                            key={`cell-${index}`} 
+                            fill={BAR_COLORS[index % BAR_COLORS.length]}
+                            stroke={darkMode ? '#0f172a' : '#ffffff'}
+                            strokeWidth={2}
+                          />
+                        ))}
+                      </Bar>
+                    </BarChart>
+                  </ResponsiveContainer>
+                </div>
+
+                {/* Modern Donut Chart */}
+                <div className="rounded-xl p-6" style={cardStyle}>
+                  <h3 className="text-lg font-semibold mb-1" style={{ color: darkMode ? '#f8fafc' : '#0f172a' }}>
+                    Component Distribution
+                  </h3>
+                  <p className="text-sm mb-6" style={{ color: darkMode ? '#94a3b8' : '#6b7280' }}>
+                    CEST 2.0 breakdown
+                  </p>
                   
-                  <div className="relative z-10">
-                    <div className="flex items-center justify-between mb-4">
+                  {compCounts.length > 0 ? (
+                    <ResponsiveContainer width="100%" height={350}>
+                      <PieChart>
+                        <Pie
+                          data={compCounts}
+                          cx="50%"
+                          cy="50%"
+                          outerRadius={110}
+                          innerRadius={70}
+                          dataKey="value"
+                          paddingAngle={3}
+                          label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                        >
+                          {compCounts.map((_, i) => (
+                            <Cell 
+                              key={i} 
+                              fill={PIE_COLORS[i % PIE_COLORS.length]}
+                              stroke={darkMode ? '#0f172a' : '#ffffff'}
+                              strokeWidth={3}
+                            />
+                          ))}
+                        </Pie>
+                        <Tooltip 
+                          content={({ active, payload }) => {
+                            if (active && payload && payload.length) {
+                              return (
+                                <div 
+                                  className="p-3 rounded-lg"
+                                  style={{
+                                    background: darkMode ? '#0f172a' : '#ffffff',
+                                    border: `1px solid ${darkMode ? '#1e293b' : '#e5e7eb'}`,
+                                    boxShadow: darkMode ? '0 4px 12px rgba(0,0,0,0.5)' : '0 4px 12px rgba(0,0,0,0.1)'
+                                  }}
+                                >
+                                  <p className="font-semibold text-xs mb-1" style={{ color: darkMode ? '#f8fafc' : '#0f172a' }}>
+                                    {payload[0].payload.fullName}
+                                  </p>
+                                  <p className="font-bold text-lg" style={{ color: payload[0].fill }}>
+                                    {payload[0].value}
+                                  </p>
+                                </div>
+                              );
+                            }
+                            return null;
+                          }}
+                        />
+                      </PieChart>
+                    </ResponsiveContainer>
+                  ) : (
+                    <div className="flex items-center justify-center h-[350px]">
+                      <p className="text-sm" style={{ color: darkMode ? '#94a3b8' : '#6b7280' }}>
+                        No data available
+                      </p>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+
+              {/* Province Overview */}
+              <div>
+                <h3 className="text-lg font-semibold mb-1" style={{ color: darkMode ? '#f8fafc' : '#0f172a' }}>Provinces</h3>
+                <p className="text-sm mb-4" style={{ color: darkMode ? '#94a3b8' : '#6b7280' }}>Click a province for city-level analytics</p>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {provinceData.map((province) => (
+                    <button
+                      key={province.id}
+                      type="button"
+                      onClick={() => navigate(`/analytics/provinces/${province.id}`)}
+                      className="text-left rounded-xl p-5 transition-all duration-200 hover:scale-[1.02] group"
+                      style={cardStyle}
+                    >
+                      <div className="flex items-start justify-between mb-3">
+                        <div className="p-2.5 rounded-lg" style={{ background: 'rgba(0, 74, 152, 0.1)' }}>
+                          <Building2 className="w-5 h-5" style={{ color: '#004A98' }} />
+                        </div>
+                        <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" style={{ color: darkMode ? '#64748b' : '#94a3b8' }} />
+                      </div>
+                      <h4 className="text-base font-semibold mb-2" style={{ color: darkMode ? '#f8fafc' : '#0f172a' }}>{province.name}</h4>
+                      <div className="grid grid-cols-2 gap-2 text-xs">
+                        <div><span style={{ color: darkMode ? '#94a3b8' : '#64748b' }}>Projects </span><span className="font-bold" style={{ color: darkMode ? '#f8fafc' : '#0f172a' }}>{province.projectCount}</span></div>
+                        <div><span style={{ color: darkMode ? '#94a3b8' : '#64748b' }}>Budget </span><span className="font-bold" style={{ color: '#004A98' }}>{formatCurrencyShort(province.totalBudget)}</span></div>
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Component Analysis */}
+              <div className="rounded-xl p-6" style={cardStyle}>
+                <h3 className="text-lg font-semibold mb-1" style={{ color: darkMode ? '#f8fafc' : '#0f172a' }}>
+                  Component Analysis
+                </h3>
+                <p className="text-sm mb-6" style={{ color: darkMode ? '#94a3b8' : '#6b7280' }}>
+                  Detailed breakdown by component
+                </p>
+                
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {Object.entries(COMPONENTS).map(([key, name]) => {
+                    const count = transformedProjects.filter((p) => p.components?.includes(key)).length;
+                    const percentage = transformedProjects.length > 0 ? ((count / transformedProjects.length) * 100).toFixed(1) : 0;
+                    const componentProjects = transformedProjects.filter((p) => p.components?.includes(key));
+                    
+                    return (
                       <div 
-                        className="p-4 rounded-2xl transition-all duration-500 group-hover:scale-110 group-hover:rotate-3"
-                        style={{ 
-                          background: stat.bgColor,
-                          boxShadow: `0 8px 25px ${stat.color}20`
+                        key={key}
+                        onClick={() => setComponentModal({ key, name, projects: componentProjects, count, percentage })}
+                        className="p-5 rounded-lg border transition-all duration-200 hover:scale-[1.02] cursor-pointer hover:shadow-lg"
+                        style={{
+                          background: darkMode ? '#1e293b' : '#f8fafc',
+                          borderColor: darkMode ? '#334155' : '#e2e8f0'
                         }}
                       >
-                        <Icon className="w-6 h-6 transition-all duration-300" style={{ color: stat.color }} />
+                        <div className="flex items-start justify-between mb-3">
+                          <span className="text-xs font-semibold px-2 py-1 rounded" style={{ backgroundColor: `${COMP_COLORS[key]}20`, color: COMP_COLORS[key] }}>
+                            {key.toUpperCase()}
+                          </span>
+                          <span className="text-2xl font-semibold" style={{ color: darkMode ? '#f8fafc' : '#0f172a' }}>
+                            {count}
+                          </span>
+                        </div>
+                        
+                        <p className="text-sm font-medium mb-3" style={{ color: darkMode ? '#94a3b8' : '#6b7280' }}>
+                          {name}
+                        </p>
+                        
+                        <div className="space-y-2">
+                          <div className="h-2 rounded-full overflow-hidden" style={{ backgroundColor: darkMode ? '#0f172a' : '#e5e7eb' }}>
+                            <div
+                              className="h-full rounded-full transition-all duration-1000"
+                              style={{ width: `${percentage}%`, backgroundColor: COMP_COLORS[key] }}
+                            ></div>
+                          </div>
+                          <p className="text-xs font-medium" style={{ color: COMP_COLORS[key] }}>
+                            {percentage}% of projects
+                          </p>
+                        </div>
+                        
+                        {/* Click indicator */}
+                        <div className="mt-3 pt-3 border-t flex items-center justify-center gap-2" style={{ borderColor: darkMode ? '#334155' : '#e2e8f0' }}>
+                          <Eye className="w-3 h-3" style={{ color: darkMode ? '#94a3b8' : '#64748b' }} />
+                          <span className="text-xs font-medium" style={{ color: darkMode ? '#94a3b8' : '#64748b' }}>
+                            Click to view projects
+                          </span>
+                        </div>
                       </div>
-                      <div 
-                        className="w-3 h-3 rounded-full animate-pulse"
-                        style={{ backgroundColor: stat.color }}
-                      ></div>
-                    </div>
-                    
-                    <div className="space-y-2">
-                      <p className="text-xs font-bold uppercase tracking-wider opacity-70" style={{ color: darkMode ? '#94a3b8' : '#6b7280' }}>
-                        {stat.label}
-                      </p>
-                      <p className="text-3xl font-black group-hover:scale-110 transition-transform duration-300" style={{ color: darkMode ? '#f8fafc' : '#0f172a' }}>
-                        {stat.value}
-                      </p>
-                    </div>
-                    
-                    {/* Progress bar animation */}
-                    <div className="mt-4 h-1 bg-gray-200 rounded-full overflow-hidden" style={{ backgroundColor: darkMode ? '#1e293b' : '#f1f5f9' }}>
-                      <div 
-                        className="h-full rounded-full transition-all duration-1000 group-hover:w-full"
-                        style={{ 
-                          backgroundColor: stat.color,
-                          width: '60%'
-                        }}
-                      ></div>
-                    </div>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* Quarterly Monitoring Section */}
+              <div className="rounded-xl p-6" style={cardStyle}>
+                <div className="flex items-center justify-between mb-6">
+                  <div>
+                    <h3 className="text-lg font-semibold mb-1" style={{ color: darkMode ? '#f8fafc' : '#0f172a' }}>
+                      Quarterly Monitoring
+                    </h3>
+                    <p className="text-sm" style={{ color: darkMode ? '#94a3b8' : '#6b7280' }}>
+                      Project status breakdown by quarter
+                    </p>
+                  </div>
+                  {/* Glassmorphism Calendar Icon */}
+                  <div 
+                    className="w-14 h-14 rounded-2xl flex items-center justify-center relative overflow-hidden"
+                    style={{
+                      background: darkMode 
+                        ? 'linear-gradient(135deg, rgba(96, 165, 250, 0.15), rgba(167, 139, 250, 0.15))'
+                        : 'linear-gradient(135deg, rgba(96, 165, 250, 0.2), rgba(167, 139, 250, 0.2))',
+                      backdropFilter: 'blur(10px)',
+                      border: `2px solid ${darkMode ? 'rgba(96, 165, 250, 0.3)' : 'rgba(96, 165, 250, 0.4)'}`,
+                      boxShadow: darkMode 
+                        ? '0 8px 32px rgba(96, 165, 250, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.1)'
+                        : '0 8px 32px rgba(96, 165, 250, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.6)'
+                    }}
+                  >
+                    {/* Animated gradient background */}
+                    <div 
+                      className="absolute inset-0 opacity-50"
+                      style={{
+                        background: 'linear-gradient(45deg, #60A5FA, #A78BFA, #F472B6)',
+                        backgroundSize: '200% 200%',
+                        animation: 'gradient-shift 3s ease infinite'
+                      }}
+                    />
+                    {/* Calendar Icon SVG */}
+                    <svg 
+                      className="w-7 h-7 relative z-10" 
+                      viewBox="0 0 24 24" 
+                      fill="none" 
+                      stroke="currentColor" 
+                      strokeWidth="2.5"
+                      strokeLinecap="round" 
+                      strokeLinejoin="round"
+                      style={{ color: '#ffffff', filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.2))' }}
+                    >
+                      <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                      <line x1="16" y1="2" x2="16" y2="6"></line>
+                      <line x1="8" y1="2" x2="8" y2="6"></line>
+                      <line x1="3" y1="10" x2="21" y2="10"></line>
+                      <rect x="7" y="14" width="2" height="2" fill="currentColor"></rect>
+                      <rect x="11" y="14" width="2" height="2" fill="currentColor"></rect>
+                      <rect x="15" y="14" width="2" height="2" fill="currentColor"></rect>
+                    </svg>
                   </div>
                 </div>
-              );
-            })}
-          </div>
-
-          {/* Premium Recent Projects Section */}
-          <div className="rounded-xl p-6" style={cardStyle}>
-            <div className="flex items-center justify-between mb-6">
-              <div>
-                <h2 className="text-lg font-bold" style={{ color: darkMode ? '#f8fafc' : '#0f172a' }}>
-                  Recent Projects
-                </h2>
-                <p className="text-xs" style={{ color: darkMode ? '#94a3b8' : '#6b7280' }}>
-                  Latest activities and updates
-                </p>
-              </div>
-              <button
-                onClick={() => setSelectedView("projects")}
-                className="px-4 py-2 text-sm font-semibold rounded-lg transition-all duration-300 hover:shadow-lg"
-                style={{
-                  background: 'linear-gradient(135deg, #004A98 0%, #0066CC 100%)',
-                  color: '#ffffff',
-                }}
-              >
-                View All →
-              </button>
-            </div>
-
-            <div className="space-y-3">
-              {transformedProjects.slice(0, 5).map((p, index) => (
-                <div
-                  key={`${p.id}-${index}`}
-                  onClick={() => handleViewDetails(p, index)}
-                  className="group p-4 rounded-lg border transition-all duration-300 hover:shadow-md hover:border-blue-500/30 cursor-pointer"
-                  style={{
-                    background: darkMode 
-                      ? 'linear-gradient(145deg, rgba(30, 41, 59, 0.5) 0%, rgba(30, 41, 59, 0.3) 100%)'
-                      : 'linear-gradient(145deg, #ffffff 0%, #f8fafc 100%)',
-                    borderColor: darkMode ? '#334155' : '#e2e8f0',
-                    animationDelay: `${index * 50}ms`,
-                  }}
-                >
-                  <div className="flex items-start justify-between gap-4">
-                    <div className="flex-1">
-                      <div className="flex items-center gap-2 mb-2">
-                        <span className="text-xs font-bold px-2.5 py-1 rounded-md" style={{ 
-                          background: 'linear-gradient(135deg, #004A98 0%, #0066CC 100%)', 
-                          color: '#ffffff'
-                        }}>
-                          {p.year}
-                        </span>
-                        <span className="text-xs font-bold px-2.5 py-1 rounded-md" style={{ 
-                          background: 'linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)', 
-                          color: '#ffffff'
-                        }}>
-                          Project #{index + 1}
-                        </span>
-                        <span className="text-sm font-semibold" style={{ color: darkMode ? '#cbd5e1' : '#6b7280' }}>
-                          {typeof p.municipality === 'object' ? p.municipality?.name || 'Unknown' : p.municipality || 'Unknown'}
-                        </span>
-                      </div>
-                      <h3 className="text-sm font-semibold mb-2 line-clamp-2 group-hover:text-blue-600 transition-colors" style={{ color: darkMode ? '#f8fafc' : '#0f172a' }}>
-                        {p.project}
-                      </h3>
-                      <div className="flex items-center gap-2 flex-wrap">
-                        <span className={`text-xs font-semibold px-2.5 py-1 rounded-md border ${getStatusColor(p.status, darkMode)}`}>
-                          {p.status}
-                        </span>
-                        {(p.components || []).filter(Boolean).slice(0, 2).map((c, index) => (
-                          <HoverTooltip
-                            key={`${c}-${index}`}
-                            content={COMPONENTS[c] || c}
-                            position="auto"
-                            darkMode={darkMode}
-                            delay={150}
+                
+                {(() => {
+                  // Calculate quarterly statistics
+                  const quarters = ['Q1', 'Q2', 'Q3', 'Q4'];
+                  const currentYear = new Date().getFullYear();
+                  
+                  // Group projects by status for current year
+                  const currentYearProjects = transformedProjects.filter(p => Number(p.year) === currentYear);
+                  
+                  const quarterlyData = quarters.map((quarter, index) => {
+                    // For demo purposes, distribute projects across quarters
+                    // In production, you'd filter by actual quarter dates
+                    const quarterProjects = currentYearProjects.filter((_, i) => i % 4 === index);
+                    
+                    return {
+                      quarter,
+                      ongoing: quarterProjects.filter(p => p.status === "Ongoing").length,
+                      liquidated: quarterProjects.filter(p => p.status === "Liquidated").length,
+                      finished: quarterProjects.filter(p => p.status === "Finished").length,
+                      total: quarterProjects.length
+                    };
+                  });
+                  
+                  return (
+                    <div className="space-y-4">
+                      {/* Summary Cards */}
+                      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                        {quarterlyData.map((q, index) => (
+                          <div 
+                            key={q.quarter}
+                            className="p-4 rounded-xl border transition-all duration-300 hover:scale-105 cursor-pointer"
+                            style={{
+                              background: darkMode 
+                                ? `linear-gradient(135deg, ${PIE_COLORS[index]}15, ${PIE_COLORS[index]}08)`
+                                : `linear-gradient(135deg, ${PIE_COLORS[index]}10, ${PIE_COLORS[index]}05)`,
+                              borderColor: `${PIE_COLORS[index]}40`,
+                              borderWidth: '2px'
+                            }}
                           >
-                            <span 
-                              className="text-xs font-semibold px-3 py-1.5 rounded-xl cursor-help transition-all duration-300 hover:scale-110 hover:shadow-lg relative overflow-hidden group" 
-                              style={{ 
-                                background: `linear-gradient(135deg, ${COMP_COLORS[c] || '#64748b'}15, ${COMP_COLORS[c] || '#64748b'}25)`,
-                                color: COMP_COLORS[c] || '#64748b',
-                                border: `2px solid ${COMP_COLORS[c] || '#64748b'}30`,
-                                boxShadow: `0 3px 10px ${COMP_COLORS[c] || '#64748b'}20`
-                              }}
-                            >
-                              {/* Shine effect */}
+                            <div className="flex items-center justify-between mb-3">
+                              <span className="text-xs font-bold px-2.5 py-1 rounded-lg" style={{ 
+                                background: PIE_COLORS[index], 
+                                color: '#ffffff' 
+                              }}>
+                                {q.quarter}
+                              </span>
+                              <span className="text-2xl font-black" style={{ color: darkMode ? '#f8fafc' : '#0f172a' }}>
+                                {q.total}
+                              </span>
+                            </div>
+                            
+                            <div className="space-y-2">
+                              <div className="flex items-center justify-between text-xs">
+                                <span style={{ color: darkMode ? '#94a3b8' : '#6b7280' }}>Ongoing</span>
+                                <span className="font-bold" style={{ color: '#34D399' }}>{q.ongoing}</span>
+                              </div>
+                              <div className="flex items-center justify-between text-xs">
+                                <span style={{ color: darkMode ? '#94a3b8' : '#6b7280' }}>Liquidated</span>
+                                <span className="font-bold" style={{ color: '#FBBF24' }}>{q.liquidated}</span>
+                              </div>
+                              <div className="flex items-center justify-between text-xs">
+                                <span style={{ color: darkMode ? '#94a3b8' : '#6b7280' }}>Finished</span>
+                                <span className="font-bold" style={{ color: '#60A5FA' }}>{q.finished}</span>
+                              </div>
+                            </div>
+                            
+                            {/* Progress bar */}
+                            <div className="mt-3 h-2 rounded-full overflow-hidden" style={{ 
+                              backgroundColor: darkMode ? '#1e293b' : '#f1f5f9' 
+                            }}>
                               <div 
-                                className="absolute inset-0 bg-gradient-to-r from-transparent via-white to-transparent opacity-0 group-hover:opacity-20 transition-all duration-500 transform -skew-x-12 translate-x-[-100%] group-hover:translate-x-[100%]"
-                                style={{ width: '50%' }}
+                                className="h-full rounded-full transition-all duration-1000"
+                                style={{ 
+                                  width: `${q.total > 0 ? (q.finished / q.total) * 100 : 0}%`,
+                                  background: `linear-gradient(90deg, ${PIE_COLORS[index]}, ${PIE_COLORS[(index + 1) % PIE_COLORS.length]})`
+                                }}
                               />
-                              <span className="relative z-10">{c?.toUpperCase() || 'N/A'}</span>
-                            </span>
-                          </HoverTooltip>
+                            </div>
+                          </div>
                         ))}
                       </div>
+                      
+                      {/* Detailed Table */}
+                      <div className="overflow-x-auto rounded-xl border" style={{ 
+                        borderColor: darkMode ? '#334155' : '#e2e8f0',
+                        background: darkMode ? '#1e293b' : '#f8fafc'
+                      }}>
+                        <table className="w-full">
+                          <thead>
+                            <tr style={{ 
+                              background: darkMode ? '#0f172a' : '#ffffff',
+                              borderBottom: `2px solid ${darkMode ? '#334155' : '#e2e8f0'}`
+                            }}>
+                              <th className="px-4 py-3 text-left text-xs font-bold uppercase tracking-wider" style={{ color: darkMode ? '#94a3b8' : '#6b7280' }}>
+                                Quarter
+                              </th>
+                              <th className="px-4 py-3 text-center text-xs font-bold uppercase tracking-wider" style={{ color: '#34D399' }}>
+                                Ongoing
+                              </th>
+                              <th className="px-4 py-3 text-center text-xs font-bold uppercase tracking-wider" style={{ color: '#FBBF24' }}>
+                                Liquidated
+                              </th>
+                              <th className="px-4 py-3 text-center text-xs font-bold uppercase tracking-wider" style={{ color: '#60A5FA' }}>
+                                Finished
+                              </th>
+                              <th className="px-4 py-3 text-center text-xs font-bold uppercase tracking-wider" style={{ color: darkMode ? '#f8fafc' : '#0f172a' }}>
+                                Total
+                              </th>
+                              <th className="px-4 py-3 text-center text-xs font-bold uppercase tracking-wider" style={{ color: darkMode ? '#94a3b8' : '#6b7280' }}>
+                                Completion %
+                              </th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {quarterlyData.map((q, index) => (
+                              <tr 
+                                key={q.quarter}
+                                className="transition-colors duration-200 hover:bg-opacity-50"
+                                style={{ 
+                                  borderBottom: `1px solid ${darkMode ? '#334155' : '#e2e8f0'}`,
+                                  background: index % 2 === 0 
+                                    ? (darkMode ? 'rgba(30, 41, 59, 0.3)' : 'rgba(248, 250, 252, 0.5)')
+                                    : 'transparent'
+                                }}
+                              >
+                                <td className="px-4 py-3">
+                                  <span className="text-sm font-bold px-3 py-1.5 rounded-lg" style={{ 
+                                    background: `${PIE_COLORS[index]}20`,
+                                    color: PIE_COLORS[index]
+                                  }}>
+                                    {q.quarter}
+                                  </span>
+                                </td>
+                                <td className="px-4 py-3 text-center">
+                                  <span className="text-sm font-bold" style={{ color: '#34D399' }}>
+                                    {q.ongoing}
+                                  </span>
+                                </td>
+                                <td className="px-4 py-3 text-center">
+                                  <span className="text-sm font-bold" style={{ color: '#FBBF24' }}>
+                                    {q.liquidated}
+                                  </span>
+                                </td>
+                                <td className="px-4 py-3 text-center">
+                                  <span className="text-sm font-bold" style={{ color: '#60A5FA' }}>
+                                    {q.finished}
+                                  </span>
+                                </td>
+                                <td className="px-4 py-3 text-center">
+                                  <span className="text-sm font-bold" style={{ color: darkMode ? '#f8fafc' : '#0f172a' }}>
+                                    {q.total}
+                                  </span>
+                                </td>
+                                <td className="px-4 py-3 text-center">
+                                  <div className="flex items-center justify-center gap-2">
+                                    <div className="w-16 h-2 rounded-full overflow-hidden" style={{ 
+                                      backgroundColor: darkMode ? '#0f172a' : '#e5e7eb' 
+                                    }}>
+                                      <div 
+                                        className="h-full rounded-full"
+                                        style={{ 
+                                          width: `${q.total > 0 ? (q.finished / q.total) * 100 : 0}%`,
+                                          backgroundColor: PIE_COLORS[index]
+                                        }}
+                                      />
+                                    </div>
+                                    <span className="text-xs font-bold" style={{ color: darkMode ? '#94a3b8' : '#6b7280' }}>
+                                      {q.total > 0 ? Math.round((q.finished / q.total) * 100) : 0}%
+                                    </span>
+                                  </div>
+                                </td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                      
+                      {/* Summary Note */}
+                      <div className="p-4 rounded-xl" style={{
+                        background: darkMode ? 'rgba(96, 165, 250, 0.1)' : 'rgba(96, 165, 250, 0.08)',
+                        border: `1px solid ${darkMode ? 'rgba(96, 165, 250, 0.3)' : 'rgba(96, 165, 250, 0.2)'}`
+                      }}>
+                        <div className="flex items-start gap-3">
+                          <Info className="w-5 h-5 flex-shrink-0 mt-0.5" style={{ color: '#60A5FA' }} />
+                          <div>
+                            <p className="text-sm font-semibold mb-1" style={{ color: darkMode ? '#f8fafc' : '#0f172a' }}>
+                              Quarterly Monitoring Information
+                            </p>
+                            <p className="text-xs" style={{ color: darkMode ? '#94a3b8' : '#6b7280' }}>
+                              This section displays project status distribution across quarters for the current year ({currentYear}). 
+                              Data is automatically updated based on project status changes and completion dates.
+                            </p>
+                          </div>
+                        </div>
+                      </div>
                     </div>
-                    <div className="text-right">
-                      <p className="text-xs font-medium mb-1" style={{ color: darkMode ? '#94a3b8' : '#6b7280' }}>
-                        Budget
-                      </p>
-                      <p className="text-xl font-bold" style={{ color: '#3b82f6' }}>
-                        {p.amountFunded ? fmt(p.amountFunded) : 'Not Specified'}
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        </>
-      )}
+                  );
+                })()}
+              </div>
+      </div>
 
-      {/* Projects Tab */}
-      {selectedView === "projects" && (
-        <>
+      <div ref={projectsRef} className="scroll-mt-6 space-y-6">
+        <div className="flex items-center justify-between">
+          <div>
+            <h2 className="text-xl font-bold" style={{ color: darkMode ? '#f8fafc' : '#0f172a' }}>All Projects</h2>
+            <p className="text-sm" style={{ color: darkMode ? '#94a3b8' : '#64748b' }}>Search, filter, and view every CEST project</p>
+          </div>
+        </div>
           {/* Enhanced Filters Section */}
           <div className="rounded-2xl p-6" style={{
             ...cardStyle,
@@ -877,500 +1086,7 @@ export const Dashboard = ({ projects = [], equipment = [], uniqueComm = 0, darkM
               </div>
             ))}
           </div>
-        </>
-      )}
-
-      {/* Analytics Tab */}
-      {selectedView === "analytics" && (
-        <>
-          {/* Header with Component Legend Button */}
-          <div className="mb-6 flex items-center justify-between">
-            <div>
-              <h2 className="text-xl font-semibold mb-1" style={{ color: darkMode ? '#f8fafc' : '#0f172a' }}>
-                Region II Analytics
-              </h2>
-              <p className="text-sm" style={{ color: darkMode ? '#94a3b8' : '#6b7280' }}>
-                Aggregated data across Region II provinces - Click any province to drill down
-              </p>
-            </div>
-            <button
-              onClick={() => setShowComponentLegend(true)}
-              className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200"
-              style={{
-                background: darkMode ? '#1e293b' : '#f8fafc',
-                color: '#004A98',
-                border: `1px solid ${darkMode ? '#334155' : '#e2e8f0'}`,
-              }}
-            >
-              <Info className="w-4 h-4" />
-              Component Legend
-            </button>
-          </div>
-
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                {/* Modern Bar Chart - Provinces */}
-                <div className="rounded-xl p-6" style={cardStyle}>
-                  <h3 className="text-lg font-semibold mb-1" style={{ color: darkMode ? '#f8fafc' : '#0f172a' }}>
-                    Budget Distribution
-                  </h3>
-                  <p className="text-sm mb-6" style={{ color: darkMode ? '#94a3b8' : '#6b7280' }}>
-                    Top provinces by budget - Click to drill down
-                  </p>
-                  
-                  <ResponsiveContainer width="100%" height={350}>
-                    <BarChart data={barData} margin={{ top: 10, right: 10, left: 10, bottom: 40 }}>
-                      <XAxis
-                        dataKey="name"
-                        tick={{ fontSize: 10, fill: darkMode ? "#94a3b8" : "#6b7280", fontWeight: 500 }}
-                        angle={0}
-                        textAnchor="middle"
-                        interval={0}
-                        tickLine={false}
-                        axisLine={{ stroke: darkMode ? "#334155" : "#e5e7eb", strokeWidth: 1 }}
-                        height={35}
-                      />
-                      <YAxis 
-                        tick={{ fontSize: 11, fill: darkMode ? "#94a3b8" : "#6b7280", fontWeight: 500 }} 
-                        tickFormatter={formatCurrencyShort} 
-                        tickLine={false} 
-                        axisLine={false}
-                        width={60}
-                      />
-                      <Tooltip
-                        content={({ active, payload }) => {
-                          if (active && payload && payload.length) {
-                            return (
-                              <div 
-                                className="p-3 rounded-lg cursor-pointer"
-                                style={{
-                                  background: darkMode ? '#0f172a' : '#ffffff',
-                                  border: `1px solid ${darkMode ? '#1e293b' : '#e5e7eb'}`,
-                                  boxShadow: darkMode ? '0 4px 12px rgba(0,0,0,0.5)' : '0 4px 12px rgba(0,0,0,0.1)'
-                                }}
-                                onClick={() => navigate(`/analytics/provinces/${payload[0].payload.id}`)}
-                              >
-                                <p className="font-semibold text-xs mb-1" style={{ color: darkMode ? '#f8fafc' : '#0f172a' }}>
-                                  {payload[0].payload.fullName}
-                                </p>
-                                <p className="font-bold text-lg" style={{ color: '#004A98' }}>
-                                  {formatCurrencyShort(payload[0].value)}
-                                </p>
-                                <p className="text-xs mt-1" style={{ color: '#3b82f6' }}>
-                                  Click to view details →
-                                </p>
-                              </div>
-                            );
-                          }
-                          return null;
-                        }}
-                        cursor={{ fill: darkMode ? 'rgba(148, 163, 184, 0.05)' : 'rgba(226, 232, 240, 0.5)' }}
-                      />
-                      <Bar 
-                        dataKey="budget" 
-                        radius={[8, 8, 0, 0]} 
-                        maxBarSize={50}
-                        onClick={(data) => navigate(`/analytics/provinces/${data.id}`)}
-                        style={{ cursor: 'pointer' }}
-                      >
-                        {barData.map((entry, index) => (
-                          <Cell 
-                            key={`cell-${index}`} 
-                            fill={BAR_COLORS[index % BAR_COLORS.length]}
-                            stroke={darkMode ? '#0f172a' : '#ffffff'}
-                            strokeWidth={2}
-                          />
-                        ))}
-                      </Bar>
-                    </BarChart>
-                  </ResponsiveContainer>
-                </div>
-
-                {/* Modern Donut Chart */}
-                <div className="rounded-xl p-6" style={cardStyle}>
-                  <h3 className="text-lg font-semibold mb-1" style={{ color: darkMode ? '#f8fafc' : '#0f172a' }}>
-                    Component Distribution
-                  </h3>
-                  <p className="text-sm mb-6" style={{ color: darkMode ? '#94a3b8' : '#6b7280' }}>
-                    CEST 2.0 breakdown
-                  </p>
-                  
-                  {compCounts.length > 0 ? (
-                    <ResponsiveContainer width="100%" height={350}>
-                      <PieChart>
-                        <Pie
-                          data={compCounts}
-                          cx="50%"
-                          cy="50%"
-                          outerRadius={110}
-                          innerRadius={70}
-                          dataKey="value"
-                          paddingAngle={3}
-                          label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
-                        >
-                          {compCounts.map((_, i) => (
-                            <Cell 
-                              key={i} 
-                              fill={PIE_COLORS[i % PIE_COLORS.length]}
-                              stroke={darkMode ? '#0f172a' : '#ffffff'}
-                              strokeWidth={3}
-                            />
-                          ))}
-                        </Pie>
-                        <Tooltip 
-                          content={({ active, payload }) => {
-                            if (active && payload && payload.length) {
-                              return (
-                                <div 
-                                  className="p-3 rounded-lg"
-                                  style={{
-                                    background: darkMode ? '#0f172a' : '#ffffff',
-                                    border: `1px solid ${darkMode ? '#1e293b' : '#e5e7eb'}`,
-                                    boxShadow: darkMode ? '0 4px 12px rgba(0,0,0,0.5)' : '0 4px 12px rgba(0,0,0,0.1)'
-                                  }}
-                                >
-                                  <p className="font-semibold text-xs mb-1" style={{ color: darkMode ? '#f8fafc' : '#0f172a' }}>
-                                    {payload[0].payload.fullName}
-                                  </p>
-                                  <p className="font-bold text-lg" style={{ color: payload[0].fill }}>
-                                    {payload[0].value}
-                                  </p>
-                                </div>
-                              );
-                            }
-                            return null;
-                          }}
-                        />
-                      </PieChart>
-                    </ResponsiveContainer>
-                  ) : (
-                    <div className="flex items-center justify-center h-[350px]">
-                      <p className="text-sm" style={{ color: darkMode ? '#94a3b8' : '#6b7280' }}>
-                        No data available
-                      </p>
-                    </div>
-                  )}
-                </div>
-              </div>
-
-              {/* Component Analysis */}
-              <div className="rounded-xl p-6" style={cardStyle}>
-                <h3 className="text-lg font-semibold mb-1" style={{ color: darkMode ? '#f8fafc' : '#0f172a' }}>
-                  Component Analysis
-                </h3>
-                <p className="text-sm mb-6" style={{ color: darkMode ? '#94a3b8' : '#6b7280' }}>
-                  Detailed breakdown by component
-                </p>
-                
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                  {Object.entries(COMPONENTS).map(([key, name]) => {
-                    const count = transformedProjects.filter((p) => p.components?.includes(key)).length;
-                    const percentage = transformedProjects.length > 0 ? ((count / transformedProjects.length) * 100).toFixed(1) : 0;
-                    const componentProjects = transformedProjects.filter((p) => p.components?.includes(key));
-                    
-                    return (
-                      <div 
-                        key={key}
-                        onClick={() => setComponentModal({ key, name, projects: componentProjects, count, percentage })}
-                        className="p-5 rounded-lg border transition-all duration-200 hover:scale-[1.02] cursor-pointer hover:shadow-lg"
-                        style={{
-                          background: darkMode ? '#1e293b' : '#f8fafc',
-                          borderColor: darkMode ? '#334155' : '#e2e8f0'
-                        }}
-                      >
-                        <div className="flex items-start justify-between mb-3">
-                          <span className="text-xs font-semibold px-2 py-1 rounded" style={{ backgroundColor: `${COMP_COLORS[key]}20`, color: COMP_COLORS[key] }}>
-                            {key.toUpperCase()}
-                          </span>
-                          <span className="text-2xl font-semibold" style={{ color: darkMode ? '#f8fafc' : '#0f172a' }}>
-                            {count}
-                          </span>
-                        </div>
-                        
-                        <p className="text-sm font-medium mb-3" style={{ color: darkMode ? '#94a3b8' : '#6b7280' }}>
-                          {name}
-                        </p>
-                        
-                        <div className="space-y-2">
-                          <div className="h-2 rounded-full overflow-hidden" style={{ backgroundColor: darkMode ? '#0f172a' : '#e5e7eb' }}>
-                            <div
-                              className="h-full rounded-full transition-all duration-1000"
-                              style={{ width: `${percentage}%`, backgroundColor: COMP_COLORS[key] }}
-                            ></div>
-                          </div>
-                          <p className="text-xs font-medium" style={{ color: COMP_COLORS[key] }}>
-                            {percentage}% of projects
-                          </p>
-                        </div>
-                        
-                        {/* Click indicator */}
-                        <div className="mt-3 pt-3 border-t flex items-center justify-center gap-2" style={{ borderColor: darkMode ? '#334155' : '#e2e8f0' }}>
-                          <Eye className="w-3 h-3" style={{ color: darkMode ? '#94a3b8' : '#64748b' }} />
-                          <span className="text-xs font-medium" style={{ color: darkMode ? '#94a3b8' : '#64748b' }}>
-                            Click to view projects
-                          </span>
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              </div>
-
-              {/* Quarterly Monitoring Section */}
-              <div className="rounded-xl p-6" style={cardStyle}>
-                <div className="flex items-center justify-between mb-6">
-                  <div>
-                    <h3 className="text-lg font-semibold mb-1" style={{ color: darkMode ? '#f8fafc' : '#0f172a' }}>
-                      Quarterly Monitoring
-                    </h3>
-                    <p className="text-sm" style={{ color: darkMode ? '#94a3b8' : '#6b7280' }}>
-                      Project status breakdown by quarter
-                    </p>
-                  </div>
-                  {/* Glassmorphism Calendar Icon */}
-                  <div 
-                    className="w-14 h-14 rounded-2xl flex items-center justify-center relative overflow-hidden"
-                    style={{
-                      background: darkMode 
-                        ? 'linear-gradient(135deg, rgba(96, 165, 250, 0.15), rgba(167, 139, 250, 0.15))'
-                        : 'linear-gradient(135deg, rgba(96, 165, 250, 0.2), rgba(167, 139, 250, 0.2))',
-                      backdropFilter: 'blur(10px)',
-                      border: `2px solid ${darkMode ? 'rgba(96, 165, 250, 0.3)' : 'rgba(96, 165, 250, 0.4)'}`,
-                      boxShadow: darkMode 
-                        ? '0 8px 32px rgba(96, 165, 250, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.1)'
-                        : '0 8px 32px rgba(96, 165, 250, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.6)'
-                    }}
-                  >
-                    {/* Animated gradient background */}
-                    <div 
-                      className="absolute inset-0 opacity-50"
-                      style={{
-                        background: 'linear-gradient(45deg, #60A5FA, #A78BFA, #F472B6)',
-                        backgroundSize: '200% 200%',
-                        animation: 'gradient-shift 3s ease infinite'
-                      }}
-                    />
-                    {/* Calendar Icon SVG */}
-                    <svg 
-                      className="w-7 h-7 relative z-10" 
-                      viewBox="0 0 24 24" 
-                      fill="none" 
-                      stroke="currentColor" 
-                      strokeWidth="2.5"
-                      strokeLinecap="round" 
-                      strokeLinejoin="round"
-                      style={{ color: '#ffffff', filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.2))' }}
-                    >
-                      <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
-                      <line x1="16" y1="2" x2="16" y2="6"></line>
-                      <line x1="8" y1="2" x2="8" y2="6"></line>
-                      <line x1="3" y1="10" x2="21" y2="10"></line>
-                      <rect x="7" y="14" width="2" height="2" fill="currentColor"></rect>
-                      <rect x="11" y="14" width="2" height="2" fill="currentColor"></rect>
-                      <rect x="15" y="14" width="2" height="2" fill="currentColor"></rect>
-                    </svg>
-                  </div>
-                </div>
-                
-                {(() => {
-                  // Calculate quarterly statistics
-                  const quarters = ['Q1', 'Q2', 'Q3', 'Q4'];
-                  const currentYear = new Date().getFullYear();
-                  
-                  // Group projects by status for current year
-                  const currentYearProjects = transformedProjects.filter(p => Number(p.year) === currentYear);
-                  
-                  const quarterlyData = quarters.map((quarter, index) => {
-                    // For demo purposes, distribute projects across quarters
-                    // In production, you'd filter by actual quarter dates
-                    const quarterProjects = currentYearProjects.filter((_, i) => i % 4 === index);
-                    
-                    return {
-                      quarter,
-                      ongoing: quarterProjects.filter(p => p.status === "Ongoing").length,
-                      liquidated: quarterProjects.filter(p => p.status === "Liquidated").length,
-                      finished: quarterProjects.filter(p => p.status === "Finished").length,
-                      total: quarterProjects.length
-                    };
-                  });
-                  
-                  return (
-                    <div className="space-y-4">
-                      {/* Summary Cards */}
-                      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                        {quarterlyData.map((q, index) => (
-                          <div 
-                            key={q.quarter}
-                            className="p-4 rounded-xl border transition-all duration-300 hover:scale-105 cursor-pointer"
-                            style={{
-                              background: darkMode 
-                                ? `linear-gradient(135deg, ${PIE_COLORS[index]}15, ${PIE_COLORS[index]}08)`
-                                : `linear-gradient(135deg, ${PIE_COLORS[index]}10, ${PIE_COLORS[index]}05)`,
-                              borderColor: `${PIE_COLORS[index]}40`,
-                              borderWidth: '2px'
-                            }}
-                          >
-                            <div className="flex items-center justify-between mb-3">
-                              <span className="text-xs font-bold px-2.5 py-1 rounded-lg" style={{ 
-                                background: PIE_COLORS[index], 
-                                color: '#ffffff' 
-                              }}>
-                                {q.quarter}
-                              </span>
-                              <span className="text-2xl font-black" style={{ color: darkMode ? '#f8fafc' : '#0f172a' }}>
-                                {q.total}
-                              </span>
-                            </div>
-                            
-                            <div className="space-y-2">
-                              <div className="flex items-center justify-between text-xs">
-                                <span style={{ color: darkMode ? '#94a3b8' : '#6b7280' }}>Ongoing</span>
-                                <span className="font-bold" style={{ color: '#34D399' }}>{q.ongoing}</span>
-                              </div>
-                              <div className="flex items-center justify-between text-xs">
-                                <span style={{ color: darkMode ? '#94a3b8' : '#6b7280' }}>Liquidated</span>
-                                <span className="font-bold" style={{ color: '#FBBF24' }}>{q.liquidated}</span>
-                              </div>
-                              <div className="flex items-center justify-between text-xs">
-                                <span style={{ color: darkMode ? '#94a3b8' : '#6b7280' }}>Finished</span>
-                                <span className="font-bold" style={{ color: '#60A5FA' }}>{q.finished}</span>
-                              </div>
-                            </div>
-                            
-                            {/* Progress bar */}
-                            <div className="mt-3 h-2 rounded-full overflow-hidden" style={{ 
-                              backgroundColor: darkMode ? '#1e293b' : '#f1f5f9' 
-                            }}>
-                              <div 
-                                className="h-full rounded-full transition-all duration-1000"
-                                style={{ 
-                                  width: `${q.total > 0 ? (q.finished / q.total) * 100 : 0}%`,
-                                  background: `linear-gradient(90deg, ${PIE_COLORS[index]}, ${PIE_COLORS[(index + 1) % PIE_COLORS.length]})`
-                                }}
-                              />
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                      
-                      {/* Detailed Table */}
-                      <div className="overflow-x-auto rounded-xl border" style={{ 
-                        borderColor: darkMode ? '#334155' : '#e2e8f0',
-                        background: darkMode ? '#1e293b' : '#f8fafc'
-                      }}>
-                        <table className="w-full">
-                          <thead>
-                            <tr style={{ 
-                              background: darkMode ? '#0f172a' : '#ffffff',
-                              borderBottom: `2px solid ${darkMode ? '#334155' : '#e2e8f0'}`
-                            }}>
-                              <th className="px-4 py-3 text-left text-xs font-bold uppercase tracking-wider" style={{ color: darkMode ? '#94a3b8' : '#6b7280' }}>
-                                Quarter
-                              </th>
-                              <th className="px-4 py-3 text-center text-xs font-bold uppercase tracking-wider" style={{ color: '#34D399' }}>
-                                Ongoing
-                              </th>
-                              <th className="px-4 py-3 text-center text-xs font-bold uppercase tracking-wider" style={{ color: '#FBBF24' }}>
-                                Liquidated
-                              </th>
-                              <th className="px-4 py-3 text-center text-xs font-bold uppercase tracking-wider" style={{ color: '#60A5FA' }}>
-                                Finished
-                              </th>
-                              <th className="px-4 py-3 text-center text-xs font-bold uppercase tracking-wider" style={{ color: darkMode ? '#f8fafc' : '#0f172a' }}>
-                                Total
-                              </th>
-                              <th className="px-4 py-3 text-center text-xs font-bold uppercase tracking-wider" style={{ color: darkMode ? '#94a3b8' : '#6b7280' }}>
-                                Completion %
-                              </th>
-                            </tr>
-                          </thead>
-                          <tbody>
-                            {quarterlyData.map((q, index) => (
-                              <tr 
-                                key={q.quarter}
-                                className="transition-colors duration-200 hover:bg-opacity-50"
-                                style={{ 
-                                  borderBottom: `1px solid ${darkMode ? '#334155' : '#e2e8f0'}`,
-                                  background: index % 2 === 0 
-                                    ? (darkMode ? 'rgba(30, 41, 59, 0.3)' : 'rgba(248, 250, 252, 0.5)')
-                                    : 'transparent'
-                                }}
-                              >
-                                <td className="px-4 py-3">
-                                  <span className="text-sm font-bold px-3 py-1.5 rounded-lg" style={{ 
-                                    background: `${PIE_COLORS[index]}20`,
-                                    color: PIE_COLORS[index]
-                                  }}>
-                                    {q.quarter}
-                                  </span>
-                                </td>
-                                <td className="px-4 py-3 text-center">
-                                  <span className="text-sm font-bold" style={{ color: '#34D399' }}>
-                                    {q.ongoing}
-                                  </span>
-                                </td>
-                                <td className="px-4 py-3 text-center">
-                                  <span className="text-sm font-bold" style={{ color: '#FBBF24' }}>
-                                    {q.liquidated}
-                                  </span>
-                                </td>
-                                <td className="px-4 py-3 text-center">
-                                  <span className="text-sm font-bold" style={{ color: '#60A5FA' }}>
-                                    {q.finished}
-                                  </span>
-                                </td>
-                                <td className="px-4 py-3 text-center">
-                                  <span className="text-sm font-bold" style={{ color: darkMode ? '#f8fafc' : '#0f172a' }}>
-                                    {q.total}
-                                  </span>
-                                </td>
-                                <td className="px-4 py-3 text-center">
-                                  <div className="flex items-center justify-center gap-2">
-                                    <div className="w-16 h-2 rounded-full overflow-hidden" style={{ 
-                                      backgroundColor: darkMode ? '#0f172a' : '#e5e7eb' 
-                                    }}>
-                                      <div 
-                                        className="h-full rounded-full"
-                                        style={{ 
-                                          width: `${q.total > 0 ? (q.finished / q.total) * 100 : 0}%`,
-                                          backgroundColor: PIE_COLORS[index]
-                                        }}
-                                      />
-                                    </div>
-                                    <span className="text-xs font-bold" style={{ color: darkMode ? '#94a3b8' : '#6b7280' }}>
-                                      {q.total > 0 ? Math.round((q.finished / q.total) * 100) : 0}%
-                                    </span>
-                                  </div>
-                                </td>
-                              </tr>
-                            ))}
-                          </tbody>
-                        </table>
-                      </div>
-                      
-                      {/* Summary Note */}
-                      <div className="p-4 rounded-xl" style={{
-                        background: darkMode ? 'rgba(96, 165, 250, 0.1)' : 'rgba(96, 165, 250, 0.08)',
-                        border: `1px solid ${darkMode ? 'rgba(96, 165, 250, 0.3)' : 'rgba(96, 165, 250, 0.2)'}`
-                      }}>
-                        <div className="flex items-start gap-3">
-                          <Info className="w-5 h-5 flex-shrink-0 mt-0.5" style={{ color: '#60A5FA' }} />
-                          <div>
-                            <p className="text-sm font-semibold mb-1" style={{ color: darkMode ? '#f8fafc' : '#0f172a' }}>
-                              Quarterly Monitoring Information
-                            </p>
-                            <p className="text-xs" style={{ color: darkMode ? '#94a3b8' : '#6b7280' }}>
-                              This section displays project status distribution across quarters for the current year ({currentYear}). 
-                              Data is automatically updated based on project status changes and completion dates.
-                            </p>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  );
-                })()}
-              </div>
-        </>
-      )}
+      </div>
 
       {/* Component Legend Modal */}
       {showComponentLegend && (
