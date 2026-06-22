@@ -99,6 +99,8 @@ function AppContent() {
   const guardData = (node) => (canViewData ? node : <GuestAccessBlocked darkMode={darkMode} />);
   const guardAdmin = (node) => (isAdmin ? node : <Navigate to="/dashboard" replace />);
 
+  const uniqueComm = new Set(projects.map((p) => p.community)).size;
+
   const dashboardProps = {
     projects,
     equipment,
@@ -295,8 +297,6 @@ function AppContent() {
       });
     };
   }, [canAccessApp, isGuestMode, navigate, signOut, warning]);
-
-  const uniqueComm = new Set(projects.map((p) => p.community)).size;
 
   useEffect(() => {
     const htmlElement = document.documentElement;
