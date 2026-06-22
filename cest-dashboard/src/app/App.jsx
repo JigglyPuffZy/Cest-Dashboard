@@ -594,6 +594,7 @@ function AppContent() {
           />
 
           <main className="flex-1 overflow-auto p-8 scrollbar-thin">
+            <div className="mx-auto max-w-[1400px]">
             {isGuestMode && (
               <ViewModeBanner
                 darkMode={darkMode}
@@ -603,6 +604,7 @@ function AppContent() {
                 }}
               />
             )}
+            </div>
             <Routes>
               <Route path="/" element={<Navigate to="/dashboard" replace />} />
               <Route

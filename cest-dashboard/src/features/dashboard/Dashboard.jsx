@@ -107,7 +107,7 @@ export const Dashboard = ({ projects = [], equipment = [], uniqueComm = 0, darkM
   return (
     <div className="max-w-[1400px] mx-auto space-y-8">
       {/* Enhanced Premium Tab Design - Minimized with Blue Theme */}
-      <div className="flex items-center justify-center mb-8 px-2 sm:px-4">
+      <div className="flex items-center justify-center mb-6 px-2 sm:px-4">
         <div className="flex gap-1.5 sm:gap-3 p-1.5 sm:p-2.5 rounded-2xl w-full max-w-2xl" style={{ 
           background: darkMode 
             ? 'linear-gradient(135deg, rgba(17, 24, 39, 0.8), rgba(31, 41, 55, 0.6))'
