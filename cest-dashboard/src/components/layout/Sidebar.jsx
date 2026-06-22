@@ -20,6 +20,7 @@ import { COMPONENTS } from "../../shared/constants";
 import dostLogo from "../../dost logo.png";
 import cestLogo from "../../Cest Logo.png";
 import starbooksLogo from "../../starbooks logo.png";
+import { Modal, ModalPanel } from "../ui/Modal";
 
 const NAV_ITEMS = [
   { id: "dashboard", icon: LayoutDashboard, label: "Dashboard" },
@@ -472,24 +473,8 @@ export const Sidebar = ({
 
       {/* Logout Confirmation Modal */}
       {showLogoutModal && (
-        <>
-          <div 
-            className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[60]"
-            style={{
-              animation: 'backdropFadeIn 0.2s ease-out forwards'
-            }}
-            onClick={() => setShowLogoutModal(false)}
-          />
-          <div 
-            className="fixed w-full max-w-md z-[61] px-4"
-            style={{
-              top: '50%',
-              left: '50%',
-              transform: 'translate(-50%, -50%)',
-              animation: 'modalAppear 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards'
-            }}
-            onClick={(e) => e.stopPropagation()}
-          >
+        <Modal onClose={() => setShowLogoutModal(false)} zIndex={60}>
+          <ModalPanel maxWidth="max-w-md">
             <div 
               className="rounded-2xl shadow-2xl overflow-hidden"
               style={{
@@ -554,56 +539,14 @@ export const Sidebar = ({
                 </div>
               </div>
             </div>
-          </div>
-
-          <style>{`
-            @keyframes fade-in {
-              from { opacity: 0; }
-              to { opacity: 1; }
-            }
-            
-            @keyframes scale-in {
-              from {
-                opacity: 0;
-                transform: translate(-50%, -50%) scale(0.9);
-              }
-              to {
-                opacity: 1;
-                transform: translate(-50%, -50%) scale(1);
-              }
-            }
-            
-            .animate-fade-in {
-              animation: fade-in 0.2s ease-out;
-            }
-            
-            .animate-scale-in {
-              animation: scale-in 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
-            }
-          `}</style>
-        </>
+          </ModalPanel>
+        </Modal>
       )}
 
       {/* System Switch Confirmation Modal */}
       {showSwitchModal && (
-        <>
-          <div 
-            className="fixed inset-0 bg-black/70 backdrop-blur-md z-[60]"
-            style={{
-              animation: 'backdropFadeIn 0.2s ease-out forwards'
-            }}
-            onClick={() => setShowSwitchModal(false)}
-          />
-          <div 
-            className="fixed w-full max-w-lg z-[61] px-4"
-            style={{
-              top: '50%',
-              left: '50%',
-              transform: 'translate(-50%, -50%)',
-              animation: 'modalAppear 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards'
-            }}
-            onClick={(e) => e.stopPropagation()}
-          >
+        <Modal onClose={() => setShowSwitchModal(false)} zIndex={60} className="bg-black/70 backdrop-blur-md">
+          <ModalPanel maxWidth="max-w-lg">
             <div 
               className="rounded-3xl shadow-2xl overflow-hidden relative"
               style={{
@@ -806,79 +749,8 @@ export const Sidebar = ({
                 </div>
               </div>
             </div>
-          </div>
-
-          <style>{`
-            @keyframes modalBounceIn {
-              0% {
-                opacity: 0;
-                transform: translate(-50%, -50%) scale(0.3);
-              }
-              50% {
-                transform: translate(-50%, -50%) scale(1.05);
-              }
-              70% {
-                transform: translate(-50%, -50%) scale(0.9);
-              }
-              100% {
-                opacity: 1;
-                transform: translate(-50%, -50%) scale(1);
-              }
-            }
-
-            @keyframes float {
-              0%, 100% {
-                transform: translateY(0px);
-              }
-              50% {
-                transform: translateY(-10px);
-              }
-            }
-
-            @keyframes spin {
-              from {
-                transform: rotate(0deg);
-              }
-              to {
-                transform: rotate(360deg);
-              }
-            }
-
-            @keyframes shine {
-              0% {
-                transform: translateX(-100%);
-              }
-              100% {
-                transform: translateX(100%);
-              }
-            }
-
-            @keyframes pulse {
-              0%, 100% {
-                opacity: 1;
-              }
-              50% {
-                opacity: 0.5;
-              }
-            }
-
-            @keyframes backdropFadeIn {
-              from { opacity: 0; }
-              to { opacity: 1; }
-            }
-            
-            @keyframes modalAppear {
-              0% {
-                opacity: 0;
-                transform: translate(-50%, -50%) scale(0.9);
-              }
-              100% {
-                opacity: 1;
-                transform: translate(-50%, -50%) scale(1);
-              }
-            }
-          `}</style>
-        </>
+          </ModalPanel>
+        </Modal>
       )}
     </>
   );

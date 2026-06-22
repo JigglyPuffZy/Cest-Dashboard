@@ -3,6 +3,7 @@ import { Archive, RotateCcw, Trash2, AlertTriangle, FileText, Package, MapPin, S
 import { fmt } from "../../shared/utils/helpers";
 import { COMP_COLORS } from "../../shared/constants";
 import { safeDisplayName } from "../../shared/utils/safeRender";
+import { Modal, ModalPanel } from "../../components/ui/Modal";
 
 export const ArchivePage = ({ archivedProjects, onRestore, onPermanentDelete, darkMode, readOnly = false }) => {
   const [searchTerm, setSearchTerm] = useState("");
@@ -201,9 +202,9 @@ export const ArchivePage = ({ archivedProjects, onRestore, onPermanentDelete, da
 
       {/* Permanent Delete Confirm */}
       {showDeleteConfirm && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-[9999] p-4"
-          onClick={() => setShowDeleteConfirm(null)}>
-          <div className="w-full max-w-sm rounded-2xl p-6 shadow-2xl" onClick={e => e.stopPropagation()}
+        <Modal onClose={() => setShowDeleteConfirm(null)} zIndex={9999}>
+          <ModalPanel maxWidth="max-w-sm">
+          <div className="rounded-2xl p-6 shadow-2xl"
             style={{ background: darkMode ? '#1e293b' : '#ffffff', border: `1px solid ${darkMode ? '#334155' : '#e2e8f0'}` }}>
             <div className="flex items-center gap-3 mb-4">
               <div className="w-12 h-12 rounded-xl flex items-center justify-center" style={{ background: 'rgba(239,68,68,0.1)' }}>
@@ -231,7 +232,8 @@ export const ArchivePage = ({ archivedProjects, onRestore, onPermanentDelete, da
               </button>
             </div>
           </div>
-        </div>
+          </ModalPanel>
+        </Modal>
       )}
     </div>
   );

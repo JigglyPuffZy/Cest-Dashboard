@@ -2,6 +2,7 @@ import { useState, useEffect, useMemo } from "react";
 import { Archive, RotateCcw, Trash2, Search, Calendar, MapPin, Package, AlertCircle, CheckCircle, RefreshCw, Eye, Users, X } from "lucide-react";
 import { db } from "../../shared/services/supabaseClient";
 import { ConfirmDeleteModal } from "../../components/ui/ConfirmDeleteModal";
+import { Modal, ModalPanel } from "../../components/ui/Modal";
 
 export const StarbooksArchivePage = ({ darkMode, readOnly = false }) => {
   const [archivedUnits, setArchivedUnits] = useState([]);
@@ -482,9 +483,9 @@ export const StarbooksArchivePage = ({ darkMode, readOnly = false }) => {
 
       {/* Detail Modal */}
       {showDetailModal && selectedUnit && (
-        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-[9999] p-4 animate-backdrop-fade-in">
+        <Modal onClose={() => { setShowDetailModal(false); setSelectedUnit(null); }} zIndex={9999} className="bg-black/80 backdrop-blur-sm">
+          <ModalPanel maxWidth="max-w-3xl" className="rounded-3xl overflow-hidden">
           <div 
-            className="w-full max-w-3xl max-h-[90vh] overflow-hidden rounded-3xl animate-modal-fade-in"
             style={{
               ...cardStyle,
               boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5)'
@@ -812,7 +813,8 @@ export const StarbooksArchivePage = ({ darkMode, readOnly = false }) => {
               </div>
             </div>
           </div>
-        </div>
+          </ModalPanel>
+        </Modal>
       )}
     </div>
   );

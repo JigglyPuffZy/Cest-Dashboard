@@ -5,6 +5,7 @@ import { fmt, getStatusColor, getCardStyle, formatCurrencyShort } from "../../sh
 import { COMPONENTS, COMP_COLORS } from "../../shared/constants";
 import { HoverTooltip } from "../../components/ui/Tooltip";
 import { ViewModeBanner } from "../../components/ui/ViewModeBanner";
+import { Modal, ModalPanel } from "../../components/ui/Modal";
 import { getAllProvinces } from "../../shared/data/regionII";
 import { transformProjects, transformEquipmentList } from "../../shared/utils/dataTransform";
 import { safeString, safeProjectTitle, safeEquipmentName, safeDisplayName } from "../../shared/utils/safeRender";
@@ -1373,19 +1374,14 @@ export const Dashboard = ({ projects = [], equipment = [], uniqueComm = 0, darkM
 
       {/* Component Legend Modal */}
       {showComponentLegend && (
-        <>
-          <div 
-            className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 animate-backdrop-fade-in"
-            onClick={() => setShowComponentLegend(false)}
-          />
+        <Modal onClose={() => setShowComponentLegend(false)} zIndex={10050}>
+          <ModalPanel maxWidth="max-w-2xl" className="rounded-2xl shadow-2xl overflow-y-auto max-h-[80vh]">
         <div 
-          className="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-full max-w-2xl max-h-[80vh] overflow-y-auto rounded-2xl shadow-2xl z-50 animate-modal-fade-in"
           style={{
             background: darkMode ? '#0f172a' : '#ffffff',
             border: `1px solid ${darkMode ? '#1e293b' : '#e5e7eb'}`,
             boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.1)'
           }}
-          onClick={(e) => e.stopPropagation()}
         >
           {/* Header */}
           <div className="p-6 border-b" style={{ borderColor: darkMode ? '#1e293b' : '#e5e7eb' }}>
@@ -1466,7 +1462,8 @@ export const Dashboard = ({ projects = [], equipment = [], uniqueComm = 0, darkM
             </button>
           </div>
         </div>
-      </>
+          </ModalPanel>
+        </Modal>
     )}
 
     {/* Detail Modal */}
@@ -1481,10 +1478,9 @@ export const Dashboard = ({ projects = [], equipment = [], uniqueComm = 0, darkM
       const components = selectedItem.components || [];
 
       return (
-        <div className="fixed inset-0 bg-black/80 backdrop-blur-md flex items-center justify-center z-[9999] p-4"
-          onClick={() => setShowDetailModal(false)}>
+        <Modal onClose={() => setShowDetailModal(false)} zIndex={9999} className="bg-black/80 backdrop-blur-md">
+          <ModalPanel maxWidth="max-w-4xl" className="rounded-3xl shadow-2xl overflow-y-auto">
           <div
-            className="w-full max-w-4xl max-h-[90vh] overflow-y-auto rounded-3xl shadow-2xl"
             style={{
               background: darkMode 
                 ? 'linear-gradient(145deg, #1e293b 0%, #0f172a 100%)' 
@@ -1991,7 +1987,8 @@ export const Dashboard = ({ projects = [], equipment = [], uniqueComm = 0, darkM
               </button>
             </div>
           </div>
-        </div>
+          </ModalPanel>
+        </Modal>
       );
     })()}
     
@@ -2054,8 +2051,9 @@ export const Dashboard = ({ projects = [], equipment = [], uniqueComm = 0, darkM
 
       {/* Component Projects Modal */}
       {componentModal && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-[10001] p-4">
-          <div className="w-full max-w-4xl max-h-[90vh] rounded-2xl overflow-hidden shadow-2xl" style={{
+        <Modal onClose={() => setComponentModal(null)} zIndex={10001}>
+          <ModalPanel maxWidth="max-w-4xl" className="rounded-2xl overflow-hidden shadow-2xl">
+          <div style={{
             background: darkMode ? '#1e293b' : '#ffffff',
             border: `2px solid ${COMP_COLORS[componentModal.key]}40`
           }}>
@@ -2189,7 +2187,8 @@ export const Dashboard = ({ projects = [], equipment = [], uniqueComm = 0, darkM
               </button>
             </div>
           </div>
-        </div>
+          </ModalPanel>
+        </Modal>
       )}
     </div>
   );

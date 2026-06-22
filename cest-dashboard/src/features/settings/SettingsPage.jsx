@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Settings, User, Bell, Palette, Database, Shield, Save, X } from "lucide-react";
+import { Modal, ModalPanel } from "../../components/ui/Modal";
 
 export const SettingsPage = ({ darkMode, setDarkMode, onClose }) => {
   const [activeTab, setActiveTab] = useState("profile");
@@ -54,21 +55,13 @@ export const SettingsPage = ({ darkMode, setDarkMode, onClose }) => {
   ];
 
   return (
-    <>
-      {/* Backdrop */}
+    <Modal onClose={onClose} zIndex={9996} className="bg-black/70 backdrop-blur-md">
+      <ModalPanel maxWidth="max-w-5xl" className="rounded-2xl shadow-2xl overflow-hidden max-h-[90vh]">
       <div 
-        className="fixed inset-0 bg-black/70 backdrop-blur-md z-[9996] animate-backdrop-fade-in"
-        onClick={onClose}
-      />
-      
-      {/* Settings Modal */}
-      <div 
-        className="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-full max-w-5xl max-h-[90vh] overflow-hidden rounded-2xl shadow-2xl z-[9997] animate-modal-fade-in"
         style={{
           background: darkMode ? '#1e293b' : '#ffffff',
           border: `1px solid ${darkMode ? '#334155' : '#e5e7eb'}`
         }}
-        onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
         <div className="p-6 border-b" style={{ 
@@ -193,7 +186,8 @@ export const SettingsPage = ({ darkMode, setDarkMode, onClose }) => {
           </div>
         </div>
       </div>
-    </>
+      </ModalPanel>
+    </Modal>
   );
 };
 

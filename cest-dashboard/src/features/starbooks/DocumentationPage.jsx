@@ -1,6 +1,7 @@
 import { useState, useEffect, useMemo } from "react";
 import { MapPin, Image as ImageIcon, Calendar, X, ZoomIn, Download, Filter, Search, RefreshCw } from "lucide-react";
 import { db } from "../../shared/services/supabaseClient";
+import { Modal, ModalPanel } from "../../components/ui/Modal";
 
 export const DocumentationPage = ({ darkMode, readOnly = false }) => {
   const [selectedCity, setSelectedCity] = useState("all");
@@ -404,12 +405,9 @@ export const DocumentationPage = ({ darkMode, readOnly = false }) => {
 
       {/* Image Modal */}
       {selectedImage && (
-        <div
-          className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center p-4 z-50 animate-fade-in"
-          onClick={() => setSelectedImage(null)}
-        >
+        <Modal onClose={() => setSelectedImage(null)} zIndex={50}>
+          <ModalPanel maxWidth="max-w-4xl" className="rounded-2xl overflow-y-auto">
           <div
-            className="max-w-4xl w-full rounded-2xl max-h-[90vh] overflow-y-auto animate-modal-fade-in"
             style={{
               background: theme.cardBg,
               boxShadow: darkMode 
@@ -514,7 +512,8 @@ export const DocumentationPage = ({ darkMode, readOnly = false }) => {
               </div>
             </div>
           </div>
-        </div>
+          </ModalPanel>
+        </Modal>
       )}
     </div>
   );

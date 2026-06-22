@@ -1,5 +1,6 @@
 import { Menu, Sun, Moon, Database, Search, X } from "lucide-react";
 import { useState, useEffect } from "react";
+import { Modal, ModalPanel } from "../ui/Modal";
 
 const NAV_LABELS = {
   dashboard: "Dashboard",
@@ -217,25 +218,8 @@ export const TopBar = ({
       </header>
 
       {showSearch && (
-        <>
-          <div 
-            className="fixed inset-0 bg-black/70 backdrop-blur-md z-[9995]"
-            style={{
-              animation: 'backdropFadeIn 0.2s ease-out forwards'
-            }}
-            onClick={handleCloseSearch}
-          />
-          <div 
-            className="fixed px-4 w-full max-w-3xl"
-            style={{
-              top: '50%',
-              left: '50%',
-              transform: 'translate(-50%, -50%)',
-              zIndex: 9996,
-              animation: 'modalAppear 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards'
-            }}
-            onClick={(e) => e.stopPropagation()}
-          >
+        <Modal onClose={handleCloseSearch} zIndex={9995} className="bg-black/70 backdrop-blur-md">
+          <ModalPanel maxWidth="max-w-3xl">
             <div 
               className="rounded-3xl shadow-2xl overflow-hidden"
               style={{
@@ -557,30 +541,8 @@ export const TopBar = ({
                 )}
               </div>
             </div>
-          </div>
-
-          <style>{`
-            @keyframes backdropFadeIn {
-              from { 
-                opacity: 0; 
-              }
-              to { 
-                opacity: 1; 
-              }
-            }
-            
-            @keyframes modalAppear {
-              0% {
-                opacity: 0;
-                transform: translate(-50%, -50%) scale(0.9);
-              }
-              100% {
-                opacity: 1;
-                transform: translate(-50%, -50%) scale(1);
-              }
-            }
-          `}</style>
-        </>
+          </ModalPanel>
+        </Modal>
       )}
     </>
   );

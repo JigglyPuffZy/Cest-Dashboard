@@ -5,6 +5,7 @@ import { supabase } from "../../shared/services/supabaseClient";
 import { LoadingButton } from "../ui/LoadingButton";
 import { useKeyboardShortcuts } from "../../shared/hooks/useKeyboardShortcuts";
 import { HoverTooltip } from "../ui/Tooltip";
+import { Modal } from "../ui/Modal";
 
 export const AddProjectEquipmentModal = ({ onClose, onSaveProject, onSaveEquipment, darkMode, initialData }) => {
   const isEditMode = !!initialData;
@@ -415,22 +416,10 @@ export const AddProjectEquipmentModal = ({ onClose, onSaveProject, onSaveEquipme
   };
 
   return (
-    <>
+    <Modal onClose={onClose} zIndex={9999}>
       <div 
-        className="fixed inset-0 bg-black/60 z-[9999]"
-        style={{
-          animation: 'backdropFadeIn 0.2s ease-out forwards'
-        }}
-        onClick={onClose}
-      />
-      <div 
-        className="fixed w-full max-w-5xl max-h-[85vh] overflow-hidden rounded-2xl shadow-2xl z-[10000] flex flex-col"
-        style={{
-          ...modalStyle,
-          top: '50%',
-          left: '50%',
-          transform: 'translate(-50%, -50%)'
-        }}
+        className="w-full max-w-5xl max-h-[85vh] overflow-hidden rounded-2xl shadow-2xl flex flex-col animate-modal-fade-in"
+        style={modalStyle}
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
@@ -1125,13 +1114,6 @@ export const AddProjectEquipmentModal = ({ onClose, onSaveProject, onSaveEquipme
           </div>
         </div>
       </div>
-
-      <style>{`
-        @keyframes backdropFadeIn {
-          from { opacity: 0; }
-          to { opacity: 1; }
-        }
-      `}</style>
-    </>
+    </Modal>
   );
 };

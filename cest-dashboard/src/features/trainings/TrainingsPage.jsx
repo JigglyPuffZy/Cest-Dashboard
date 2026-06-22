@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { GraduationCap, Plus, Search, Edit2, Trash2, BarChart3, X, AlertTriangle, BookOpen, DollarSign, Users } from "lucide-react";
 import { COMPONENTS, COMP_COLORS, BENEF_TYPES } from "../../shared/constants";
 import { supabase } from "../../shared/services/supabaseClient";
+import { Modal, ModalPanel } from "../../components/ui/Modal";
 
 const dbTrainings = {
   async getAll() {
@@ -90,8 +91,9 @@ function TrainingModal({ initial, onSave, onClose, darkMode }) {
   const lbl = { display: "block", marginBottom: 5, fontSize: 12, fontWeight: 700, color: darkMode ? "#94a3b8" : "#374151" };
 
   return (
-    <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,.5)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 9999, padding: 20 }}>
-      <div style={{ background: darkMode ? "#0f172a" : "#fff", borderRadius: 16, width: "100%", maxWidth: 720, maxHeight: "90vh", overflow: "auto", boxShadow: "0 32px 80px rgba(0,0,0,0.35)", border: `1px solid ${darkMode ? "#334155" : "#e5e7eb"}` }}>
+    <Modal onClose={onClose} zIndex={9999}>
+      <ModalPanel maxWidth="max-w-[720px]">
+      <div style={{ background: darkMode ? "#0f172a" : "#fff", borderRadius: 16, width: "100%", maxHeight: "90vh", overflow: "auto", boxShadow: "0 32px 80px rgba(0,0,0,0.35)", border: `1px solid ${darkMode ? "#334155" : "#e5e7eb"}` }}>
         {/* Header */}
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "16px 20px", borderBottom: `1px solid ${darkMode ? "#334155" : "#e5e7eb"}`, position: "sticky", top: 0, background: darkMode ? "#0f172a" : "#fff", zIndex: 1 }}>
           <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
@@ -185,7 +187,8 @@ function TrainingModal({ initial, onSave, onClose, darkMode }) {
           </div>
         </div>
       </div>
-    </div>
+      </ModalPanel>
+    </Modal>
   );
 }
 
@@ -271,8 +274,9 @@ export default function TrainingsPage({ darkMode = false, onArchiveTraining, rea
         <TrainingModal initial={modal.data} onSave={handleSave} onClose={() => setModal(null)} darkMode={darkMode} />
       )}
       {modal?.type === "delete" && (
-        <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,.5)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 9999, padding: 20 }}>
-          <div style={{ ...card, width: "100%", maxWidth: 400, padding: 28, textAlign: "center" }}>
+        <Modal onClose={() => setModal(null)} zIndex={9999}>
+          <ModalPanel maxWidth="max-w-[400px]">
+          <div style={{ ...card, width: "100%", padding: 28, textAlign: "center" }}>
             <div style={{ width: 56, height: 56, borderRadius: 14, background: "rgba(239,68,68,0.1)", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 16px" }}>
               <AlertTriangle size={28} color="#ef4444" />
             </div>
@@ -283,7 +287,8 @@ export default function TrainingsPage({ darkMode = false, onArchiveTraining, rea
               <button onClick={() => handleDelete(modal.data.id)} style={{ flex: 1, padding: "10px 0", borderRadius: 10, border: "none", background: "linear-gradient(135deg,#ef4444,#dc2626)", color: "#fff", fontWeight: 800, cursor: "pointer" }}>Delete</button>
             </div>
           </div>
-        </div>
+          </ModalPanel>
+        </Modal>
       )}
 
       {/* Page Header */}

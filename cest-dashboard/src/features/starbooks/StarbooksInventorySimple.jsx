@@ -1,6 +1,7 @@
 import { useState, useEffect, useMemo } from "react";
 import { Package, MapPin, Search, Plus, Eye, Edit, Trash2, CheckCircle, AlertCircle, Clock, Download, RefreshCw, X, Mail, Phone, User, Calendar, Building } from "lucide-react";
 import { supabase } from "../../shared/services/supabaseClient";
+import { Modal, ModalPanel } from "../../components/ui/Modal";
 
 export const StarbooksInventorySimple = ({ darkMode, readOnly = false }) => {
   const [units, setUnits] = useState([]);
@@ -497,15 +498,9 @@ export const StarbooksInventorySimple = ({ darkMode, readOnly = false }) => {
 
       {/* Enhanced Detail Modal */}
       {selectedUnit && (
-        <div
-          className="fixed inset-0 bg-black bg-opacity-60 backdrop-blur-sm flex items-center justify-center p-4 z-50 animate-fade-in"
-          onClick={() => {
-            setSelectedUnit(null);
-            setIsEditing(false);
-          }}
-        >
+        <Modal onClose={() => { setSelectedUnit(null); setIsEditing(false); }} zIndex={50}>
+          <ModalPanel maxWidth="max-w-3xl" className="rounded-3xl overflow-y-auto">
           <div
-            className="max-w-3xl w-full rounded-3xl max-h-[90vh] overflow-y-auto animate-modal-fade-in"
             style={{
               background: darkMode ? 'rgba(30, 41, 59, 0.95)' : 'rgba(255, 255, 255, 0.95)',
               boxShadow: darkMode 
@@ -892,17 +887,16 @@ export const StarbooksInventorySimple = ({ darkMode, readOnly = false }) => {
               </div>
             </div>
           </div>
-        </div>
+          </ModalPanel>
+        </Modal>
       )}
 
       {/* Delete Confirmation Dialog */}
       {showDeleteConfirm && (
-        <div
-          className="fixed inset-0 bg-black bg-opacity-60 backdrop-blur-sm flex items-center justify-center p-4 z-50"
-          onClick={() => setShowDeleteConfirm(false)}
-        >
+        <Modal onClose={() => setShowDeleteConfirm(false)} zIndex={50}>
+          <ModalPanel maxWidth="max-w-md">
           <div
-            className="max-w-md w-full p-8 rounded-2xl animate-modal-fade-in"
+            className="p-8 rounded-2xl"
             style={{
               background: darkMode ? 'rgba(30, 41, 59, 0.95)' : 'rgba(255, 255, 255, 0.95)',
               boxShadow: darkMode 
@@ -951,7 +945,8 @@ export const StarbooksInventorySimple = ({ darkMode, readOnly = false }) => {
               </button>
             </div>
           </div>
-        </div>
+          </ModalPanel>
+        </Modal>
       )}
     </div>
   );

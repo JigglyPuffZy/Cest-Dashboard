@@ -5,6 +5,7 @@ import { AddProjectEquipmentModal } from "../../components/forms/AddProjectEquip
 import { transformProjects, transformEquipmentList } from "../../shared/utils/dataTransform";
 import { HoverTooltip } from "../../components/ui/Tooltip";
 import { safeString, safeProjectTitle, safeEquipmentName, safeDisplayName } from "../../shared/utils/safeRender";
+import { Modal, ModalPanel } from "../../components/ui/Modal";
 
 // Region II (Cagayan Valley) Provinces
 const REGION_II_PROVINCES = [
@@ -1192,8 +1193,9 @@ export const DataEntryPage = ({ projects = [], equipment = [], onAddProject, onA
 
       {/* Confirm Delete Modal */}
       {confirmDelete && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-[10001] p-4">
-          <div className="w-full max-w-sm rounded-2xl p-6 shadow-2xl" style={{
+        <Modal onClose={() => setConfirmDelete(null)} zIndex={10001}>
+          <ModalPanel maxWidth="max-w-sm">
+          <div className="rounded-2xl p-6 shadow-2xl" style={{
             background: darkMode ? '#1e293b' : '#ffffff',
             border: `1px solid ${darkMode ? '#334155' : '#e2e8f0'}`
           }}>
@@ -1227,7 +1229,8 @@ export const DataEntryPage = ({ projects = [], equipment = [], onAddProject, onA
               </button>
             </div>
           </div>
-        </div>
+          </ModalPanel>
+        </Modal>
       )}
 
       {/* Edit Modal */}
@@ -1277,10 +1280,9 @@ export const DataEntryPage = ({ projects = [], equipment = [], onAddProject, onA
         const components = selectedItem.components || [];
 
         return (
-          <div className="fixed inset-0 bg-black/80 backdrop-blur-md flex items-center justify-center z-[9999] p-4"
-            onClick={() => setShowDetailModal(false)}>
+          <Modal onClose={() => setShowDetailModal(false)} zIndex={9999} className="bg-black/80 backdrop-blur-md">
+            <ModalPanel maxWidth="max-w-4xl" className="rounded-3xl shadow-2xl overflow-y-auto">
             <div
-              className="w-full max-w-4xl max-h-[90vh] overflow-y-auto rounded-3xl shadow-2xl"
               style={{
                 background: darkMode 
                   ? 'linear-gradient(145deg, #1e293b 0%, #0f172a 100%)' 
@@ -1844,7 +1846,8 @@ export const DataEntryPage = ({ projects = [], equipment = [], onAddProject, onA
                 )}
               </div>
             </div>
-          </div>
+          </ModalPanel>
+        </Modal>
         );
       })()}
     </div>

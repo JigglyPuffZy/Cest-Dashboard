@@ -5,6 +5,7 @@ import { COMPONENTS, COMP_COLORS } from "../../shared/constants";
 import { transformProjects, transformEquipmentList } from "../../shared/utils/dataTransform";
 import { HoverTooltip } from "../../components/ui/Tooltip";
 import { safeString, safeProjectTitle, safeEquipmentName, safeDisplayName } from "../../shared/utils/safeRender";
+import { Modal, ModalPanel } from "../../components/ui/Modal";
 
 export const MonitoringPage = ({ projects, equipment = [], darkMode }) => {
   const [statusFilter, setStatusFilter] = useState("All");
@@ -304,10 +305,9 @@ export const MonitoringPage = ({ projects, equipment = [], darkMode }) => {
         const components = selectedItem.components || [];
 
         return (
-          <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-[9999] p-4"
-            onClick={() => setShowDetailModal(false)}>
+          <Modal onClose={() => setShowDetailModal(false)} zIndex={9999} className="bg-black/70 backdrop-blur-sm">
+            <ModalPanel maxWidth="max-w-3xl" className="rounded-3xl shadow-2xl overflow-y-auto">
             <div
-              className="w-full max-w-3xl max-h-[90vh] overflow-y-auto rounded-3xl shadow-2xl"
               style={{
                 background: darkMode ? 'linear-gradient(145deg, #1e293b, #0f172a)' : 'linear-gradient(145deg, #ffffff, #f8fafc)',
                 border: `1px solid ${darkMode ? 'rgba(148,163,184,0.15)' : 'rgba(0,74,152,0.1)'}`,
@@ -600,7 +600,8 @@ export const MonitoringPage = ({ projects, equipment = [], darkMode }) => {
                 </button>
               </div>
             </div>
-          </div>
+          </ModalPanel>
+        </Modal>
         );
       })()}
     </div>

@@ -17,6 +17,7 @@ import { useNavigate } from "react-router-dom";
 import dostLogo from "../../dost logo.png";
 import cestLogo from "../../Cest Logo.png";
 import starbooksLogo from "../../starbooks logo.png";
+import { Modal, ModalPanel } from "../ui/Modal";
 
 const STARBOOKS_NAV_ITEMS = [
   { id: "starbooks", icon: Package, label: "Inventory" },
@@ -445,15 +446,8 @@ export const StarbooksSidebar = ({
 
       {/* Logout Confirmation Modal */}
       {showLogoutModal && (
-        <>
-          <div 
-            className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[60] animate-backdrop-fade-in"
-            onClick={() => setShowLogoutModal(false)}
-          />
-          <div 
-            className="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-full max-w-md z-[60] px-4 animate-modal-fade-in"
-            onClick={(e) => e.stopPropagation()}
-          >
+        <Modal onClose={() => setShowLogoutModal(false)} zIndex={60}>
+          <ModalPanel maxWidth="max-w-md">
             <div 
               className="rounded-2xl shadow-2xl overflow-hidden"
               style={{
@@ -514,21 +508,14 @@ export const StarbooksSidebar = ({
                 </div>
               </div>
             </div>
-          </div>
-        </>
+          </ModalPanel>
+        </Modal>
       )}
 
       {/* System Switch Confirmation Modal */}
       {showSwitchModal && (
-        <>
-          <div 
-            className="fixed inset-0 bg-black/70 backdrop-blur-md z-[60] animate-backdrop-fade-in"
-            onClick={() => setShowSwitchModal(false)}
-          />
-          <div 
-            className="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-full max-w-lg z-[60] px-4 animate-modal-bounce-in"
-            onClick={(e) => e.stopPropagation()}
-          >
+        <Modal onClose={() => setShowSwitchModal(false)} zIndex={60} className="bg-black/70 backdrop-blur-md">
+          <ModalPanel maxWidth="max-w-lg">
             <div 
               className="rounded-3xl shadow-2xl overflow-hidden relative"
               style={{
@@ -701,36 +688,8 @@ export const StarbooksSidebar = ({
                 </div>
               </div>
             </div>
-          </div>
-
-          <style>{`
-            @keyframes modalBounceIn {
-              0% {
-                opacity: 0;
-                transform: translate(-50%, -50%) scale(0.3);
-              }
-              50% {
-                transform: translate(-50%, -50%) scale(1.05);
-              }
-              70% {
-                transform: translate(-50%, -50%) scale(0.9);
-              }
-              100% {
-                opacity: 1;
-                transform: translate(-50%, -50%) scale(1);
-              }
-            }
-
-            @keyframes spin {
-              from {
-                transform: rotate(0deg);
-              }
-              to {
-                transform: rotate(360deg);
-              }
-            }
-          `}</style>
-        </>
+          </ModalPanel>
+        </Modal>
       )}
     </>
   );

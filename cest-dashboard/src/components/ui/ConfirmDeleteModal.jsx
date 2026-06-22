@@ -1,4 +1,5 @@
 import { AlertTriangle, X } from 'lucide-react';
+import { Modal, ModalPanel } from './Modal';
 
 export const ConfirmDeleteModal = ({
   isOpen,
@@ -13,24 +14,16 @@ export const ConfirmDeleteModal = ({
 }) => {
   if (!isOpen) return null;
 
-  const handleBackdropClick = (e) => {
-    if (e.target === e.currentTarget) {
-      onClose();
-    }
-  };
-
   const handleConfirm = () => {
     onConfirm();
     onClose();
   };
 
   return (
-    <div 
-      className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-[10001] p-4"
-      onClick={handleBackdropClick}
-    >
+    <Modal isOpen={isOpen} onClose={onClose} zIndex={10001}>
+      <ModalPanel maxWidth="max-w-md">
       <div 
-        className="w-full max-w-md rounded-2xl p-6 shadow-2xl transform transition-all duration-300 scale-100"
+        className="rounded-2xl p-6 shadow-2xl"
         style={{
           background: darkMode ? '#1e293b' : '#ffffff',
           border: `1px solid ${darkMode ? '#334155' : '#e2e8f0'}`
@@ -113,7 +106,8 @@ export const ConfirmDeleteModal = ({
           </button>
         </div>
       </div>
-    </div>
+      </ModalPanel>
+    </Modal>
   );
 };
 
