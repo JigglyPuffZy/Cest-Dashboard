@@ -3,33 +3,40 @@ import { createClient } from '@supabase/supabase-js'
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY
 
-if (!supabaseUrl || !supabaseAnonKey) {
-  console.error('Missing Supabase environment variables:', { supabaseUrl: !!supabaseUrl, supabaseAnonKey: !!supabaseAnonKey });
-  throw new Error('Missing Supabase environment variables. Please check your .env file.')
+export const isSupabaseConfigured = Boolean(supabaseUrl && supabaseAnonKey)
+
+if (!isSupabaseConfigured) {
+  console.error('Missing Supabase environment variables:', {
+    supabaseUrl: !!supabaseUrl,
+    supabaseAnonKey: !!supabaseAnonKey,
+  })
 }
 
-// Create Supabase client with better error handling
-export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
-  auth: { 
-    autoRefreshToken: true, 
-    persistSession: true, 
+const clientOptions = {
+  auth: {
+    autoRefreshToken: true,
+    persistSession: true,
     detectSessionInUrl: true,
     storage: typeof window !== 'undefined' ? window.sessionStorage : undefined,
   },
   global: {
     headers: {
-      'x-my-custom-header': 'cest-dashboard'
-    }
+      'x-my-custom-header': 'cest-dashboard',
+    },
   },
   db: {
-    schema: 'public'
+    schema: 'public',
   },
   realtime: {
     params: {
-      eventsPerSecond: 10
-    }
-  }
-});
+      eventsPerSecond: 10,
+    },
+  },
+}
+
+export const supabase = isSupabaseConfigured
+  ? createClient(supabaseUrl, supabaseAnonKey, clientOptions)
+  : createClient('https://placeholder.supabase.co', 'placeholder-anon-key', clientOptions)
 
 export const db = {
   async getProjects() {

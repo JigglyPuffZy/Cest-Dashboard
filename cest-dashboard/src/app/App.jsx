@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { BrowserRouter, Routes, Route, Navigate, useNavigate, useLocation } from "react-router-dom";
+import { HashRouter, Routes, Route, Navigate, useNavigate, useLocation } from "react-router-dom";
 import { AuthProvider, useAuth, getUserDisplayName } from "../shared/hooks/useAuth.jsx";
 import { Sidebar } from "../components/layout/Sidebar";
 import { StarbooksSidebar } from "../components/layout/StarbooksSidebar";
@@ -870,10 +870,10 @@ function PlaceholderPage({ activePage, darkMode }) {
 
 export default function App() {
   return (
-    <BrowserRouter>
+    <HashRouter>
       <AuthProvider>
         <AppContent />
       </AuthProvider>
-    </BrowserRouter>
+    </HashRouter>
   );
 }
