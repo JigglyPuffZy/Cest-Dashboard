@@ -38,76 +38,35 @@ const ACTION_COLORS = {
   update: { bg: '#f59e0b', light: 'rgba(245, 158, 11, 0.1)', border: '#d97706' },
 };
 
-export const AuditLog = ({ logs = [], onClose, darkMode, onLogsUpdate, useDatabase = true }) => {
+export const AuditLog = ({ logs = [], onClose, darkMode, onLogsUpdate }) => {
   const [searchTerm, setSearchTerm] = useState("");
   const [filterAction, setFilterAction] = useState("all");
   const [showFilters, setShowFilters] = useState(false);
   const [isUpdating, setIsUpdating] = useState(false);
-  const [localReadStatus, setLocalReadStatus] = useState(() => {
-    // Load read status from localStorage
-    const saved = localStorage.getItem('cest_audit_read_status');
-    return saved ? JSON.parse(saved) : {};
-  });
 
-  // Mark log as read
   const markAsRead = async (logId) => {
     try {
       setIsUpdating(true);
-      
-      if (useDatabase) {
-        // Try to mark as read in database
-        await db.markAuditLogAsRead(logId);
-        // Trigger refresh of logs
-        if (onLogsUpdate) {
-          onLogsUpdate();
-        }
-      } else {
-        // Mark as read in localStorage
-        const newReadStatus = { ...localReadStatus, [logId]: true };
-        setLocalReadStatus(newReadStatus);
-        localStorage.setItem('cest_audit_read_status', JSON.stringify(newReadStatus));
+      await db.markAuditLogAsRead(logId);
+      if (onLogsUpdate) {
+        onLogsUpdate();
       }
     } catch (error) {
       console.error('Error marking log as read:', error);
-      // Fallback to localStorage if database fails
-      const newReadStatus = { ...localReadStatus, [logId]: true };
-      setLocalReadStatus(newReadStatus);
-      localStorage.setItem('cest_audit_read_status', JSON.stringify(newReadStatus));
     } finally {
       setIsUpdating(false);
     }
   };
 
-  // Mark all as read
   const markAllAsRead = async () => {
     try {
       setIsUpdating(true);
-      
-      if (useDatabase) {
-        // Try to mark all as read in database
-        await db.markAllAuditLogsAsRead();
-        // Trigger refresh of logs
-        if (onLogsUpdate) {
-          onLogsUpdate();
-        }
-      } else {
-        // Mark all as read in localStorage
-        const newReadStatus = {};
-        logs.forEach(log => {
-          newReadStatus[log.id] = true;
-        });
-        setLocalReadStatus(newReadStatus);
-        localStorage.setItem('cest_audit_read_status', JSON.stringify(newReadStatus));
+      await db.markAllAuditLogsAsRead();
+      if (onLogsUpdate) {
+        onLogsUpdate();
       }
     } catch (error) {
       console.error('Error marking all logs as read:', error);
-      // Fallback to localStorage if database fails
-      const newReadStatus = {};
-      logs.forEach(log => {
-        newReadStatus[log.id] = true;
-      });
-      setLocalReadStatus(newReadStatus);
-      localStorage.setItem('cest_audit_read_status', JSON.stringify(newReadStatus));
     } finally {
       setIsUpdating(false);
     }
@@ -128,14 +87,7 @@ export const AuditLog = ({ logs = [], onClose, darkMode, onLogsUpdate, useDataba
   // Get unique action types for filter
   const actionTypes = ["all", ...new Set(logs.map(log => log.action).filter(Boolean))];
   
-  // Count unread logs (check both database is_read and localStorage)
-  const unreadCount = filteredLogs.filter(log => {
-    if (useDatabase) {
-      return !log.is_read;
-    } else {
-      return !localReadStatus[log.id];
-    }
-  }).length;
+  const unreadCount = filteredLogs.filter((log) => !log.is_read).length;
 
   const formatTimestamp = (timestamp) => {
     const date = new Date(timestamp);
@@ -307,8 +259,7 @@ export const AuditLog = ({ logs = [], onClose, darkMode, onLogsUpdate, useDataba
             {filteredLogs.map((log, index) => {
               const Icon = ACTION_ICONS[log.action] || FileText;
               const colors = ACTION_COLORS[log.action] || ACTION_COLORS.update;
-              // Check read status from database or localStorage
-              const isRead = useDatabase ? log.is_read : localReadStatus[log.id];
+              const isRead = log.is_read;
 
               return (
                 <div

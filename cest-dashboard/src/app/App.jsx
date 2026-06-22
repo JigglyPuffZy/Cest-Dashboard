@@ -21,13 +21,10 @@ import { LoginPage } from "../features/auth/LoginPage";
 import TrainingsPage from "../features/trainings/TrainingsPage";
 import { AdminRequestsPage } from "../features/admin/AdminRequestsPage";
 import { GuestAccessBlocked } from "../components/ui/GuestAccessBlocked";
-import { usePersistedState } from "../shared/hooks/usePersistedState";
 import { useToastNotification } from "../shared/hooks/useToastNotification";
 import { useAuditLog } from "../shared/hooks/useAuditLog";
 import { auditService, ENTITY_TYPES } from "../shared/services/auditService";
 import { db, supabase } from "../shared/services/supabaseClient";
-import { LS_KEYS } from "../shared/constants";
-import { INITIAL_PROJECTS, INITIAL_EQUIPMENT } from "../shared/utils/Utils";
 
 const INACTIVITY_TIMEOUT = 60 * 60 * 1000;
 const ACTIVITY_EVENTS = ['mousedown', 'mousemove', 'keypress', 'scroll', 'touchstart', 'click'];
@@ -56,15 +53,15 @@ function AppContent() {
   const [starbooksUnits, setStarbooksUnits] = useState([]);
   const [loadingData, setLoadingData] = useState(true);
   const [archivedProjects, setArchivedProjects] = useState([]);
-  const [darkMode, setDarkMode] = usePersistedState("darkMode", false);
+  const [darkMode, setDarkMode] = useState(false);
   const [activePage, setActivePage] = useState("dashboard");
-  const [activeSystem, setActiveSystem] = usePersistedState("active_system", "cest");
+  const [activeSystem, setActiveSystem] = useState("cest");
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [showAuditLog, setShowAuditLog] = useState(false);
-  const [isCollapsed, setIsCollapsed] = usePersistedState("sidebar_collapsed", false);
+  const [isCollapsed, setIsCollapsed] = useState(false);
 
   const { toasts, success, warning, error, removeToast } = useToastNotification();
-  const { logs, refreshLogs, getUnreadCount, useDatabase } = useAuditLog();
+  const { logs, refreshLogs, getUnreadCount } = useAuditLog();
   const dataLoadedRef = useRef(false);
   const unreadCount = getUnreadCount();
 
@@ -234,16 +231,6 @@ function AppContent() {
   useEffect(() => {
     if (!user) return;
   }, [user]);
-
-  useEffect(() => {
-    const hasInitializedLogs = localStorage.getItem('cest_audit_initialized');
-    if (!hasInitializedLogs) {
-      auditService.logCreate(ENTITY_TYPES.PROJECT, 'CEST 2.0 - Gonzaga', 'Municipality: Gonzaga, Budget: ₱150,000');
-      auditService.logUpload(ENTITY_TYPES.EQUIPMENT, 'Desktop Computer Set', 'Quantity: 5, Location: Gonzaga');
-      auditService.logUpdate(ENTITY_TYPES.PROJECT, 'SEL Project - Isabela', 'Status changed to Ongoing');
-      localStorage.setItem('cest_audit_initialized', 'true');
-    }
-  }, []);
 
   const handleSwitchSystem = () => {
     const newSystem = activeSystem === "cest" ? "starbooks" : "cest";
@@ -817,7 +804,6 @@ function AppContent() {
               onClose={() => setShowAuditLog(false)}
               darkMode={darkMode}
               onLogsUpdate={refreshLogs}
-              useDatabase={useDatabase}
             />
           )}
         </div>
