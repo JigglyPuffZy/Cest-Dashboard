@@ -3,6 +3,7 @@
   "buildCommand": "npm run build --prefix cest-dashboard",
   "outputDirectory": "cest-dashboard/dist",
   "rewrites": [
+    { "handle": "filesystem" },
     { "source": "/(.*)", "destination": "/index.html" }
   ]
 }
