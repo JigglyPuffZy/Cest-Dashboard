@@ -9,10 +9,10 @@ export const useToastNotification = () => {
     
     setToasts(prev => [...prev, newToast]);
 
-    // Auto remove after duration
+    
     setTimeout(() => {
       setToasts(prev => prev.filter(toast => toast.id !== id));
-    }, duration + 300); // Add 300ms for fade out animation
+    }, duration + 300); 
   }, []);
 
   const removeToast = useCallback((id) => {

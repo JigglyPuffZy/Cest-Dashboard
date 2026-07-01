@@ -5,7 +5,7 @@ import { useMemo } from "react";
 export const Breadcrumb = ({ items, darkMode }) => {
   const navigate = useNavigate();
 
-  // Memoized theme colors for performance
+  
   const theme = useMemo(() => ({
     textColor: darkMode ? "#94a3b8" : "#64748b",
     textHover: darkMode ? "#e2e8f0" : "#1e293a",
@@ -32,7 +32,7 @@ export const Breadcrumb = ({ items, darkMode }) => {
         zIndex: 10,
       }}
     >
-      {/* Home Button - Enhanced */}
+      {}
       <button
         onClick={() => navigate("/dashboard")}
         className="group flex items-center gap-2 px-3 py-2.5 rounded-xl text-sm font-semibold transition-all duration-300 hover:scale-105 active:scale-95 whitespace-nowrap flex-shrink-0 relative overflow-hidden"
@@ -56,7 +56,7 @@ export const Breadcrumb = ({ items, darkMode }) => {
         }}
         aria-label="Go to Dashboard"
       >
-        {/* Gradient overlay on hover */}
+        {}
         <div 
           className="absolute inset-0 opacity-0 group-hover:opacity-10 transition-opacity duration-300"
           style={{ background: theme.activeGradient }}
@@ -66,10 +66,10 @@ export const Breadcrumb = ({ items, darkMode }) => {
         <span className="hidden sm:inline relative z-10">Dashboard</span>
       </button>
 
-      {/* Breadcrumb Items */}
+      {}
       {items.map((item, index) => (
         <div key={index} className="flex items-center gap-2 flex-shrink-0">
-          {/* Chevron Separator - Enhanced */}
+          {}
           <ChevronRight 
             className="w-4 h-4 flex-shrink-0 transition-all duration-300" 
             style={{ 
@@ -78,7 +78,7 @@ export const Breadcrumb = ({ items, darkMode }) => {
             }} 
           />
           
-          {/* Breadcrumb Item */}
+          {}
           {item.path ? (
             <button
               onClick={() => navigate(item.path)}
@@ -103,7 +103,7 @@ export const Breadcrumb = ({ items, darkMode }) => {
               }}
               aria-label={`Go to ${item.label}`}
             >
-              {/* Gradient overlay on hover */}
+              {}
               <div 
                 className="absolute inset-0 opacity-0 group-hover:opacity-10 transition-opacity duration-300"
                 style={{ background: theme.activeGradient }}
@@ -121,7 +121,7 @@ export const Breadcrumb = ({ items, darkMode }) => {
               }}
               aria-current="page"
             >
-              {/* Shine effect */}
+              {}
               <div 
                 className="absolute inset-0 opacity-20"
                 style={{

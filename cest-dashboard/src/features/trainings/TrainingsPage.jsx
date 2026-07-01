@@ -50,7 +50,6 @@ function useToast() {
   return { toast, show };
 }
 
-// ─── Training Form Modal ─────────────────────────────────────────────────────
 function TrainingModal({ initial, onSave, onClose, darkMode }) {
   const [f, setF] = useState(initial ? {
     ...BLANK, ...initial,
@@ -94,7 +93,7 @@ function TrainingModal({ initial, onSave, onClose, darkMode }) {
     <Modal onClose={onClose}>
       <ModalPanel maxWidth="max-w-[720px]">
       <div style={{ background: darkMode ? "#0f172a" : "#fff", borderRadius: 16, width: "100%", maxHeight: "90vh", overflow: "auto", boxShadow: "0 32px 80px rgba(0,0,0,0.35)", border: `1px solid ${darkMode ? "#334155" : "#e5e7eb"}` }}>
-        {/* Header */}
+        {}
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "16px 20px", borderBottom: `1px solid ${darkMode ? "#334155" : "#e5e7eb"}`, position: "sticky", top: 0, background: darkMode ? "#0f172a" : "#fff", zIndex: 1 }}>
           <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
             <div style={{ width: 36, height: 36, borderRadius: 10, background: "linear-gradient(135deg,#004A98,#10b981)", display: "flex", alignItems: "center", justifyContent: "center" }}>
@@ -109,21 +108,21 @@ function TrainingModal({ initial, onSave, onClose, darkMode }) {
         </div>
 
         <div style={{ padding: "20px 24px" }}>
-          {/* Row 1 */}
+          {}
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 12, marginBottom: 14 }}>
             <div><label style={lbl}>Date</label><input type="date" value={f.date} onChange={e => set("date", e.target.value)} style={inp} /></div>
             <div><label style={lbl}>Year</label><input type="number" value={f.year} onChange={e => set("year", e.target.value)} style={inp} placeholder="2024" /></div>
             <div><label style={lbl}>Municipality / City</label><input value={f.municipality} onChange={e => set("municipality", e.target.value)} style={inp} placeholder="Enter municipality" /></div>
           </div>
 
-          {/* Community */}
+          {}
           <div style={{ marginBottom: 14 }}>
             <label style={lbl}>Community / Beneficiaries <span style={{ color: "#ef4444" }}>*</span></label>
             <input value={f.community} onChange={e => set("community", e.target.value)} style={{ ...inp, borderColor: errors.community ? "#ef4444" : (darkMode ? "#334155" : "#d1d5db") }} placeholder="Enter community" />
             {errors.community && <span style={{ color: "#ef4444", fontSize: 11 }}>{errors.community}</span>}
           </div>
 
-          {/* Title */}
+          {}
           <div style={{ marginBottom: 14 }}>
             <label style={lbl}>List of Trainings Conducted <span style={{ color: "#ef4444" }}>*</span></label>
             <textarea value={f.title} onChange={e => set("title", e.target.value)}
@@ -132,13 +131,13 @@ function TrainingModal({ initial, onSave, onClose, darkMode }) {
             {errors.title && <span style={{ color: "#ef4444", fontSize: 11 }}>{errors.title}</span>}
           </div>
 
-          {/* Budget + MOA */}
+          {}
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginBottom: 14 }}>
             <div><label style={lbl}>Budget (₱)</label><input type="number" value={f.budget} onChange={e => set("budget", e.target.value)} style={inp} placeholder="0" /></div>
             <div><label style={lbl}>MOAs</label><input value={f.moa} onChange={e => set("moa", e.target.value)} style={inp} placeholder="e.g. LGU, DA" /></div>
           </div>
 
-          {/* Component */}
+          {}
           <div style={{ marginBottom: 14 }}>
             <label style={lbl}>CEST 2.0 Component</label>
             <select value={f.component} onChange={e => set("component", e.target.value)} style={inp}>
@@ -147,7 +146,7 @@ function TrainingModal({ initial, onSave, onClose, darkMode }) {
             </select>
           </div>
 
-          {/* Beneficiary Types */}
+          {}
           <div style={{ marginBottom: 14 }}>
             <label style={lbl}>CEST 2.0 Beneficiaries</label>
             <div style={{ display: "flex", flexWrap: "wrap", gap: 7 }}>
@@ -165,7 +164,7 @@ function TrainingModal({ initial, onSave, onClose, darkMode }) {
             </div>
           </div>
 
-          {/* Beneficiary counts */}
+          {}
           <div style={{ marginBottom: 22 }}>
             <label style={lbl}>No. of Beneficiaries</label>
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 10 }}>
@@ -178,7 +177,7 @@ function TrainingModal({ initial, onSave, onClose, darkMode }) {
             </div>
           </div>
 
-          {/* Footer */}
+          {}
           <div style={{ display: "flex", gap: 10, justifyContent: "flex-end", paddingTop: 4 }}>
             <button onClick={onClose} style={{ background: darkMode ? "#1e293b" : "#f3f4f6", border: `1px solid ${darkMode ? "#334155" : "#d1d5db"}`, color: darkMode ? "#94a3b8" : "#374151", borderRadius: 10, padding: "10px 22px", cursor: "pointer", fontSize: 13, fontWeight: 600 }}>Cancel</button>
             <button onClick={submit} disabled={saving} style={{ background: "linear-gradient(135deg,#004A98,#10b981)", border: "none", color: "#fff", borderRadius: 10, padding: "10px 28px", cursor: "pointer", fontSize: 13, fontWeight: 800, opacity: saving ? 0.7 : 1 }}>
@@ -192,11 +191,10 @@ function TrainingModal({ initial, onSave, onClose, darkMode }) {
   );
 }
 
-// ─── Main Page ───────────────────────────────────────────────────────────────
 export default function TrainingsPage({ darkMode = false, onArchiveTraining, readOnly = false }) {
   const [trainings, setTrainings] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [modal, setModal] = useState(null); // null | {type:'add'} | {type:'edit',data} | {type:'delete',data}
+  const [modal, setModal] = useState(null); 
   const [view, setView] = useState("list");
   const [search, setSearch] = useState("");
   const [yearFilter, setYearFilter] = useState("All");
@@ -231,7 +229,7 @@ export default function TrainingsPage({ darkMode = false, onArchiveTraining, rea
     try {
       await dbTrainings.archive(id);
       setTrainings(ts => ts.filter(t => t.id !== id));
-      // Send to archive in parent
+      
       if (onArchiveTraining && item) {
         onArchiveTraining({ ...item, _type: 'training', archived_at: new Date().toISOString() });
       }
@@ -262,14 +260,14 @@ export default function TrainingsPage({ darkMode = false, onArchiveTraining, rea
   return (
     <div style={{ maxWidth: 1400, margin: "0 auto", padding: "24px 16px", minHeight: "100vh", background: darkMode ? "#07101d" : "#f3f4f6" }}>
 
-      {/* Toast */}
+      {}
       {toast && (
         <div style={{ position: "fixed", top: 18, right: 18, zIndex: 9998, background: toast.color, color: "#fff", borderRadius: 10, padding: "11px 22px", fontWeight: 800, fontSize: 13, boxShadow: "0 8px 32px rgba(0,0,0,0.2)" }}>
           {toast.msg}
         </div>
       )}
 
-      {/* Modals */}
+      {}
       {(modal?.type === "add" || modal?.type === "edit") && (
         <TrainingModal initial={modal.data} onSave={handleSave} onClose={() => setModal(null)} darkMode={darkMode} />
       )}
@@ -291,7 +289,7 @@ export default function TrainingsPage({ darkMode = false, onArchiveTraining, rea
         </Modal>
       )}
 
-      {/* Page Header */}
+      {}
       <div style={{ ...card, padding: "24px 28px", marginBottom: 24 }}>
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 16 }}>
           <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
@@ -309,7 +307,7 @@ export default function TrainingsPage({ darkMode = false, onArchiveTraining, rea
         </div>
       </div>
 
-      {/* Stats Row */}
+      {}
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(180px,1fr))", gap: 14, marginBottom: 24 }}>
         {[
           { label: "Total Trainings", value: trainings.length, icon: <BookOpen size={20} />, color: "#004A98" },
@@ -327,10 +325,10 @@ export default function TrainingsPage({ darkMode = false, onArchiveTraining, rea
         ))}
       </div>
 
-      {/* Tab + Filters */}
+      {}
       <div style={{ ...card, padding: "16px 20px", marginBottom: 20 }}>
         <div style={{ display: "flex", flexWrap: "wrap", gap: 12, alignItems: "center" }}>
-          {/* Tabs */}
+          {}
           <div style={{ display: "flex", gap: 4, padding: 4, borderRadius: 10, background: darkMode ? "#1e293b" : "#f1f5f9" }}>
             {[{ id: "list", icon: <BookOpen size={14} />, label: "List" }, { id: "stats", icon: <BarChart3 size={14} />, label: "Stats" }].map(t => (
               <button key={t.id} onClick={() => setView(t.id)} style={{ display: "flex", alignItems: "center", gap: 6, padding: "7px 16px", borderRadius: 8, border: "none", cursor: "pointer", fontSize: 13, fontWeight: 700, background: view === t.id ? "linear-gradient(135deg,#004A98,#0066CC)" : "transparent", color: view === t.id ? "#fff" : textSub, boxShadow: view === t.id ? "0 2px 8px rgba(0,74,152,0.3)" : "none" }}>
@@ -339,14 +337,14 @@ export default function TrainingsPage({ darkMode = false, onArchiveTraining, rea
             ))}
           </div>
 
-          {/* Search */}
+          {}
           <div style={{ flex: 1, minWidth: 200, position: "relative" }}>
             <Search size={14} style={{ position: "absolute", left: 12, top: "50%", transform: "translateY(-50%)", color: textSub }} />
             <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search training / community / municipality…"
               style={{ width: "100%", paddingLeft: 36, paddingRight: 14, paddingTop: 10, paddingBottom: 10, borderRadius: 10, border: `1px solid ${darkMode ? "#334155" : "#e2e8f0"}`, background: darkMode ? "#0f172a" : "#f8fafc", color: textPrimary, fontSize: 13, outline: "none", boxSizing: "border-box" }} />
           </div>
 
-          {/* Year filter */}
+          {}
           <select value={yearFilter} onChange={e => setYearFilter(e.target.value)}
             style={{ padding: "10px 14px", borderRadius: 10, border: `1px solid ${darkMode ? "#334155" : "#e2e8f0"}`, background: darkMode ? "#0f172a" : "#f8fafc", color: textPrimary, fontSize: 13, outline: "none", minWidth: 130 }}>
             {years.map(y => <option key={y}>{y}</option>)}
@@ -358,7 +356,7 @@ export default function TrainingsPage({ darkMode = false, onArchiveTraining, rea
         </div>
       </div>
 
-      {/* ── LIST VIEW ── */}
+      {}
       {view === "list" && (
         <div>
           {loading ? (
@@ -377,7 +375,7 @@ export default function TrainingsPage({ darkMode = false, onArchiveTraining, rea
               {filtered.map(t => (
                 <div key={t.id} style={{ ...card, padding: "20px 24px" }}>
                   <div style={{ display: "flex", flexWrap: "wrap", gap: 16, alignItems: "flex-start" }}>
-                    {/* Left */}
+                    {}
                     <div style={{ flex: 1, minWidth: 240 }}>
                       <div style={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: 8, marginBottom: 8 }}>
                         {t.year && <span style={{ fontSize: 11, fontWeight: 800, padding: "3px 10px", borderRadius: 6, background: "linear-gradient(135deg,#004A98,#0066CC)", color: "#fff" }}>{t.year}</span>}
@@ -402,7 +400,7 @@ export default function TrainingsPage({ darkMode = false, onArchiveTraining, rea
                       )}
                     </div>
 
-                    {/* Right */}
+                    {}
                     <div style={{ textAlign: "right", minWidth: 140 }}>
                       <p style={{ margin: "0 0 2px", fontSize: 11, fontWeight: 700, color: textSub, textTransform: "uppercase", letterSpacing: 1 }}>Budget</p>
                       <p style={{ margin: "0 0 8px", fontSize: 22, fontWeight: 900, color: "#10b981" }}>₱{t.budget != null ? Number(t.budget).toLocaleString() : "0"}</p>
@@ -411,7 +409,7 @@ export default function TrainingsPage({ darkMode = false, onArchiveTraining, rea
                     </div>
                   </div>
 
-                  {/* Actions */}
+                  {}
                   {!readOnly && (
                   <div style={{ display: "flex", gap: 8, marginTop: 14, paddingTop: 12, borderTop: `1px solid ${darkMode ? "#1e293b" : "#f1f5f9"}` }}>
                     <button onClick={() => setModal({ type: "edit", data: t })} style={{ display: "flex", alignItems: "center", gap: 6, padding: "7px 16px", borderRadius: 8, border: "1px solid #bfdbfe", background: "#eff6ff", color: "#1e40af", fontSize: 12, fontWeight: 700, cursor: "pointer" }}>
@@ -425,7 +423,7 @@ export default function TrainingsPage({ darkMode = false, onArchiveTraining, rea
                 </div>
               ))}
 
-              {/* Summary bar */}
+              {}
               <div style={{ borderRadius: 12, padding: "18px 24px", background: "linear-gradient(135deg,#004A98,#0066CC)", color: "#fff", display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(140px,1fr))", gap: 16 }}>
                 <div><p style={{ margin: "0 0 4px", fontSize: 12, opacity: 0.8 }}>Trainings shown</p><p style={{ margin: 0, fontSize: 28, fontWeight: 900 }}>{filtered.length}</p></div>
                 <div><p style={{ margin: "0 0 4px", fontSize: 12, opacity: 0.8 }}>Total budget</p><p style={{ margin: 0, fontSize: 28, fontWeight: 900 }}>₱{totalBudget.toLocaleString()}</p></div>
@@ -436,10 +434,10 @@ export default function TrainingsPage({ darkMode = false, onArchiveTraining, rea
         </div>
       )}
 
-      {/* ── STATS VIEW ── */}
+      {}
       {view === "stats" && (
         <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
-          {/* Component breakdown */}
+          {}
           <div style={card}>
             <div style={{ padding: "18px 24px", borderBottom: `1px solid ${darkMode ? "#334155" : "#e2e8f0"}` }}>
               <h3 style={{ margin: 0, fontSize: 16, fontWeight: 800, color: textPrimary }}>Component Distribution</h3>
@@ -465,7 +463,7 @@ export default function TrainingsPage({ darkMode = false, onArchiveTraining, rea
             </div>
           </div>
 
-          {/* Beneficiary type breakdown */}
+          {}
           <div style={card}>
             <div style={{ padding: "18px 24px", borderBottom: `1px solid ${darkMode ? "#334155" : "#e2e8f0"}` }}>
               <h3 style={{ margin: 0, fontSize: 16, fontWeight: 800, color: textPrimary }}>Beneficiary Types</h3>

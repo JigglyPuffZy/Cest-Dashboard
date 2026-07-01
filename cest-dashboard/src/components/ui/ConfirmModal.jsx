@@ -16,9 +16,7 @@ const VARIANTS = {
   },
 }
 
-/**
- * Reusable confirmation dialog — logout, destructive actions, etc.
- */
+
 export const ConfirmModal = ({
   isOpen,
   onClose,

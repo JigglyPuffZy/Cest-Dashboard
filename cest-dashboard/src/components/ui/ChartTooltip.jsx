@@ -1,6 +1,3 @@
-/**
- * Chart tooltips always use a white card for readability on dark chart backgrounds.
- */
 export function ChartTooltip({ title, value, accentColor = "#004A98", hint, subtitle }) {
   return (
     <div

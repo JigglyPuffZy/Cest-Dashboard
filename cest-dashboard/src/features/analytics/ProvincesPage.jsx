@@ -10,7 +10,7 @@ import { ChartTooltip, renderChartTooltip } from "../../components/ui/ChartToolt
 
 const CHART_COLORS = ["#A78BFA", "#F472B6", "#FBBF24", "#34D399", "#60A5FA"];
 
-// Animated counter component
+
 const AnimatedCounter = ({ value, duration = 1000 }) => {
   const [count, setCount] = useState(0);
 
@@ -36,7 +36,7 @@ const AnimatedCounter = ({ value, duration = 1000 }) => {
   return <span>{count}</span>;
 };
 
-// Live indicator component
+
 const LiveIndicator = ({ darkMode }) => (
   <div className="flex items-center gap-2">
     <div className="relative flex items-center">
@@ -63,22 +63,22 @@ export const ProvincesPage = ({ projects, darkMode }) => {
   const [searchTerm, setSearchTerm] = useState("");
   const [lastUpdate, setLastUpdate] = useState(new Date());
 
-  // Transform projects data to handle Supabase structure
+  
   const transformedProjects = transformProjects(projects);
 
-  // Simulate real-time updates
+  
   useEffect(() => {
     const interval = setInterval(() => {
       setLastUpdate(new Date());
-    }, 5000); // Update every 5 seconds
+    }, 5000); 
 
     return () => clearInterval(interval);
   }, []);
 
-  // Get official Region II provinces
+  
   const REGION_II_PROVINCES = getAllProvinces();
 
-  // Calculate province-level data
+  
   const provinceData = REGION_II_PROVINCES.map((province) => {
     const provinceProjects = transformedProjects.filter(
       (p) => p.province?.toLowerCase() === province.name.toLowerCase()
@@ -97,7 +97,7 @@ export const ProvincesPage = ({ projects, darkMode }) => {
     };
   }).filter((p) => p.name.toLowerCase().includes(searchTerm.toLowerCase()));
 
-  // Chart data - top provinces by budget
+  
   const chartData = provinceData
     .filter((p) => p.totalBudget > 0)
     .sort((a, b) => b.totalBudget - a.totalBudget)
@@ -111,7 +111,7 @@ export const ProvincesPage = ({ projects, darkMode }) => {
   const fmtChart = (v) =>
     maxBudget >= 1_000_000 ? `₱${(v / 1_000_000).toFixed(1)}M` : `₱${(v / 1_000).toFixed(0)}k`;
 
-  // Pie chart data - budget distribution
+  
   const pieData = chartData.map((d, i) => ({
     name: d.fullName,
     value: d.budget,
@@ -158,7 +158,7 @@ export const ProvincesPage = ({ projects, darkMode }) => {
         </div>
       </div>
 
-      {/* Summary Stats */}
+      {}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         {[
           { label: "Total Budget", value: totalBudget, icon: TrendingUp, color: "#004A98", isAmount: true },
@@ -169,7 +169,7 @@ export const ProvincesPage = ({ projects, darkMode }) => {
           const Icon = stat.icon;
           return (
             <div key={stat.label} className="rounded-xl p-5 relative overflow-hidden group min-h-[140px]" style={cardStyle}>
-              {/* Decorative watermark — fully inside card, bottom-right */}
+              {}
               <div
                 className="absolute right-2 bottom-2 w-20 h-20 opacity-[0.07] pointer-events-none"
                 aria-hidden="true"
@@ -177,7 +177,7 @@ export const ProvincesPage = ({ projects, darkMode }) => {
                 <Icon className="w-full h-full" style={{ color: stat.color }} strokeWidth={1.25} />
               </div>
 
-              {/* LIVE badge — top-right */}
+              {}
               <div className="absolute top-3 right-3 flex items-center gap-1.5 z-10">
                 <Activity className="w-3 h-3 animate-pulse" style={{ color: '#3b82f6' }} />
                 <span className="text-[10px] font-bold tracking-wide" style={{ color: '#3b82f6' }}>
@@ -204,7 +204,7 @@ export const ProvincesPage = ({ projects, darkMode }) => {
         })}
       </div>
 
-      {/* Search */}
+      {}
       <div className="rounded-xl p-5" style={cardStyle}>
         <input
           value={searchTerm}
@@ -221,9 +221,9 @@ export const ProvincesPage = ({ projects, darkMode }) => {
         />
       </div>
 
-      {/* Charts */}
+      {}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Bar Chart */}
+        {}
         {chartData.length > 0 && (
           <div className="rounded-xl p-6 relative" style={cardStyle}>
             <div className="absolute top-4 right-4">
@@ -299,7 +299,7 @@ export const ProvincesPage = ({ projects, darkMode }) => {
           </div>
         )}
 
-        {/* Pie Chart */}
+        {}
         {pieData.length > 0 && (
           <div className="rounded-xl p-6 relative" style={cardStyle}>
             <div className="absolute top-4 right-4">
@@ -360,7 +360,7 @@ export const ProvincesPage = ({ projects, darkMode }) => {
         )}
       </div>
 
-      {/* Province Cards */}
+      {}
       <div>
         <h3 className="text-lg sm:text-xl font-bold mb-1" style={{ color: darkMode ? "#f8fafc" : "#0f172a" }}>
           All Provinces

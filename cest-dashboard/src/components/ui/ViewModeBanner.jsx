@@ -14,7 +14,7 @@ export const ViewModeBanner = ({ darkMode, onSignIn }) => (
           : '0 20px 50px -20px rgba(0, 74, 152, 0.15), inset 0 1px 0 rgba(255, 255, 255, 0.9)',
       }}
     >
-      {/* Ambient glow */}
+      {}
       <div
         className="pointer-events-none absolute -left-16 -top-16 h-40 w-40 rounded-full blur-3xl opacity-40"
         style={{ background: 'radial-gradient(circle, #3b82f6 0%, transparent 70%)' }}

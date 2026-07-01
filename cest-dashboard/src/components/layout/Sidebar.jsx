@@ -237,7 +237,7 @@ export const Sidebar = ({
         `}
         style={sidebarStyles}
       >
-        {/* DOST Logo Header */}
+        {}
         {!isCollapsed && (
           <div 
             className="px-6 pt-6 pb-4"
@@ -391,7 +391,7 @@ export const Sidebar = ({
             borderColor: darkMode ? 'rgba(30, 41, 59, 0.6)' : 'rgba(226, 232, 240, 0.8)'
           }}
         >
-          {/* System Switcher */}
+          {}
           {!isCollapsed && onSwitchSystem && (
             <button
               onClick={handleSwitchClick}
@@ -446,7 +446,7 @@ export const Sidebar = ({
             </button>
           )}
 
-          {/* Logout Button */}
+          {}
           <button 
             onClick={handleLogout}
             className={`w-full rounded-lg transition-all duration-200 group ${
@@ -532,7 +532,7 @@ export const Sidebar = ({
         darkMode={darkMode}
       />
 
-      {/* System Switch Confirmation Modal */}
+      {}
       {showSwitchModal && (
         <Modal onClose={() => setShowSwitchModal(false)} overlayClassName="bg-black/70 backdrop-blur-md">
           <ModalPanel maxWidth="max-w-lg">
@@ -546,7 +546,7 @@ export const Sidebar = ({
                 boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(16, 185, 129, 0.1)'
               }}
             >
-              {/* Animated Background Pattern */}
+              {}
               <div 
                 className="absolute inset-0 opacity-5"
                 style={{
@@ -555,7 +555,7 @@ export const Sidebar = ({
                 }}
               />
 
-              {/* Header with Icon */}
+              {}
               <div 
                 className="relative p-8 border-b"
                 style={{ 
@@ -566,7 +566,7 @@ export const Sidebar = ({
                 }}
               >
                 <div className="flex items-start gap-5">
-                  {/* Animated Icon Container */}
+                  {}
                   <div className="relative">
                     <div 
                       className="w-16 h-16 rounded-2xl flex items-center justify-center relative p-3"
@@ -603,10 +603,10 @@ export const Sidebar = ({
                 </div>
               </div>
 
-              {/* Content */}
+              
               <div className="relative p-8">
                 <div className="space-y-6">
-                  {/* Feature Highlights */}
+                  
                   <div className="grid grid-cols-2 gap-4">
                     {[
                       { icon: Package, label: 'Inventory', color: '#10b981' },
@@ -644,7 +644,7 @@ export const Sidebar = ({
                     })}
                   </div>
 
-                  {/* Info Box */}
+                  
                   <div 
                     className="p-4 rounded-xl"
                     style={{
@@ -672,7 +672,7 @@ export const Sidebar = ({
                 </div>
               </div>
 
-              {/* Actions */}
+              
               <div 
                 className="relative p-6 border-t"
                 style={{ 
@@ -711,7 +711,7 @@ export const Sidebar = ({
                       border: '2px solid rgba(255,255,255,0.1)'
                     }}
                   >
-                    {/* Shine effect on hover */}
+                    
                     <div 
                       className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500"
                       style={{

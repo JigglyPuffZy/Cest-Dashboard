@@ -1,6 +1,3 @@
-/**
- * Consistent page header for government users — clear title, context, optional actions.
- */
 export function PageHeader({ eyebrow, title, description, actions, darkMode, className = "" }) {
   return (
     <header

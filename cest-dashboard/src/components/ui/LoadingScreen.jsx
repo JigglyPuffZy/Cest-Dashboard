@@ -21,10 +21,8 @@ export const LoadingScreen = ({ onComplete, darkMode }) => {
     const completeLoading = () => {
       if (!completed) {
         completed = true;
-        console.log('LoadingScreen: Completing loading...');
         setTimeout(() => {
           if (onComplete) {
-            console.log('LoadingScreen: Calling onComplete callback');
             onComplete();
           }
         }, 500);
@@ -46,7 +44,7 @@ export const LoadingScreen = ({ onComplete, darkMode }) => {
       setStage(prev => (prev + 1) % LOADING_STAGES.length);
     }, 1000);
 
-    // Failsafe: Force completion after 8 seconds
+    
     const failsafeTimeout = setTimeout(() => {
       console.warn('LoadingScreen: Failsafe timeout triggered, forcing completion');
       completeLoading();
@@ -86,14 +84,14 @@ export const LoadingScreen = ({ onComplete, darkMode }) => {
       className="fixed inset-0 flex items-center justify-center z-[100] overflow-hidden"
       style={backgroundStyle}
     >
-      {/* Background Pattern */}
+      {}
       <div className="absolute inset-0 opacity-5" style={{
         backgroundImage: 'radial-gradient(circle at 20% 50%, white 2px, transparent 2px), radial-gradient(circle at 80% 80%, white 2px, transparent 2px)',
         backgroundSize: '60px 60px'
       }} />
 
       <div className="relative z-10 text-center px-6">
-        {/* Logo */}
+        {}
         <div className="mb-8 relative">
           <div 
             className="w-24 h-24 mx-auto rounded-2xl flex items-center justify-center relative"
@@ -108,7 +106,7 @@ export const LoadingScreen = ({ onComplete, darkMode }) => {
           </div>
         </div>
 
-        {/* Title */}
+        {}
         <h1 className="text-3xl font-bold mb-2 text-white" style={{ textShadow: '0 2px 8px rgba(0, 0, 0, 0.2)' }}>
           CEST 2.0
         </h1>
@@ -117,7 +115,7 @@ export const LoadingScreen = ({ onComplete, darkMode }) => {
           Community Empowerment through Science & Technology
         </p>
 
-        {/* Progress Bar */}
+        {}
         <div className="max-w-xs mx-auto mb-4">
           <div className="h-1.5 rounded-full overflow-hidden" style={progressBarStyle}>
             <div className="h-full rounded-full transition-all duration-300 ease-out" style={progressFillStyle} />
@@ -133,7 +131,7 @@ export const LoadingScreen = ({ onComplete, darkMode }) => {
           </div>
         </div>
 
-        {/* Loading Dots */}
+        {}
         <div className="flex items-center justify-center gap-1.5">
           {[...Array(3)].map((_, i) => (
             <div

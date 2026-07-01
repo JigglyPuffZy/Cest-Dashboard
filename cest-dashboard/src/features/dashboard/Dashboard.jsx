@@ -25,7 +25,7 @@ import {
   Cell,
 } from "recharts";
 
-// Peso Icon
+
 const PesoIcon = ({ className, style }) => (
   <svg className={className} style={style} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
     <path d="M8 6h8a4 4 0 0 1 0 8H8V6z" />
@@ -59,13 +59,13 @@ export const Dashboard = ({
     }
   }, [isGuestMode, guestAccessStatus, displayName]);
 
-  // Transform Supabase data structure to match expected format
+  
   const transformedProjects = transformProjects(projects);
   const transformedEquipment = transformEquipmentList(equipment || []);
   const projectsRef = useRef(null);
   const analyticsRef = useRef(null);
   const [yearFilter, setYearFilter] = useState("All");
-  const [componentModal, setComponentModal] = useState(null); // NEW: For component modal
+  const [componentModal, setComponentModal] = useState(null); 
   const [provinceFilter, setProvinceFilter] = useState("All");
   const [statusFilter, setStatusFilter] = useState("all");
   const [componentFilter, setComponentFilter] = useState("all");
@@ -89,7 +89,7 @@ export const Dashboard = ({
     return matchSearch && matchYear && matchProvince && matchStatus && matchComponent;
   });
 
-  // Get official provinces for region overview
+  
   const officialProvinces = getAllProvinces();
 
   const barData = officialProvinces
@@ -137,13 +137,13 @@ export const Dashboard = ({
     }))
     .filter((d) => d.value > 0);
 
-  // Bright pastel color palette for pie chart - Blue, Green, Pink, Yellow/Orange, Violet/Purple, Light Blue
+  
   const PIE_COLORS = ["#60A5FA", "#34D399", "#F472B6", "#FBBF24", "#A78BFA", "#93C5FD"];
   
-  // Bright pastel color palette for bar chart - Purple, Pink, Yellow/Gold, Green, Blue, Red/Coral, Teal/Cyan
+  
   const BAR_COLORS = ["#A78BFA", "#F472B6", "#FBBF24", "#34D399", "#60A5FA", "#FB7185", "#2DD4BF"];
 
-  // Modern card style with subtle elevation
+  
   const cardStyle = getCardStyle(darkMode);
 
   const handleViewDetails = (item, index) => {
@@ -161,7 +161,7 @@ export const Dashboard = ({
         <ViewModeBanner darkMode={darkMode} onSignIn={onGuestSignIn} />
       )}
 
-      {/* Welcome */}
+      {}
       <GlassCard darkMode={darkMode} className="p-6 sm:p-8 relative overflow-hidden">
         <div
           className="absolute inset-0 opacity-[0.07] pointer-events-none"
@@ -213,7 +213,7 @@ export const Dashboard = ({
       {!canViewData ? null : (
       <>
 
-      {/* Key Metrics */}
+      {}
       <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">
         {[
           { label: 'Total Budget', value: fmt(totalFunds), icon: TrendingUp, color: '#004A98' },
@@ -240,7 +240,7 @@ export const Dashboard = ({
         })}
       </div>
 
-      {/* Status strip */}
+      {}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
         {[
           { label: 'Ongoing', value: ongoingCount, color: '#34D399' },
@@ -256,7 +256,7 @@ export const Dashboard = ({
       </div>
 
       <div ref={analyticsRef} className="scroll-mt-6 space-y-6">
-          {/* Header with Component Legend Button */}
+          {}
           <div className="mb-6 flex items-center justify-between">
             <div>
               <h2 className="text-xl font-semibold mb-1" style={{ color: darkMode ? '#f8fafc' : '#0f172a' }}>
@@ -281,7 +281,7 @@ export const Dashboard = ({
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                {/* Modern Bar Chart - Provinces */}
+                {}
                 <div className="rounded-xl p-6" style={cardStyle}>
                   <h3 className="text-lg font-semibold mb-1" style={{ color: darkMode ? '#f8fafc' : '#0f172a' }}>
                     Budget Distribution
@@ -350,7 +350,7 @@ export const Dashboard = ({
                   </ResponsiveContainer>
                 </div>
 
-                {/* Modern Donut Chart */}
+                {}
                 <div className="rounded-xl p-6" style={cardStyle}>
                   <h3 className="text-lg font-semibold mb-1" style={{ color: darkMode ? '#f8fafc' : '#0f172a' }}>
                     Component Distribution
@@ -397,7 +397,7 @@ export const Dashboard = ({
               </div>
 
 
-              {/* Province Overview */}
+              {}
               <div>
                 <h3 className="text-lg sm:text-xl font-bold mb-1" style={{ color: darkMode ? '#f8fafc' : '#0f172a' }}>Provinces</h3>
                 <p className="text-sm mb-5" style={{ color: darkMode ? '#94a3b8' : '#64748b' }}>
@@ -480,7 +480,7 @@ export const Dashboard = ({
                 </div>
               </div>
 
-              {/* Component Analysis */}
+              {}
               <div className="rounded-xl p-6" style={cardStyle}>
                 <h3 className="text-lg font-semibold mb-1" style={{ color: darkMode ? '#f8fafc' : '#0f172a' }}>
                   Component Analysis
@@ -535,7 +535,7 @@ export const Dashboard = ({
                           </p>
                         </div>
                         
-                        {/* Click indicator */}
+                        {}
                         <div className="mt-3 pt-3 border-t flex items-center justify-center gap-2" style={{ borderColor: darkMode ? '#334155' : '#e2e8f0' }}>
                           <Eye className="w-3 h-3" style={{ color: darkMode ? '#94a3b8' : '#64748b' }} />
                           <span className="text-xs font-medium" style={{ color: darkMode ? '#94a3b8' : '#64748b' }}>
@@ -548,7 +548,7 @@ export const Dashboard = ({
                 </div>
               </div>
 
-              {/* Quarterly Monitoring Section */}
+              {}
               <div className="rounded-xl p-6" style={cardStyle}>
                 <div className="flex items-center justify-between mb-6">
                   <div>
@@ -559,7 +559,7 @@ export const Dashboard = ({
                       Project status breakdown by quarter
                     </p>
                   </div>
-                  {/* Glassmorphism Calendar Icon */}
+                  {}
                   <div 
                     className="w-14 h-14 rounded-2xl flex items-center justify-center relative overflow-hidden"
                     style={{
@@ -573,7 +573,7 @@ export const Dashboard = ({
                         : '0 8px 32px rgba(96, 165, 250, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.6)'
                     }}
                   >
-                    {/* Animated gradient background */}
+                    {}
                     <div 
                       className="absolute inset-0 opacity-50"
                       style={{
@@ -582,7 +582,7 @@ export const Dashboard = ({
                         animation: 'gradient-shift 3s ease infinite'
                       }}
                     />
-                    {/* Calendar Icon SVG */}
+                    {}
                     <svg 
                       className="w-7 h-7 relative z-10" 
                       viewBox="0 0 24 24" 
@@ -605,16 +605,16 @@ export const Dashboard = ({
                 </div>
                 
                 {(() => {
-                  // Calculate quarterly statistics
+                  
                   const quarters = ['Q1', 'Q2', 'Q3', 'Q4'];
                   const currentYear = new Date().getFullYear();
                   
-                  // Group projects by status for current year
+                  
                   const currentYearProjects = transformedProjects.filter(p => Number(p.year) === currentYear);
                   
                   const quarterlyData = quarters.map((quarter, index) => {
-                    // For demo purposes, distribute projects across quarters
-                    // In production, you'd filter by actual quarter dates
+                    
+                    
                     const quarterProjects = currentYearProjects.filter((_, i) => i % 4 === index);
                     
                     return {
@@ -628,7 +628,7 @@ export const Dashboard = ({
                   
                   return (
                     <div className="space-y-4">
-                      {/* Summary Cards */}
+                      {}
                       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                         {quarterlyData.map((q, index) => (
                           <div 
@@ -669,7 +669,7 @@ export const Dashboard = ({
                               </div>
                             </div>
                             
-                            {/* Progress bar */}
+                            {}
                             <div className="mt-3 h-2 rounded-full overflow-hidden" style={{ 
                               backgroundColor: darkMode ? '#1e293b' : '#f1f5f9' 
                             }}>
@@ -685,7 +685,7 @@ export const Dashboard = ({
                         ))}
                       </div>
                       
-                      {/* Detailed Table */}
+                      {}
                       <div className="overflow-x-auto rounded-xl border" style={{ 
                         borderColor: darkMode ? '#334155' : '#e2e8f0',
                         background: darkMode ? '#1e293b' : '#f8fafc'
@@ -780,7 +780,7 @@ export const Dashboard = ({
                         </table>
                       </div>
                       
-                      {/* Summary Note */}
+                      {}
                       <div className="p-4 rounded-xl" style={{
                         background: darkMode ? 'rgba(96, 165, 250, 0.1)' : 'rgba(96, 165, 250, 0.08)',
                         border: `1px solid ${darkMode ? 'rgba(96, 165, 250, 0.3)' : 'rgba(96, 165, 250, 0.2)'}`
@@ -811,7 +811,7 @@ export const Dashboard = ({
             <p className="text-sm" style={{ color: darkMode ? '#94a3b8' : '#64748b' }}>Search, filter, and view every CEST project</p>
           </div>
         </div>
-          {/* Enhanced Filters Section */}
+          {}
           <div className="rounded-2xl p-4 sm:p-6" style={{
             ...cardStyle,
             background: darkMode 
@@ -822,7 +822,7 @@ export const Dashboard = ({
               ? '0 10px 40px rgba(0, 0, 0, 0.3)'
               : '0 10px 40px rgba(0, 0, 0, 0.08)'
           }}>
-            {/* Filters Header */}
+            {}
             <div className="flex items-center gap-3 mb-4">
               <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{
                 background: 'linear-gradient(135deg, #3B82F6 0%, #2563EB 100%)',
@@ -842,9 +842,9 @@ export const Dashboard = ({
               </div>
             </div>
 
-            {/* Filter Controls */}
+            {}
             <div className="flex flex-col sm:flex-row sm:flex-wrap gap-3 sm:gap-4">
-              {/* Search Input */}
+              {}
               <div className="flex-1 min-w-0 w-full relative group">
                 <div className="absolute left-4 top-1/2 -translate-y-1/2 pointer-events-none">
                   <svg className="w-5 h-5 transition-colors duration-200" style={{ color: darkMode ? '#64748b' : '#94a3b8' }} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -874,7 +874,7 @@ export const Dashboard = ({
                 />
               </div>
               
-              {/* Status Dropdown */}
+              {}
               <div className="relative w-full sm:w-auto sm:min-w-[180px] sm:flex-1 lg:flex-none">
                 <div className="absolute left-4 top-1/2 -translate-y-1/2 pointer-events-none z-10">
                   <svg className="w-5 h-5" style={{ color: darkMode ? '#64748b' : '#94a3b8' }} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -914,7 +914,7 @@ export const Dashboard = ({
                 </div>
               </div>
 
-              {/* Province Dropdown */}
+              {}
               <div className="relative w-full sm:w-auto sm:min-w-[180px] sm:flex-1 lg:flex-none">
                 <div className="absolute left-4 top-1/2 -translate-y-1/2 pointer-events-none z-10">
                   <MapPin className="w-5 h-5" style={{ color: darkMode ? '#64748b' : '#94a3b8' }} />
@@ -952,7 +952,7 @@ export const Dashboard = ({
                 </div>
               </div>
 
-              {/* Year Dropdown */}
+              {}
               <div className="relative w-full sm:w-auto sm:min-w-[180px] sm:flex-1 lg:flex-none">
                 <div className="absolute left-4 top-1/2 -translate-y-1/2 pointer-events-none z-10">
                   <svg className="w-5 h-5" style={{ color: darkMode ? '#64748b' : '#94a3b8' }} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -992,7 +992,7 @@ export const Dashboard = ({
                 </div>
               </div>
 
-              {/* Components Dropdown */}
+              {}
               <div className="relative w-full sm:w-auto sm:min-w-[200px] sm:flex-1 lg:flex-none">
                 <div className="absolute left-4 top-1/2 -translate-y-1/2 pointer-events-none z-10">
                   <svg className="w-5 h-5" style={{ color: darkMode ? '#64748b' : '#94a3b8' }} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -1034,7 +1034,7 @@ export const Dashboard = ({
               </div>
             </div>
 
-            {/* Results Counter */}
+            {}
             <div className="mt-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
               <div className="flex items-center gap-2">
                 <div className="w-2 h-2 rounded-full animate-pulse" style={{ background: '#3B82F6' }}></div>
@@ -1063,7 +1063,7 @@ export const Dashboard = ({
             </div>
           </div>
 
-          {/* Projects List */}
+          {}
           <div className="space-y-3">
             {filteredProjects.map((p, index) => (
               <div 
@@ -1153,7 +1153,7 @@ export const Dashboard = ({
       </>
       )}
 
-      {/* Component Legend Modal */}
+      {}
       {showComponentLegend && (
         <Modal onClose={() => setShowComponentLegend(false)}>
           <ModalPanel maxWidth="max-w-2xl" className="rounded-2xl shadow-2xl">
@@ -1164,7 +1164,7 @@ export const Dashboard = ({
             boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.1)'
           }}
         >
-          {/* Header */}
+          {}
           <div className="p-6 border-b" style={{ borderColor: darkMode ? '#1e293b' : '#e5e7eb' }}>
             <div className="flex items-center justify-between">
               <div>
@@ -1188,7 +1188,7 @@ export const Dashboard = ({
             </div>
           </div>
 
-          {/* Content */}
+          {}
           <div className="p-6 space-y-4">
             {Object.entries(COMPONENTS).map(([key, fullName]) => (
               <div 
@@ -1229,7 +1229,7 @@ export const Dashboard = ({
             ))}
           </div>
 
-          {/* Footer */}
+          {}
           <div className="p-6 border-t" style={{ borderColor: darkMode ? '#1e293b' : '#e5e7eb' }}>
             <button
               onClick={() => setShowComponentLegend(false)}
@@ -1247,7 +1247,7 @@ export const Dashboard = ({
         </Modal>
     )}
 
-    {/* Detail Modal */}
+    {}
     {showDetailModal && selectedItem && (() => {
       const isProject = !!(selectedItem.project || selectedItem.project_title);
       const title = selectedItem.project || selectedItem.project_title || selectedItem.equipment_name || selectedItem.equipmentName || 'Unknown';
@@ -1271,13 +1271,13 @@ export const Dashboard = ({
             }}
             onClick={e => e.stopPropagation()}
           >
-            {/* Enhanced Header Banner with Vibrant Gradient */}
+            {}
             <div className="relative p-8 rounded-t-3xl overflow-hidden"
               style={{ 
                 background: 'linear-gradient(135deg, #3B82F6 0%, #60A5FA 50%, #93C5FD 100%)',
                 boxShadow: 'inset 0 -1px 0 rgba(255, 255, 255, 0.2)'
               }}>
-              {/* Animated background pattern */}
+              {}
               <div className="absolute inset-0 opacity-10"
                 style={{ 
                   backgroundImage: 'radial-gradient(circle at 20% 50%, white 2px, transparent 2px)',
@@ -1287,7 +1287,7 @@ export const Dashboard = ({
               
               <div className="relative flex items-start justify-between gap-4">
                 <div className="flex items-center gap-5 flex-1">
-                  {/* Glassmorphism Icon */}
+                  {}
                   <div className="w-16 h-16 rounded-2xl flex items-center justify-center flex-shrink-0"
                     style={{ 
                       background: 'rgba(255, 255, 255, 0.25)',
@@ -1344,19 +1344,19 @@ export const Dashboard = ({
 
             <div className="p-8 space-y-6">
 
-              {/* PROJECT INFORMATION SECTION */}
+              {}
               {isProject && (
                 <div className="space-y-6">
-                  {/* Section Header */}
+                  {}
                   <div className="pb-3 border-b" style={{ borderColor: darkMode ? '#334155' : '#e2e8f0' }}>
                     <h3 className="text-lg font-bold" style={{ color: darkMode ? '#f8fafc' : '#0f172a' }}>
                       Project Information
                     </h3>
                   </div>
 
-                  {/* Form-like Layout */}
+                  {}
                   <div className="space-y-4">
-                    {/* Year */}
+                    {}
                     <div>
                       <label className="block text-xs font-bold uppercase tracking-wider mb-2" style={{ color: darkMode ? '#94a3b8' : '#6b7280' }}>
                         Year
@@ -1371,7 +1371,7 @@ export const Dashboard = ({
                       </div>
                     </div>
 
-                    {/* Province */}
+                    {}
                     <div>
                       <label className="block text-xs font-bold uppercase tracking-wider mb-2" style={{ color: darkMode ? '#94a3b8' : '#6b7280' }}>
                         Province
@@ -1386,7 +1386,7 @@ export const Dashboard = ({
                       </div>
                     </div>
 
-                    {/* Municipality */}
+                    {}
                     <div>
                       <label className="block text-xs font-bold uppercase tracking-wider mb-2" style={{ color: darkMode ? '#94a3b8' : '#6b7280' }}>
                         Municipality
@@ -1401,7 +1401,7 @@ export const Dashboard = ({
                       </div>
                     </div>
 
-                    {/* Community */}
+                    {}
                     <div>
                       <label className="block text-xs font-bold uppercase tracking-wider mb-2" style={{ color: darkMode ? '#94a3b8' : '#6b7280' }}>
                         Community / Beneficiaries
@@ -1416,7 +1416,7 @@ export const Dashboard = ({
                       </div>
                     </div>
 
-                    {/* MOA */}
+                    {}
                     {selectedItem.moa && (
                       <div>
                         <label className="block text-xs font-bold uppercase tracking-wider mb-2" style={{ color: darkMode ? '#94a3b8' : '#6b7280' }}>
@@ -1436,10 +1436,10 @@ export const Dashboard = ({
                 </div>
               )}
 
-              {/* STATUS & PARTNER AGENCIES SECTION */}
+              {}
               {isProject && (
                 <div className="space-y-6">
-                  {/* Section Header */}
+                  {}
                   <div className="pb-3 border-b" style={{ borderColor: darkMode ? '#334155' : '#e2e8f0' }}>
                     <h3 className="text-lg font-bold" style={{ color: darkMode ? '#f8fafc' : '#0f172a' }}>
                       Project Status & Partners
@@ -1447,7 +1447,7 @@ export const Dashboard = ({
                   </div>
 
                   <div className="space-y-4">
-                    {/* Status */}
+                    {}
                     <div>
                       <label className="block text-xs font-bold uppercase tracking-wider mb-2" style={{ color: darkMode ? '#94a3b8' : '#6b7280' }}>
                         Status
@@ -1462,7 +1462,7 @@ export const Dashboard = ({
                       </div>
                     </div>
 
-                    {/* Partner Agencies */}
+                    {}
                     <div>
                       <label className="block text-xs font-bold uppercase tracking-wider mb-2" style={{ color: darkMode ? '#94a3b8' : '#6b7280' }}>
                         Partner Agencies
@@ -1505,10 +1505,10 @@ export const Dashboard = ({
                 </div>
               )}
 
-              {/* BUDGET SECTION */}
+              {}
               {isProject && (
                 <div className="space-y-6">
-                  {/* Section Header */}
+                  {}
                   <div className="pb-3 border-b" style={{ borderColor: darkMode ? '#334155' : '#e2e8f0' }}>
                     <h3 className="text-lg font-bold" style={{ color: darkMode ? '#f8fafc' : '#0f172a' }}>
                       Budget Information
@@ -1516,7 +1516,7 @@ export const Dashboard = ({
                   </div>
 
                   <div className="space-y-4">
-                    {/* Amount Funded */}
+                    {}
                     <div>
                       <label className="block text-xs font-bold uppercase tracking-wider mb-2" style={{ color: darkMode ? '#94a3b8' : '#6b7280' }}>
                         Amount Funded
@@ -1533,7 +1533,7 @@ export const Dashboard = ({
                       </div>
                     </div>
 
-                    {/* Amount Per Year */}
+                    {}
                     <div>
                       <label className="block text-xs font-bold uppercase tracking-wider mb-2" style={{ color: darkMode ? '#94a3b8' : '#6b7280' }}>
                         Amount Per Year
@@ -1553,7 +1553,7 @@ export const Dashboard = ({
                 </div>
               )}
 
-              {/* Components with better styling */}
+              {}
               {isProject && components.length > 0 && (
                 <div className="p-6 rounded-2xl" style={{ 
                   background: darkMode 
@@ -1584,7 +1584,7 @@ export const Dashboard = ({
                               boxShadow: `0 4px 15px ${COMP_COLORS[componentKey] || '#64748b'}20`
                             }}
                           >
-                            {/* Shine effect on hover */}
+                            {}
                             <div 
                               className="absolute inset-0 bg-gradient-to-r from-transparent via-white to-transparent opacity-0 group-hover:opacity-20 transition-opacity duration-300 transform -skew-x-12 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700"
                               style={{ width: '50%' }}
@@ -1598,19 +1598,19 @@ export const Dashboard = ({
                 </div>
               )}
 
-              {/* Equipment Details */}
+              {}
               {isProject && (() => {
-                // Get equipment linked to this project
+                
                 const projectTitle = safeProjectTitle(selectedItem);
                 const linkedEquipment = transformedEquipment.filter(eq => {
                   const isLinkedToProject = (
-                    // Link by project_id (most reliable)
+                    
                     (eq.project_id && selectedItem.id && String(eq.project_id) === String(selectedItem.id)) ||
-                    // Link by matching project titles (direct comparison)
+                    
                     (projectTitle && eq.project_title && projectTitle === eq.project_title) ||
-                    // Link by matching project titles (transformed)
+                    
                     (projectTitle && safeProjectTitle(eq) && projectTitle === safeProjectTitle(eq)) ||
-                    // Legacy linking methods
+                    
                     (eq.projectName === projectTitle) ||
                     (eq.project?.project_title === projectTitle)
                   );
@@ -1663,7 +1663,7 @@ export const Dashboard = ({
                                   <span className="font-semibold">{eq.units || 0} units</span>
                                 </div>
                               </div>
-                              {/* Component badge */}
+                              {}
                               {eq.component_id && (
                                 <div className="flex items-center gap-1">
                                   <span 
@@ -1700,7 +1700,7 @@ export const Dashboard = ({
                 );
               })()}
 
-              {/* Beneficiaries */}
+              {}
               {isProject && benefTotal > 0 && (
                 <div className="p-4 rounded-2xl" style={{ background: darkMode ? 'rgba(255,255,255,0.04)' : 'rgba(0,74,152,0.04)', border: `1px solid ${darkMode ? '#334155' : '#e2e8f0'}` }}>
                   <p className="text-xs font-semibold uppercase tracking-wider mb-3" style={{ color: darkMode ? '#94a3b8' : '#6b7280' }}>
@@ -1717,7 +1717,7 @@ export const Dashboard = ({
                 </div>
               )}
 
-              {/* Community Types */}
+              {}
               {isProject && communities.length > 0 && (
                 <div className="p-4 rounded-2xl" style={{ background: darkMode ? 'rgba(255,255,255,0.04)' : 'rgba(0,74,152,0.04)', border: `1px solid ${darkMode ? '#334155' : '#e2e8f0'}` }}>
                   <p className="text-xs font-semibold uppercase tracking-wider mb-3" style={{ color: darkMode ? '#94a3b8' : '#6b7280' }}>Community Types</p>
@@ -1732,7 +1732,7 @@ export const Dashboard = ({
                 </div>
               )}
 
-              {/* Attachment */}
+              {}
               {selectedItem.file_name && selectedItem.file_data && (
                 <div className="p-4 rounded-2xl" style={{ background: darkMode ? 'rgba(255,255,255,0.04)' : 'rgba(0,74,152,0.04)', border: `1px solid ${darkMode ? '#334155' : '#e2e8f0'}` }}>
                   <p className="text-xs font-semibold uppercase tracking-wider mb-3" style={{ color: darkMode ? '#94a3b8' : '#6b7280' }}>Attachment</p>
@@ -1754,7 +1754,7 @@ export const Dashboard = ({
 
             </div>
 
-            {/* Footer with Close button */}
+            {}
             <div className="px-6 pb-6 pt-4 flex justify-end gap-3 border-t sticky bottom-0"
               style={{
                 borderColor: darkMode ? '#334155' : '#e2e8f0',
@@ -1773,7 +1773,7 @@ export const Dashboard = ({
       );
     })()}
     
-    {/* Enhanced CSS Animations */}
+    {}
     <style>{`
       @keyframes backdrop-fade-in {
         from { opacity: 0; }
@@ -1824,7 +1824,7 @@ export const Dashboard = ({
       }
     `}</style>
 
-      {/* Component Projects Modal */}
+      {}
       {componentModal && (
         <Modal onClose={() => setComponentModal(null)}>
           <ModalPanel maxWidth="max-w-4xl" className="rounded-2xl overflow-hidden shadow-2xl">
@@ -1832,7 +1832,7 @@ export const Dashboard = ({
             background: darkMode ? '#1e293b' : '#ffffff',
             border: `2px solid ${COMP_COLORS[componentModal.key]}40`
           }}>
-            {/* Modal Header */}
+            {}
             <div className="p-6 border-b" style={{
               background: `linear-gradient(135deg, ${COMP_COLORS[componentModal.key]}15, ${COMP_COLORS[componentModal.key]}25)`,
               borderColor: darkMode ? '#334155' : '#e2e8f0'
@@ -1867,7 +1867,7 @@ export const Dashboard = ({
               </div>
             </div>
 
-            {/* Modal Content - Scrollable Project List */}
+            {}
             <div className="p-6 overflow-y-auto max-h-[calc(90vh-200px)]">
               {componentModal.projects.length === 0 ? (
                 <div className="text-center py-12">
@@ -1942,7 +1942,7 @@ export const Dashboard = ({
               )}
             </div>
 
-            {/* Modal Footer */}
+            {}
             <div className="p-4 border-t flex items-center justify-between" style={{
               background: darkMode ? '#0f172a' : '#f8fafc',
               borderColor: darkMode ? '#334155' : '#e2e8f0'

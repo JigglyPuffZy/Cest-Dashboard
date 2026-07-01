@@ -14,10 +14,10 @@ export const CitiesPage = ({ projects, darkMode }) => {
   const { provinceId } = useParams();
   const [searchTerm, setSearchTerm] = useState("");
 
-  // Transform projects data to handle Supabase structure
+  
   const transformedProjects = transformProjects(projects);
 
-  // Get province data from official structure
+  
   const province = getProvinceById(provinceId);
   const provinceName = province ? province.name : provinceId;
   const officialMunicipalities = province ? getMunicipalitiesByProvince(provinceId) : [];
@@ -26,12 +26,12 @@ export const CitiesPage = ({ projects, darkMode }) => {
     (p) => p.province?.toLowerCase() === provinceName.toLowerCase()
   );
 
-  // Get municipalities from projects (for backward compatibility)
+  
   const projectMunicipalities = Array.from(new Set(provinceProjects.map((p) => p.municipality)))
     .filter(Boolean)
     .sort();
 
-  // Combine official municipalities with project data
+  
   const municipalities = officialMunicipalities.length > 0 
     ? officialMunicipalities.map(m => m.name)
     : projectMunicipalities;
@@ -65,12 +65,12 @@ export const CitiesPage = ({ projects, darkMode }) => {
   const fmtChart = (v) =>
     maxBudget >= 1_000_000 ? `₱${(v / 1_000_000).toFixed(1)}M` : `₱${(v / 1_000).toFixed(0)}k`;
 
-  // Component distribution for this province
+  
   const componentData = Object.keys(COMP_COLORS)
-    .filter(key => key !== 'default') // Exclude default color
+    .filter(key => key !== 'default') 
     .map((key) => {
       const count = provinceProjects.filter((p) => {
-        // Handle transformed components array
+        
         const components = p.components || [];
         return components.includes(key.toLowerCase());
       }).length;
@@ -123,7 +123,7 @@ export const CitiesPage = ({ projects, darkMode }) => {
         </button>
       </div>
 
-      {/* Search */}
+      {}
       <div className="rounded-xl p-5" style={cardStyle}>
         <input
           value={searchTerm}
@@ -140,9 +140,9 @@ export const CitiesPage = ({ projects, darkMode }) => {
         />
       </div>
 
-      {/* Charts */}
+      {}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Budget Chart */}
+        {}
         {chartData.length > 0 && (
           <div className="rounded-xl p-6" style={cardStyle}>
             <h3 className="text-lg font-semibold mb-1" style={{ color: darkMode ? "#f8fafc" : "#0f172a" }}>
@@ -183,7 +183,7 @@ export const CitiesPage = ({ projects, darkMode }) => {
           </div>
         )}
 
-        {/* Component Distribution */}
+        {}
         {componentData.length > 0 && (
           <div className="rounded-xl p-6" style={cardStyle}>
             <h3 className="text-lg font-semibold mb-1" style={{ color: darkMode ? "#f8fafc" : "#0f172a" }}>
@@ -223,7 +223,7 @@ export const CitiesPage = ({ projects, darkMode }) => {
         )}
       </div>
 
-      {/* City Cards */}
+      {}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {cityData.map((city) => (
           <button

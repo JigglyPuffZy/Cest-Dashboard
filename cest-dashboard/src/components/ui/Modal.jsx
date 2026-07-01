@@ -19,10 +19,7 @@ const MAX_WIDTH_MAP = {
 let openModalCount = 0
 let savedBodyOverflow = null
 
-/**
- * Portal modal — backdrop + flex-centered dialog.
- * Center layer uses pointer-events-none so backdrop clicks work beside the panel.
- */
+
 export const Modal = ({
   isOpen = true,
   onClose,
@@ -95,7 +92,7 @@ export const Modal = ({
         boxSizing: 'border-box',
       }}
     >
-      {/* Backdrop — receives outside clicks */}
+      {}
       <div
         aria-hidden="true"
         className={`cest-modal-backdrop animate-backdrop-fade-in ${resolvedOverlayClass}`}
@@ -108,7 +105,7 @@ export const Modal = ({
         onClick={handleBackdropClick}
       />
 
-      {/* Centering layer — pointer-events-none so backdrop gets side clicks */}
+      {}
       <div
         className="cest-modal-center"
         style={{
@@ -152,7 +149,7 @@ export const Modal = ({
   )
 }
 
-/** Width wrapper + opacity-only enter animation (never uses transform). */
+
 export const ModalPanel = ({
   children,
   className = '',

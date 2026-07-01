@@ -27,6 +27,7 @@ import { useAuditLog } from "../shared/hooks/useAuditLog";
 import { useNotifications } from "../shared/hooks/useNotifications";
 import { auditService, ENTITY_TYPES } from "../shared/services/auditService";
 import { db, supabase } from "../shared/services/supabaseClient";
+import { transformProject, transformEquipment } from "../shared/utils/dataTransform";
 
 const INACTIVITY_TIMEOUT = 60 * 60 * 1000;
 const ACTIVITY_EVENTS = ['mousedown', 'mousemove', 'keypress', 'scroll', 'touchstart', 'click'];
@@ -163,7 +164,6 @@ function AppContent() {
   const loadSupabaseData = async () => {
     try {
       setLoadingData(true);
-      console.log('Loading data from Supabase...');
       
       const timeoutPromise = new Promise((_, reject) => 
         setTimeout(() => reject(new Error('Data loading timeout')), 10000)
@@ -180,7 +180,6 @@ function AppContent() {
       
       if (projectsData.status === 'fulfilled') {
         setProjects(projectsData.value || []);
-        console.log('Projects loaded:', projectsData.value?.length || 0);
       } else {
         console.error('Failed to load projects:', projectsData.reason);
         setProjects([]);
@@ -189,7 +188,6 @@ function AppContent() {
       
       if (equipmentData.status === 'fulfilled') {
         setEquipment(equipmentData.value || []);
-        console.log('Equipment loaded:', equipmentData.value?.length || 0);
       } else {
         console.error('Failed to load equipment:', equipmentData.reason);
         setEquipment([]);
@@ -198,7 +196,6 @@ function AppContent() {
 
       if (starbooksData.status === 'fulfilled') {
         setStarbooksUnits(starbooksData.value || []);
-        console.log('STARBOOKS units loaded:', starbooksData.value?.length || 0);
       } else {
         console.error('Failed to load STARBOOKS units:', starbooksData.reason);
         setStarbooksUnits([]);
@@ -218,19 +215,21 @@ function AppContent() {
         ]);
 
         const archivedItems = [
-          ...(archivedP.status === 'fulfilled' ? archivedP.value : []).map(p => ({ ...p, _type: 'project' })),
-          ...(archivedE.status === 'fulfilled' ? archivedE.value : []).map(e => ({ ...e, _type: 'equipment' })),
+          ...(archivedP.status === 'fulfilled' ? archivedP.value : [])
+            .map((p) => ({ ...transformProject(p), _type: 'project' }))
+            .filter(Boolean),
+          ...(archivedE.status === 'fulfilled' ? archivedE.value : [])
+            .map((e) => ({ ...transformEquipment(e), _type: 'equipment' }))
+            .filter(Boolean),
           ...((archivedTRes.status === 'fulfilled' ? archivedTRes.value.data : null) || []).map(t => ({ ...t, _type: 'training' })),
         ];
         
         setArchivedProjects(archivedItems);
-        console.log('Archived items loaded:', archivedItems.length);
       } catch (archiveErr) {
         console.warn('Archive loading failed, continuing without archived items:', archiveErr);
         setArchivedProjects([]);
       }
 
-      console.log('Data loading completed successfully');
     } catch (err) {
       console.error('Critical error loading data:', err);
       setProjects([]);
@@ -247,10 +246,6 @@ function AppContent() {
       setLoadingData(false);
     }
   };
-
-  useEffect(() => {
-    if (!user) return;
-  }, [user]);
 
   const handleSwitchSystem = () => {
     const newSystem = activeSystem === "cest" ? "starbooks" : "cest";
@@ -496,26 +491,20 @@ function AppContent() {
   const handleAddProject = async (projectData) => {
     if (isReadOnly) { warning('View-only mode: cannot add records'); return; }
     try {
-      console.log('handleAddProject called with:', projectData);
-      
       const newProject = await db.createProject(projectData);
-      console.log('Project created successfully:', newProject);
       
       if (projectData.components && projectData.components.length > 0) {
-        console.log('Adding components:', projectData.components);
         for (const componentCode of projectData.components) {
           await db.addProjectComponent(newProject.id, componentCode);
         }
       }
       
       if (projectData.communities && projectData.communities.length > 0) {
-        console.log('Adding communities:', projectData.communities);
         for (const communityCode of projectData.communities) {
           await db.addProjectCommunityType(newProject.id, communityCode);
         }
       }
       
-      console.log('Reloading data...');
       await loadSupabaseData();
       
       auditService.logCreate(
@@ -537,7 +526,7 @@ function AppContent() {
   const handleAddEquipment = async (equipmentData) => {
     if (isReadOnly) { warning('View-only mode: cannot add records'); return; }
     try {
-      const newEquipment = await db.createEquipment(equipmentData);
+      await db.createEquipment(equipmentData);
       
       await loadSupabaseData();
       
@@ -556,19 +545,8 @@ function AppContent() {
   const handleUpdateProject = async (id, projectData) => {
     if (isReadOnly) { warning('View-only mode: cannot edit records'); return; }
     try {
-      console.log('Updating project with data:', projectData);
-      
-      const { components, communities, ...rest } = projectData;
-      const updated = await db.updateProject(id, rest);
-      console.log('Project updated successfully:', updated);
-      
-      if (components && Array.isArray(components)) {
-        console.log('Updating project components:', components);
-      }
-      
-      if (communities && Array.isArray(communities)) {
-        console.log('Updating project communities:', communities);
-      }
+      const { components: _components, communities: _communities, ...rest } = projectData;
+      await db.updateProject(id, rest);
       
       await loadSupabaseData();
       
@@ -587,8 +565,6 @@ function AppContent() {
   const handleUpdateEquipment = async (id, equipmentData) => {
     if (isReadOnly) { warning('View-only mode: cannot edit records'); return; }
     try {
-      console.log('Updating equipment with data:', equipmentData);
-      
       const updatePayload = {
         year: equipmentData.year,
         municipality_id: equipmentData.municipality_id,
@@ -600,10 +576,7 @@ function AppContent() {
         project_title: equipmentData.project_title || null
       };
       
-      console.log('Update payload:', updatePayload);
-      
-      const updated = await db.updateEquipment(id, updatePayload);
-      console.log('Equipment updated successfully:', updated);
+      await db.updateEquipment(id, updatePayload);
       
       await loadSupabaseData();
       
@@ -650,7 +623,7 @@ function AppContent() {
           ? 'linear-gradient(to bottom right, #020617, #0f172a, #020617)' 
           : 'linear-gradient(to bottom right, #f8fafc, #dbeafe, #e0e7ff)'
       }}>
-        {/* Toast Notifications */}
+        {}
         {toasts.map((toast) => (
           <Toast
             key={toast.id}
@@ -661,7 +634,7 @@ function AppContent() {
           />
         ))}
 
-        {/* Conditional Sidebar based on active system */}
+        {}
         {activeSystem === "starbooks" ? (
           <StarbooksSidebar
             activePage={activePage}
@@ -706,11 +679,11 @@ function AppContent() {
             darkMode={darkMode}
             setDarkMode={setDarkMode}
             projects={projects}
-            onNavigateToProject={(project) => {
+            onNavigateToProject={() => {
               setActivePage("dashboard");
             }}
             starbooksUnits={starbooksUnits}
-            onNavigateToStarbooksUnit={(unit) => {
+            onNavigateToStarbooksUnit={() => {
               setActivePage("starbooks");
             }}
           />
@@ -860,7 +833,7 @@ function AppContent() {
             </Routes>
           </main>
 
-          {/* Notification Panel */}
+          {}
           {showNotifications && (
             <NotificationPanel
               notifications={notifications}
@@ -884,7 +857,6 @@ function AppContent() {
   );
 }
 
-// Placeholder component for non-dashboard pages
 function PlaceholderPage({ activePage, darkMode }) {
   return (
     <div className="flex items-center justify-center h-full">

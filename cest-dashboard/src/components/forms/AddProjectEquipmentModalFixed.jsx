@@ -22,7 +22,7 @@ export const AddProjectEquipmentModal = ({ onClose, onSaveProject, onSaveEquipme
       equipmentList: [{ equipment: "", units: "", unitsPerYear: "", component: "", projectTitle: "" }]
     };
 
-    // Pre-fill from existing project/equipment data
+    
     const d = initialData;
     const isProject = !!(d.project_title || d.project);
     return {
@@ -60,10 +60,10 @@ export const AddProjectEquipmentModal = ({ onClose, onSaveProject, onSaveEquipme
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [loadingMunicipalities, setLoadingMunicipalities] = useState(false);
 
-  // Load provinces from Supabase on mount
+  
   useEffect(() => {
     loadProvincesFromSupabase();
-    // If editing, load municipalities for the pre-selected province
+    
     if (initialData && formData.province) {
       handleProvinceChange(formData.province, true);
     }
@@ -108,7 +108,7 @@ export const AddProjectEquipmentModal = ({ onClose, onSaveProject, onSaveEquipme
     }
   };
 
-  // Keyboard shortcuts
+  
   useKeyboardShortcuts({
     'escape': onClose,
     'ctrl+s': (e) => {
@@ -120,7 +120,7 @@ export const AddProjectEquipmentModal = ({ onClose, onSaveProject, onSaveEquipme
   const handleFileUpload = (e) => {
     const file = e.target.files[0];
     if (file) {
-      // Check if file is PDF
+      
       if (file.type !== 'application/pdf') {
         alert('Please select a PDF file only.');
         return;
@@ -196,7 +196,7 @@ export const AddProjectEquipmentModal = ({ onClose, onSaveProject, onSaveEquipme
     if (!formData.year) newErrors.year = "Year is required";
     if (!formData.community) newErrors.community = "Community is required";
 
-    // In edit mode, municipality might already be set as ID — only require it for new entries
+    
     if (!isEditMode) {
       if (!formData.province) newErrors.province = "Province is required";
       if (!formData.municipality) newErrors.municipality = "Municipality is required";
@@ -218,14 +218,14 @@ export const AddProjectEquipmentModal = ({ onClose, onSaveProject, onSaveEquipme
 
     if (hasEquipmentFields) {
       (formData.equipmentList || []).forEach((eq, index) => {
-        if (eq.equipment || eq.units || eq.component) { // If any field is filled, validate all required fields
+        if (eq.equipment || eq.units || eq.component) { 
           if (!eq.equipment) newErrors[`equipment_${index}`] = "Equipment/Technology is required";
           if (!eq.units) newErrors[`units_${index}`] = "Number of units is required";
           if (!eq.component) newErrors[`component_${index}`] = "Component is required";
         }
       });
       
-      // Check if at least one equipment entry is filled
+      
       const hasValidEquipment = (formData.equipmentList || []).some(eq => eq.equipment && eq.units && eq.component);
       if (!hasValidEquipment && hasEquipmentFields) {
         newErrors.equipmentGeneral = "Please complete at least one equipment entry";
@@ -247,29 +247,20 @@ export const AddProjectEquipmentModal = ({ onClose, onSaveProject, onSaveEquipme
     const hasProjectFields = !isEquipmentItem && (formData.project || formData.amountFunded || formData.components.length > 0);
     const hasEquipmentFields = isEquipmentItem || (formData.equipmentList || []).some(eq => eq.equipment || eq.units || eq.component);
 
-    console.log('Form submission debug:', {
-      hasProjectFields,
-      hasEquipmentFields,
-      projectTitle: formData.project,
-      amountFunded: formData.amountFunded,
-      components: formData.components,
-      equipmentList: formData.equipmentList
-    });
-
     if (hasProjectFields) {
       const total = (parseInt(formData.beneficiaries.male) || 0) + (parseInt(formData.beneficiaries.female) || 0);
       
-      // Validate amount_funded to prevent overflow (max 10^13)
+      
       const amountFunded = parseFloat(formData.amountFunded) || 0;
       const amountPerYear = parseFloat(formData.amountPerYear) || 0;
       
-      if (amountFunded >= 10000000000000) { // 10^13
+      if (amountFunded >= 10000000000000) { 
         alert('Amount funded is too large. Please enter a smaller amount.');
         setIsSubmitting(false);
         return;
       }
       
-      if (amountPerYear >= 10000000000000) { // 10^13
+      if (amountPerYear >= 10000000000000) { 
         alert('Amount per year is too large. Please enter a smaller amount.');
         setIsSubmitting(false);
         return;
@@ -293,29 +284,23 @@ export const AddProjectEquipmentModal = ({ onClose, onSaveProject, onSaveEquipme
         file_type: formData.fileType
       };
       
-      console.log('Submitting project data:', projectData);
-      
       try {
         const newProject = await onSaveProject(projectData);
-        console.log('Project saved successfully:', newProject);
         
-        // If we have equipment and a new project was created, link them
         if (hasEquipmentFields && newProject && newProject.id) {
-          console.log('Linking equipment to new project:', newProject.id);
           
-          // Small delay to ensure project is fully committed to database
           await new Promise(resolve => setTimeout(resolve, 100));
           
-          // Create array to hold equipment promises
+          
           const equipmentPromises = [];
           
-          // Update equipment data to include the new project_id
+          
           (formData.equipmentList || []).forEach((eq, equipmentIndex) => {
             if (eq.equipment && eq.units && eq.component) {
               const units = parseInt(eq.units) || 0;
               const unitsPerYear = parseInt(eq.unitsPerYear) || 0;
               
-              // Validate units to prevent overflow
+              
               if (units >= 1000000) {
                 alert(`Equipment entry ${equipmentIndex + 1}: Number of units is too large. Please enter a smaller number.`);
                 setIsSubmitting(false);
@@ -330,18 +315,16 @@ export const AddProjectEquipmentModal = ({ onClose, onSaveProject, onSaveEquipme
                 units: units,
                 units_per_year: unitsPerYear > 0 ? unitsPerYear : null,
                 component_id: eq.component,
-                project_title: formData.project, // Use the project title from the form
-                project_id: newProject.id // Link to the newly created project
+                project_title: formData.project, 
+                project_id: newProject.id 
               };
               
-              console.log(`Submitting equipment ${equipmentIndex + 1} with project link:`, equipmentData);
               equipmentPromises.push(onSaveEquipment(equipmentData));
             }
           });
           
           try {
             await Promise.all(equipmentPromises);
-            console.log('All equipment saved and linked to project successfully');
           } catch (error) {
             console.error('Error saving equipment:', error);
             alert('Failed to save equipment: ' + error.message);
@@ -357,16 +340,16 @@ export const AddProjectEquipmentModal = ({ onClose, onSaveProject, onSaveEquipme
       }
     }
 
-    // Handle standalone equipment (when no project is being created)
+    
     if (hasEquipmentFields && !hasProjectFields) {
-      // Save each equipment entry that has data
+      
       const equipmentPromises = [];
       (formData.equipmentList || []).forEach((eq, equipmentIndex) => {
         if (eq.equipment && eq.units && eq.component) {
           const units = parseInt(eq.units) || 0;
           const unitsPerYear = parseInt(eq.unitsPerYear) || 0;
           
-          // Validate units to prevent overflow
+          
           if (units >= 1000000) {
             alert(`Equipment entry ${equipmentIndex + 1}: Number of units is too large. Please enter a smaller number.`);
             setIsSubmitting(false);
@@ -384,14 +367,12 @@ export const AddProjectEquipmentModal = ({ onClose, onSaveProject, onSaveEquipme
             project_title: eq.projectTitle || null
           };
           
-          console.log(`Submitting standalone equipment ${equipmentIndex + 1}:`, equipmentData);
           equipmentPromises.push(onSaveEquipment(equipmentData));
         }
       });
       
       try {
         await Promise.all(equipmentPromises);
-        console.log('All standalone equipment saved successfully');
       } catch (error) {
         console.error('Error saving equipment:', error);
         alert('Failed to save equipment: ' + error.message);
@@ -422,7 +403,7 @@ export const AddProjectEquipmentModal = ({ onClose, onSaveProject, onSaveEquipme
         className="w-full max-h-[85vh] overflow-hidden rounded-2xl shadow-2xl flex flex-col"
         style={modalStyle}
       >
-        {/* Header */}
+        {}
         <div className="p-6 border-b" style={{ borderColor: darkMode ? '#334155' : '#e5e7eb' }}>
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
@@ -449,10 +430,10 @@ export const AddProjectEquipmentModal = ({ onClose, onSaveProject, onSaveEquipme
           </div>
         </div>
 
-        {/* Content */}
+        {}
         <div className="flex-1 p-4 overflow-y-auto" style={{ maxHeight: 'calc(85vh - 180px)' }}>
           <div className="space-y-4">
-            {/* Basic Information */}
+            {}
             <div>
               <h3 className="text-lg font-bold mb-3" style={{ color: darkMode ? '#f8fafc' : '#0f172a' }}>
                 📍 Basic Information
@@ -531,7 +512,7 @@ export const AddProjectEquipmentModal = ({ onClose, onSaveProject, onSaveEquipme
               </div>
             </div>
 
-            {/* Project Details */}
+            {}
             <div>
               <h3 className="text-lg font-bold mb-3" style={{ color: darkMode ? '#f8fafc' : '#0f172a' }}>
                 📋 Project Details (Optional)
@@ -563,7 +544,7 @@ export const AddProjectEquipmentModal = ({ onClose, onSaveProject, onSaveEquipme
                       value={formData.amountFunded}
                       onChange={(e) => {
                         const value = parseFloat(e.target.value) || 0;
-                        if (value < 10000000000000) { // Prevent overflow
+                        if (value < 10000000000000) { 
                           setFormData({ ...formData, amountFunded: e.target.value });
                         }
                       }}
@@ -584,7 +565,7 @@ export const AddProjectEquipmentModal = ({ onClose, onSaveProject, onSaveEquipme
                       value={formData.amountPerYear}
                       onChange={(e) => {
                         const value = parseFloat(e.target.value) || 0;
-                        if (value < 10000000000000) { // Prevent overflow
+                        if (value < 10000000000000) { 
                           setFormData({ ...formData, amountPerYear: e.target.value });
                         }
                       }}
@@ -644,7 +625,7 @@ export const AddProjectEquipmentModal = ({ onClose, onSaveProject, onSaveEquipme
                   </div>
                 )}
 
-                {/* Components */}
+                {}
                 <div>
                   <label className="block text-sm font-bold mb-2 text-center" style={{ color: darkMode ? '#94a3b8' : '#64748b' }}>
                     CEST Components
@@ -677,13 +658,13 @@ export const AddProjectEquipmentModal = ({ onClose, onSaveProject, onSaveEquipme
                               : darkMode ? '0 4px 12px rgba(0, 0, 0, 0.3)' : '0 4px 12px rgba(0, 0, 0, 0.1)'
                           }}
                         >
-                          {/* Shine effect on hover */}
+                          {}
                           <div 
                             className="absolute inset-0 bg-gradient-to-r from-transparent via-white to-transparent opacity-0 group-hover:opacity-20 transition-all duration-500 transform -skew-x-12 translate-x-[-100%] group-hover:translate-x-[100%]"
                             style={{ width: '50%' }}
                           />
                           
-                          {/* Selection indicator */}
+                          {}
                           {formData.components.includes(key) && (
                             <div 
                               className="absolute top-1 right-1 w-2 h-2 rounded-full"
@@ -702,7 +683,7 @@ export const AddProjectEquipmentModal = ({ onClose, onSaveProject, onSaveEquipme
                   {errors.components && <p className="text-red-500 text-xs mt-1">{errors.components}</p>}
                 </div>
 
-                {/* No. of Beneficiaries */}
+                {}
                 <div className="p-4 rounded-xl" style={{ background: darkMode ? '#0f172a' : '#f8fafc', border: `1px solid ${darkMode ? '#334155' : '#e2e8f0'}` }}>
                   <label className="block text-sm font-bold mb-3" style={{ color: darkMode ? '#f8fafc' : '#0f172a' }}>
                     👥 No. of Beneficiaries
@@ -736,7 +717,7 @@ export const AddProjectEquipmentModal = ({ onClose, onSaveProject, onSaveEquipme
                   </div>
                 </div>
 
-                {/* Community Types */}
+                {}
                 <div className="p-4 rounded-xl" style={{ background: darkMode ? '#0f172a' : '#f8fafc', border: `1px solid ${darkMode ? '#334155' : '#e2e8f0'}` }}>
                   <label className="block text-sm font-bold mb-3" style={{ color: darkMode ? '#f8fafc' : '#0f172a' }}>
                     🏘️ Community Types
@@ -767,7 +748,7 @@ export const AddProjectEquipmentModal = ({ onClose, onSaveProject, onSaveEquipme
                   </div>
                 </div>
 
-                {/* Attachment */}
+                {}
                 <div>
                   <label className="block text-sm font-bold mb-2" style={{ color: darkMode ? '#94a3b8' : '#64748b' }}>
                     📎 Attachment (PDF only)
@@ -814,7 +795,7 @@ export const AddProjectEquipmentModal = ({ onClose, onSaveProject, onSaveEquipme
               </div>
             </div>
 
-            {/* Equipment Details */}
+            {}
             <div>
               <div className="flex items-center justify-between mb-4">
                 <div>
@@ -861,7 +842,7 @@ export const AddProjectEquipmentModal = ({ onClose, onSaveProject, onSaveEquipme
                         : '0 4px 12px rgba(0, 0, 0, 0.05)'
                     }}
                   >
-                    {/* Header */}
+                    {}
                     <div className="flex items-center justify-between mb-4">
                       <div className="flex items-center gap-3">
                         <div 
@@ -898,7 +879,7 @@ export const AddProjectEquipmentModal = ({ onClose, onSaveProject, onSaveEquipme
                       )}
                     </div>
                     
-                    {/* Form Fields */}
+                    {}
                     <div className="space-y-4">
                       <div>
                         <label className="block text-sm font-medium mb-2" style={{ color: darkMode ? '#94a3b8' : '#64748b' }}>
@@ -952,7 +933,7 @@ export const AddProjectEquipmentModal = ({ onClose, onSaveProject, onSaveEquipme
                             value={equipment.units}
                             onChange={(e) => {
                               const value = parseInt(e.target.value) || 0;
-                              if (value < 1000000) { // Prevent overflow
+                              if (value < 1000000) { 
                                 updateEquipmentEntry(index, 'units', e.target.value);
                               }
                             }}
@@ -1005,7 +986,7 @@ export const AddProjectEquipmentModal = ({ onClose, onSaveProject, onSaveEquipme
                         </div>
                       </div>
                       
-                      {/* Progress indicator */}
+                      {}
                       <div className="flex items-center gap-3 pt-2">
                         <div className="flex-1 h-2 bg-gray-200 rounded-full overflow-hidden" style={{ backgroundColor: darkMode ? '#334155' : '#e5e7eb' }}>
                           <div 
@@ -1030,7 +1011,7 @@ export const AddProjectEquipmentModal = ({ onClose, onSaveProject, onSaveEquipme
                   </div>
                 )}
                 
-                {/* Helper text */}
+                {}
                 <div className="text-center py-4">
                   <p className="text-xs" style={{ color: darkMode ? '#64748b' : '#94a3b8' }}>
                     💡 Tip: You can add multiple equipment entries for projects with various technology components
@@ -1039,14 +1020,14 @@ export const AddProjectEquipmentModal = ({ onClose, onSaveProject, onSaveEquipme
               </div>
             </div>
 
-            {/* General Error */}
+            {}
             {errors.general && (
               <div className="p-3 rounded-xl bg-red-50 border border-red-200">
                 <p className="text-red-600 text-sm font-medium">{errors.general}</p>
               </div>
             )}
 
-            {/* Submit Reminder */}
+            {}
             <div className="p-4 rounded-xl" style={{
               background: darkMode 
                 ? 'linear-gradient(135deg, rgba(0, 74, 152, 0.1), rgba(16, 185, 129, 0.1))'
@@ -1072,7 +1053,7 @@ export const AddProjectEquipmentModal = ({ onClose, onSaveProject, onSaveEquipme
           </div>
         </div>
 
-        {/* Footer - Sticky and Always Visible */}
+        {}
         <div className="sticky bottom-0 flex-shrink-0 p-4 border-t" style={{ 
           borderColor: darkMode ? '#334155' : '#e5e7eb',
           background: darkMode ? '#1e293b' : '#ffffff',

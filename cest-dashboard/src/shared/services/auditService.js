@@ -1,6 +1,3 @@
-// Audit Log Service
-// Tracks all user activities in the system
-
 export const AUDIT_ACTIONS = {
   CREATE: 'create',
   UPLOAD: 'upload',
@@ -24,7 +21,7 @@ class AuditService {
     this.listeners = [];
   }
 
-  // Subscribe to audit log changes
+  
   subscribe(callback) {
     this.listeners.push(callback);
     return () => {
@@ -32,12 +29,12 @@ class AuditService {
     };
   }
 
-  // Notify all listeners
+  
   notify(log) {
     this.listeners.forEach(listener => listener(log));
   }
 
-  // Create an audit log entry
+  
   createLog({
     action,
     entityType,
@@ -65,7 +62,7 @@ class AuditService {
     return log;
   }
 
-  // Convenience methods for common actions
+  
   logCreate(entityType, entityName, details, metadata) {
     return this.createLog({
       action: AUDIT_ACTIONS.CREATE,
@@ -141,5 +138,5 @@ class AuditService {
   }
 }
 
-// Export singleton instance
+
 export const auditService = new AuditService();

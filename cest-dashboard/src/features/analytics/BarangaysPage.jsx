@@ -18,22 +18,22 @@ import { COMP_COLORS } from "../../shared/constants";
 import { getProvinceById } from "../../shared/data/regionII";
 import { transformProjects } from "../../shared/utils/dataTransform";
 
-// ── Inline helpers ────────────────────────────────────────────────────
+
 
 const getCompColor = (key) =>
   COMP_COLORS[key?.toLowerCase()] || COMP_COLORS.default;
 
-// ── Main Component ─────────────────────────────────────────────────────────
+
 
 export const BarangaysPage = ({ projects, darkMode }) => {
   const navigate = useNavigate();
   const { provinceId, cityName } = useParams();
   const [searchTerm, setSearchTerm] = useState("");
 
-  // Transform projects data to handle Supabase structure
+  
   const transformedProjects = transformProjects(projects);
 
-  // Get province data from official structure
+  
   const province = getProvinceById(provinceId);
   const provinceName = province ? province.name : provinceId;
   const decodedCityName = decodeURIComponent(cityName);
@@ -100,7 +100,7 @@ export const BarangaysPage = ({ projects, darkMode }) => {
       };
     });
 
-  // ── Styles ───────────────────────────────────────────────────────────────
+  
 
   const card = {
     background: darkMode ? "#0f172a" : "#ffffff",
@@ -127,7 +127,7 @@ export const BarangaysPage = ({ projects, darkMode }) => {
       : "text-blue-700 bg-blue-50 border-blue-200";
   };
 
-  // ── Render ───────────────────────────────────────────────────────────────
+  
 
   return (
     <div className="max-w-[1400px] mx-auto space-y-6">
@@ -140,7 +140,7 @@ export const BarangaysPage = ({ projects, darkMode }) => {
         darkMode={darkMode}
       />
 
-      {/* Header */}
+      {}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <div className="min-w-0 flex-1">
           <h1 className="text-xl sm:text-2xl font-semibold mb-1 leading-snug" style={label}>
@@ -164,7 +164,7 @@ export const BarangaysPage = ({ projects, darkMode }) => {
         </button>
       </div>
 
-      {/* Stat Cards */}
+      {}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         {[
           {
@@ -216,7 +216,7 @@ export const BarangaysPage = ({ projects, darkMode }) => {
         })}
       </div>
 
-      {/* Search */}
+      {}
       <div className="rounded-xl p-5" style={card}>
         <input
           value={searchTerm}
@@ -235,7 +235,7 @@ export const BarangaysPage = ({ projects, darkMode }) => {
         />
       </div>
 
-      {/* Charts */}
+      {}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {chartData.length > 0 && (
           <div className="rounded-xl p-6" style={card}>
@@ -373,7 +373,7 @@ export const BarangaysPage = ({ projects, darkMode }) => {
         )}
       </div>
 
-      {/* Barangay Cards */}
+      {}
       <div className="space-y-4">
         {barangayData.length === 0 ? (
           <div className="rounded-xl p-10 text-center" style={card}>

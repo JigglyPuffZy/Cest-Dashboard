@@ -287,8 +287,3 @@ export function AdminRequestsPage({ darkMode, initialTab = "pending", adminName 
     </div>
   );
 }
-
-/** @deprecated Use AdminRequestsPage with logs tab */
-export function AdminAccessLogsPage(props) {
-  return <AdminRequestsPage {...props} initialTab="logs" />;
-}

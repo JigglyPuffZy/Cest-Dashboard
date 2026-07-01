@@ -23,15 +23,15 @@ export const LoginPage = ({ darkMode, setDarkMode, initialGuestStep = false }) =
     
     try {
       await signIn(email, password);
-      // Navigation will be handled by the auth state change
+      
     } catch (err) {
       console.error('Login error:', err);
       
-      // Trigger shake animation
+      
       setIsShaking(true);
       setTimeout(() => setIsShaking(false), 600);
       
-      // Handle specific error messages
+      
       let errorMessage = 'Failed to sign in';
       
       if (err.message?.includes('Invalid login credentials') || 
@@ -279,7 +279,7 @@ export const LoginPage = ({ darkMode, setDarkMode, initialGuestStep = false }) =
                 boxShadow: '0 4px 16px rgba(0, 74, 152, 0.3)'
               }}
             >
-              {/* Button shine effect */}
+              {}
               <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white to-transparent opacity-0 group-hover:opacity-20 transition-opacity duration-500 transform -skew-x-12 translate-x-[-100%] group-hover:translate-x-[100%]" />
               
               {loading ? (

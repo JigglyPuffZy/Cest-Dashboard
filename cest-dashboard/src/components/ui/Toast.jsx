@@ -3,10 +3,10 @@ import { useEffect, useState } from "react";
 
 export const Toast = ({ 
   message, 
-  type = "success", // success, error, warning, info
+  type = "success", 
   duration = 3000,
   onClose,
-  position = "top-right" // top-right, top-center, bottom-right, bottom-center
+  position = "top-right" 
 }) => {
   const [isVisible, setIsVisible] = useState(true);
 

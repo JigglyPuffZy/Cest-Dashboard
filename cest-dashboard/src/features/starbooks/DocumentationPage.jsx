@@ -11,9 +11,9 @@ export const DocumentationPage = ({ darkMode, readOnly = false }) => {
   const [documentationData, setDocumentationData] = useState([]);
   const [loading, setLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 12; // Show 12 images per page
+  const itemsPerPage = 12; 
 
-  // Load documentation from database (synced with inventory)
+  
   useEffect(() => {
     loadDocumentation();
   }, []);
@@ -23,12 +23,12 @@ export const DocumentationPage = ({ darkMode, readOnly = false }) => {
       setLoading(true);
       const data = await db.getStarbooksDocumentation();
       
-      // Transform data for display
+      
       const transformed = data.flatMap(unit => {
-        // Parse images if it's a string
+        
         const images = typeof unit.images === 'string' ? JSON.parse(unit.images) : unit.images;
         
-        // If unit has images, create entries for each image
+        
         if (images && images.length > 0) {
           return images.map(img => ({
             id: `${unit.id}-${img.id}`,
@@ -45,7 +45,7 @@ export const DocumentationPage = ({ darkMode, readOnly = false }) => {
           }));
         }
         
-        // If no images but has primary_image_url, create one entry
+        
         if (unit.primary_image_url) {
           return [{
             id: `${unit.id}-primary`,
@@ -62,12 +62,11 @@ export const DocumentationPage = ({ darkMode, readOnly = false }) => {
           }];
         }
         
-        // No images at all - skip this unit in documentation
+        
         return [];
       });
       
       setDocumentationData(transformed);
-      console.log('Documentation loaded:', transformed.length, 'images from', data.length, 'units');
     } catch (error) {
       console.error('Error loading documentation:', error);
       setDocumentationData([]);
@@ -86,18 +85,18 @@ export const DocumentationPage = ({ darkMode, readOnly = false }) => {
     return matchesCity && matchesSearch;
   });
 
-  // Pagination
+  
   const totalPages = Math.ceil(filteredData.length / itemsPerPage);
   const startIndex = (currentPage - 1) * itemsPerPage;
   const endIndex = startIndex + itemsPerPage;
   const paginatedData = filteredData.slice(startIndex, endIndex);
 
-  // Reset to page 1 when filters change
+  
   useEffect(() => {
     setCurrentPage(1);
   }, [searchQuery, selectedCity]);
 
-  // Memoized theme colors - prevents recalculation on every render
+  
   const theme = useMemo(() => ({
     cardBg: darkMode ? 'rgba(30, 41, 59, 0.95)' : 'rgba(255, 255, 255, 0.98)',
     borderColor: darkMode ? 'rgba(148, 163, 184, 0.1)' : 'rgba(226, 232, 240, 0.8)',
@@ -108,7 +107,7 @@ export const DocumentationPage = ({ darkMode, readOnly = false }) => {
     sectionBg: darkMode ? 'rgba(15, 23, 42, 0.95)' : 'rgba(241, 245, 249, 0.95)',
   }), [darkMode]);
 
-  // Stats
+  
   const stats = useMemo(() => ({
     total: documentationData.length,
     cities: cities.length - 1,
@@ -117,7 +116,7 @@ export const DocumentationPage = ({ darkMode, readOnly = false }) => {
 
   return (
     <div className="max-w-[1600px] mx-auto p-6 space-y-6" style={{ transition: 'all 0.3s ease' }}>
-      {/* Header */}
+      {}
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold mb-1" style={{ color: theme.textPrimary, transition: 'color 0.3s ease' }}>
@@ -142,7 +141,7 @@ export const DocumentationPage = ({ darkMode, readOnly = false }) => {
         </button>
       </div>
 
-      {/* Stats Cards */}
+      {}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <div className="p-5 rounded-xl transition-all hover:scale-105 duration-300" style={{
           background: theme.cardBg,
@@ -199,7 +198,7 @@ export const DocumentationPage = ({ darkMode, readOnly = false }) => {
         </div>
       </div>
 
-      {/* Search and Filter */}
+      {}
       <div className="p-5 rounded-xl" style={{
         background: theme.cardBg,
         border: `1px solid ${theme.borderColor}`,
@@ -251,7 +250,7 @@ export const DocumentationPage = ({ darkMode, readOnly = false }) => {
         </div>
       </div>
 
-      {/* Gallery */}
+      {}
       {loading ? (
         <div className="text-center py-20">
           <div className="animate-spin w-12 h-12 border-4 border-blue-500 border-t-transparent rounded-full mx-auto mb-4"></div>
@@ -285,7 +284,7 @@ export const DocumentationPage = ({ darkMode, readOnly = false }) => {
                 }}
                 onClick={() => setSelectedImage(item)}
               >
-                {/* Image */}
+                {}
                 <div className="relative h-48 overflow-hidden">
                   <img
                     src={item.image}
@@ -294,7 +293,7 @@ export const DocumentationPage = ({ darkMode, readOnly = false }) => {
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
                   
-                  {/* Category Badge */}
+                  {}
                   <div className="absolute top-3 left-3">
                     <span 
                       className="px-3 py-1 rounded-full text-xs font-bold"
@@ -307,7 +306,7 @@ export const DocumentationPage = ({ darkMode, readOnly = false }) => {
                     </span>
                   </div>
 
-                  {/* Date */}
+                  {}
                   <div className="absolute bottom-3 right-3">
                     <div className="flex items-center gap-1 px-2 py-1 rounded-full bg-black/30">
                       <Calendar className="w-3 h-3 text-white" />
@@ -318,7 +317,7 @@ export const DocumentationPage = ({ darkMode, readOnly = false }) => {
                   </div>
                 </div>
 
-                {/* Content */}
+                {}
                 <div className="p-4">
                   <div className="flex items-center gap-2 mb-2">
                     <MapPin className="w-4 h-4" style={{ color: '#3b82f6' }} />
@@ -350,7 +349,7 @@ export const DocumentationPage = ({ darkMode, readOnly = false }) => {
         </>
       )}
 
-      {/* Image Modal */}
+      {}
       {selectedImage && (
         <Modal onClose={() => setSelectedImage(null)}>
           <ModalPanel maxWidth="max-w-4xl" className="rounded-2xl">
@@ -364,7 +363,7 @@ export const DocumentationPage = ({ darkMode, readOnly = false }) => {
             }}
             onClick={(e) => e.stopPropagation()}
           >
-            {/* Modal Header */}
+            {}
             <div className="sticky top-0 p-6 border-b flex items-center justify-between" style={{ 
               background: theme.cardBg,
               borderColor: theme.borderColor,
@@ -402,7 +401,7 @@ export const DocumentationPage = ({ darkMode, readOnly = false }) => {
               </button>
             </div>
 
-            {/* Image */}
+            {}
             <div className="relative">
               <img
                 src={selectedImage.image}
@@ -412,7 +411,7 @@ export const DocumentationPage = ({ darkMode, readOnly = false }) => {
               />
             </div>
 
-            {/* Footer */}
+            {}
             <div className="p-6 border-t" style={{ borderColor: theme.borderColor }}>
               <div className="flex items-start justify-between gap-4">
                 <div className="flex-1">

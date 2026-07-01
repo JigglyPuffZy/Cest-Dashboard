@@ -15,11 +15,11 @@ export const MonitoringPage = ({ projects, equipment = [], darkMode }) => {
   const [showDetailModal, setShowDetailModal] = useState(false);
   const [selectedItem, setSelectedItem] = useState(null);
 
-  // Transform projects data to handle Supabase structure
+  
   const transformedProjects = transformProjects(projects);
   const transformedEquipment = transformEquipmentList(equipment || []);
 
-  // Filter projects
+  
   const filteredProjects = transformedProjects.filter((p) => {
     const matchStatus = statusFilter === "All" || p.status === statusFilter;
     const matchComponent = componentFilter === "All" || p.components?.includes(componentFilter);
@@ -32,7 +32,7 @@ export const MonitoringPage = ({ projects, equipment = [], darkMode }) => {
     return matchStatus && matchComponent && matchProvince && matchSearch;
   });
 
-  // Calculate statistics
+  
   const stats = {
     total: transformedProjects.length,
     ongoing: transformedProjects.filter(p => p.status === "Ongoing").length,
@@ -63,7 +63,7 @@ export const MonitoringPage = ({ projects, equipment = [], darkMode }) => {
 
   return (
     <div className="max-w-[1400px] mx-auto space-y-6">
-      {/* Header */}
+      {}
       <div>
         <h1 className="text-2xl font-semibold mb-1" style={{ color: darkMode ? '#f8fafc' : '#0f172a' }}>
           Project Monitoring
@@ -73,7 +73,7 @@ export const MonitoringPage = ({ projects, equipment = [], darkMode }) => {
         </p>
       </div>
 
-      {/* Statistics Cards */}
+      {}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         {[
           { label: "Total Projects", value: stats.total, icon: TrendingUp, color: "#004A98" },
@@ -100,7 +100,7 @@ export const MonitoringPage = ({ projects, equipment = [], darkMode }) => {
         })}
       </div>
 
-      {/* Filters */}
+      {}
       <div className="rounded-xl p-5" style={cardStyle}>
         <div className="flex items-center gap-2 mb-4">
           <Filter className="w-5 h-5" style={{ color: '#004A98' }} />
@@ -110,7 +110,7 @@ export const MonitoringPage = ({ projects, equipment = [], darkMode }) => {
         </div>
         
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-          {/* Search */}
+          {}
           <input
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
@@ -125,7 +125,7 @@ export const MonitoringPage = ({ projects, equipment = [], darkMode }) => {
             onBlur={(e) => (e.target.style.borderColor = darkMode ? '#334155' : '#e2e8f0')}
           />
 
-          {/* Province Filter */}
+          {}
           <select
             value={provinceFilter}
             onChange={(e) => setProvinceFilter(e.target.value)}
@@ -144,7 +144,7 @@ export const MonitoringPage = ({ projects, equipment = [], darkMode }) => {
             <option value="Quirino">Quirino</option>
           </select>
 
-          {/* Status Filter */}
+          {}
           <select
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value)}
@@ -161,7 +161,7 @@ export const MonitoringPage = ({ projects, equipment = [], darkMode }) => {
             <option value="Finished">Finished</option>
           </select>
 
-          {/* Component Filter */}
+          {}
           <select
             value={componentFilter}
             onChange={(e) => setComponentFilter(e.target.value)}
@@ -206,7 +206,7 @@ export const MonitoringPage = ({ projects, equipment = [], darkMode }) => {
         </div>
       </div>
 
-      {/* Projects List */}
+      {}
       <div className="space-y-3">
         {filteredProjects.length === 0 ? (
           <div className="rounded-xl p-10 text-center" style={cardStyle}>
@@ -226,7 +226,7 @@ export const MonitoringPage = ({ projects, equipment = [], darkMode }) => {
               >
                 <div className="flex items-start justify-between gap-6">
                   <div className="flex-1">
-                    {/* Header */}
+                    {}
                     <div className="flex items-center gap-2 mb-3">
                       <span className="text-xs font-semibold px-2 py-1 rounded" style={{ background: '#004A98', color: '#ffffff' }}>
                         {project.year}
@@ -240,12 +240,12 @@ export const MonitoringPage = ({ projects, equipment = [], darkMode }) => {
                       </span>
                     </div>
 
-                    {/* Project Title */}
+                    {}
                     <h3 className="text-base font-semibold mb-3" style={{ color: darkMode ? '#f8fafc' : '#0f172a' }}>
                       {project.project}
                     </h3>
 
-                    {/* Status and Components */}
+                    {}
                     <div className="flex items-center gap-2 flex-wrap">
                       <span 
                         className="text-xs font-medium px-2 py-1 rounded border"
@@ -272,7 +272,7 @@ export const MonitoringPage = ({ projects, equipment = [], darkMode }) => {
                     </div>
                   </div>
 
-                  {/* Budget */}
+                  {}
                   <div className="text-right">
                     <p className="text-xs font-medium mb-1 uppercase tracking-wide" style={{ color: darkMode ? '#94a3b8' : '#6b7280' }}>
                       Budget
@@ -293,7 +293,7 @@ export const MonitoringPage = ({ projects, equipment = [], darkMode }) => {
         )}
       </div>
 
-      {/* Detail Modal */}
+      {}
       {showDetailModal && selectedItem && (() => {
         const isProject = !!(selectedItem.project || selectedItem.project_title);
         const title = selectedItem.project || selectedItem.project_title || selectedItem.equipment_name || selectedItem.equipmentName || 'Unknown';
@@ -315,7 +315,7 @@ export const MonitoringPage = ({ projects, equipment = [], darkMode }) => {
               }}
               onClick={e => e.stopPropagation()}
             >
-              {/* Header Banner */}
+              {}
               <div className="relative p-6 rounded-t-3xl overflow-hidden"
                 style={{ background: 'linear-gradient(135deg, #004A98 0%, #0066CC 50%, #10b981 100%)' }}>
                 <div className="absolute inset-0 opacity-10"
@@ -355,7 +355,7 @@ export const MonitoringPage = ({ projects, equipment = [], darkMode }) => {
 
               <div className="p-6 space-y-5">
 
-                {/* Status + Stakeholders row */}
+                {}
                 {isProject && (
                   <div className="grid grid-cols-2 gap-4">
                     <div className="p-4 rounded-2xl" style={{ background: darkMode ? 'rgba(255,255,255,0.04)' : 'rgba(0,74,152,0.04)', border: `1px solid ${darkMode ? '#334155' : '#e2e8f0'}` }}>
@@ -377,7 +377,7 @@ export const MonitoringPage = ({ projects, equipment = [], darkMode }) => {
                   </div>
                 )}
 
-                {/* Budget */}
+                {}
                 {isProject && (
                   <div className="grid grid-cols-2 gap-4">
                     <div className="p-4 rounded-2xl" style={{ background: 'linear-gradient(135deg, rgba(16,185,129,0.1), rgba(16,185,129,0.05))', border: '1px solid rgba(16,185,129,0.2)' }}>
@@ -391,7 +391,7 @@ export const MonitoringPage = ({ projects, equipment = [], darkMode }) => {
                   </div>
                 )}
 
-                {/* Components */}
+                {}
                 {isProject && components.length > 0 && (
                   <div className="p-4 rounded-2xl" style={{ background: darkMode ? 'rgba(255,255,255,0.04)' : 'rgba(0,74,152,0.04)', border: `1px solid ${darkMode ? '#334155' : '#e2e8f0'}` }}>
                     <p className="text-xs font-semibold uppercase tracking-wider mb-3" style={{ color: darkMode ? '#94a3b8' : '#6b7280' }}>CEST Components</p>
@@ -416,7 +416,7 @@ export const MonitoringPage = ({ projects, equipment = [], darkMode }) => {
                                 boxShadow: `0 4px 15px ${COMP_COLORS[componentKey] || '#64748b'}20`
                               }}
                             >
-                              {/* Shine effect on hover */}
+                              {}
                               <div 
                                 className="absolute inset-0 bg-gradient-to-r from-transparent via-white to-transparent opacity-0 group-hover:opacity-20 transition-opacity duration-300 transform -skew-x-12 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700"
                                 style={{ width: '50%' }}
@@ -430,19 +430,19 @@ export const MonitoringPage = ({ projects, equipment = [], darkMode }) => {
                   </div>
                 )}
 
-                {/* Equipment Details */}
+                {}
                 {isProject && (() => {
-                  // Get equipment linked to this project
+                  
                   const projectTitle = safeProjectTitle(selectedItem);
                   const linkedEquipment = transformedEquipment.filter(eq => {
                     const isLinkedToProject = (
-                      // Link by project_id (most reliable)
+                      
                       (eq.project_id && selectedItem.id && String(eq.project_id) === String(selectedItem.id)) ||
-                      // Link by matching project titles (direct comparison)
+                      
                       (projectTitle && eq.project_title && projectTitle === eq.project_title) ||
-                      // Link by matching project titles (transformed)
+                      
                       (projectTitle && safeProjectTitle(eq) && projectTitle === safeProjectTitle(eq)) ||
-                      // Legacy linking methods
+                      
                       (eq.projectName === projectTitle) ||
                       (eq.project?.project_title === projectTitle)
                     );
@@ -495,7 +495,7 @@ export const MonitoringPage = ({ projects, equipment = [], darkMode }) => {
                                     <span className="font-semibold">{eq.units || 0} units</span>
                                   </div>
                                 </div>
-                                {/* Component badge */}
+                                {}
                                 {eq.component_id && (
                                   <div className="flex items-center gap-1">
                                     <span 
@@ -532,7 +532,7 @@ export const MonitoringPage = ({ projects, equipment = [], darkMode }) => {
                   );
                 })()}
 
-                {/* Beneficiaries */}
+                {}
                 {isProject && benefTotal > 0 && (
                   <div className="p-4 rounded-2xl" style={{ background: darkMode ? 'rgba(255,255,255,0.04)' : 'rgba(0,74,152,0.04)', border: `1px solid ${darkMode ? '#334155' : '#e2e8f0'}` }}>
                     <p className="text-xs font-semibold uppercase tracking-wider mb-3" style={{ color: darkMode ? '#94a3b8' : '#6b7280' }}>
@@ -549,7 +549,7 @@ export const MonitoringPage = ({ projects, equipment = [], darkMode }) => {
                   </div>
                 )}
 
-                {/* Community Types */}
+                {}
                 {isProject && communities.length > 0 && (
                   <div className="p-4 rounded-2xl" style={{ background: darkMode ? 'rgba(255,255,255,0.04)' : 'rgba(0,74,152,0.04)', border: `1px solid ${darkMode ? '#334155' : '#e2e8f0'}` }}>
                     <p className="text-xs font-semibold uppercase tracking-wider mb-3" style={{ color: darkMode ? '#94a3b8' : '#6b7280' }}>Community Types</p>
@@ -564,7 +564,7 @@ export const MonitoringPage = ({ projects, equipment = [], darkMode }) => {
                   </div>
                 )}
 
-                {/* Attachment */}
+                {}
                 {selectedItem.file_name && selectedItem.file_data && (
                   <div className="p-4 rounded-2xl" style={{ background: darkMode ? 'rgba(255,255,255,0.04)' : 'rgba(0,74,152,0.04)', border: `1px solid ${darkMode ? '#334155' : '#e2e8f0'}` }}>
                     <p className="text-xs font-semibold uppercase tracking-wider mb-3" style={{ color: darkMode ? '#94a3b8' : '#6b7280' }}>Attachment</p>
@@ -586,7 +586,7 @@ export const MonitoringPage = ({ projects, equipment = [], darkMode }) => {
 
               </div>
 
-              {/* Footer with Close button */}
+              {}
               <div className="px-6 pb-6 pt-4 flex justify-end gap-3 border-t sticky bottom-0"
                 style={{
                   borderColor: darkMode ? '#334155' : '#e2e8f0',

@@ -4,7 +4,7 @@ import { COMP_COLORS, COMPONENTS } from "../../shared/constants";
 import { AddProjectEquipmentModal } from "../../components/forms/AddProjectEquipmentModalFixed";
 import { transformProjects, transformEquipmentList } from "../../shared/utils/dataTransform";
 import { HoverTooltip } from "../../components/ui/Tooltip";
-import { safeString, safeProjectTitle, safeEquipmentName, safeDisplayName } from "../../shared/utils/safeRender";
+import { safeProjectTitle, safeEquipmentName, safeDisplayName } from "../../shared/utils/safeRender";
 import { Modal, ModalPanel } from "../../components/ui/Modal";
 import { DataEntryFilters, ProjectRecordCard, EquipmentRecordCard } from "../../components/data-entry/RecordCards";
 
@@ -18,9 +18,9 @@ export const DataEntryPage = ({ projects = [], equipment = [], onAddProject, onA
   const [searchTerm, setSearchTerm] = useState('');
   const [filterStatus, setFilterStatus] = useState('All');
   const [filterProvince, setFilterProvince] = useState('All');
-  const [confirmDelete, setConfirmDelete] = useState(null); // { item, type }
+  const [confirmDelete, setConfirmDelete] = useState(null); 
 
-  // Show loading state if data is still loading
+  
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-full">
@@ -41,7 +41,7 @@ export const DataEntryPage = ({ projects = [], equipment = [], onAddProject, onA
     );
   }
 
-  // Transform data to handle Supabase structure
+  
   const transformedProjects = transformProjects(projects || []);
   const transformedEquipment = transformEquipmentList(equipment || []);
 
@@ -54,15 +54,15 @@ export const DataEntryPage = ({ projects = [], equipment = [], onAddProject, onA
     setShowDetailModal(true);
   };
 
-  // Helper function to determine province from municipality
+  
   const getProvinceFromMunicipality = (municipality) => {
-    // Handle both direct municipality name and municipality object with name property
+    
     const municipalityName = typeof municipality === 'string' ? municipality : municipality?.name;
     if (!municipalityName) return 'Cagayan';
     
-    // Province mapping based on municipalities
+    
     const provinceMapping = {
-      // Cagayan
+      
       'Abulug': 'Cagayan', 'Alcala': 'Cagayan', 'Allacapan': 'Cagayan', 'Amulung': 'Cagayan', 
       'Aparri': 'Cagayan', 'Baggao': 'Cagayan', 'Ballesteros': 'Cagayan', 'Buguey': 'Cagayan', 
       'Calayan': 'Cagayan', 'Camalaniugan': 'Cagayan', 'Claveria': 'Cagayan', 'Enrile': 'Cagayan', 
@@ -72,7 +72,7 @@ export const DataEntryPage = ({ projects = [], equipment = [], onAddProject, onA
       'Santa Teresita': 'Cagayan', 'Santo Niño': 'Cagayan', 'Solana': 'Cagayan', 'Tuao': 'Cagayan', 
       'Tuguegarao City': 'Cagayan',
       
-      // Isabela
+      
       'Alicia': 'Isabela', 'Angadanan': 'Isabela', 'Aurora': 'Isabela', 'Benito Soliven': 'Isabela', 
       'Burgos': 'Isabela', 'Cabagan': 'Isabela', 'Cabatuan': 'Isabela', 'City of Cauayan': 'Isabela', 
       'Cordon': 'Isabela', 'Delfin Albano': 'Isabela', 'Dinapigue': 'Isabela', 'Divilacan': 'Isabela', 
@@ -84,18 +84,18 @@ export const DataEntryPage = ({ projects = [], equipment = [], onAddProject, onA
       'San Pablo': 'Isabela', 'Santa Maria': 'Isabela', 'City of Santiago': 'Isabela', 'Santo Tomas': 'Isabela', 
       'Tumauini': 'Isabela',
       
-      // Add more provinces as needed - this is a basic mapping for Region II
-      // You can extend this with other regions' municipalities
+      
+      
     };
     
-    return provinceMapping[municipalityName] || 'Cagayan'; // Default to Cagayan
+    return provinceMapping[municipalityName] || 'Cagayan'; 
   };
 
-  // Create combined project-equipment groups with filtering
+  
   const createCombinedGroups = () => {
     const groups = [];
     
-    // Filter projects first
+    
     const filteredProjectsForCombined = transformedProjects.filter(p => {
       if (!p) return false;
       const matchesSearch = !searchTerm || 
@@ -105,35 +105,35 @@ export const DataEntryPage = ({ projects = [], equipment = [], onAddProject, onA
         (p.community && p.community.toLowerCase().includes(searchTerm.toLowerCase()));
       const matchesStatus = filterStatus === 'All' || p.status === filterStatus;
       
-      // Province filtering - use database province if available, otherwise determine from municipality
+      
       let itemProvince = p.province || getProvinceFromMunicipality(p.municipality);
       const matchesProvince = filterProvince === 'All' || itemProvince === filterProvince;
       
       return matchesSearch && matchesStatus && matchesProvince;
     });
     
-    // Add projects with their linked equipment
+    
     filteredProjectsForCombined.forEach((project, projectIndex) => {
       const projectEquipment = transformedEquipment.filter(eq => {
-        // First check if equipment is linked to this project
+        
         const projectTitle = safeProjectTitle(project);
         const equipmentProjectTitle = safeProjectTitle(eq);
         
         const isLinkedToProject = (
-          // Link by project_id (most reliable)
+          
           (eq.project_id && project.id && String(eq.project_id) === String(project.id)) ||
-          // Link by matching project titles (direct comparison)
+          
           (projectTitle && eq.project_title && projectTitle === eq.project_title) ||
-          // Link by matching project titles (transformed)
+          
           (projectTitle && equipmentProjectTitle && projectTitle === equipmentProjectTitle) ||
-          // Legacy linking methods
+          
           (eq.projectName === projectTitle) ||
           (eq.project?.project_title === projectTitle)
         );
         
         if (!isLinkedToProject) return false;
         
-        // Then apply search filter to equipment
+        
         const matchesSearch = !searchTerm || 
           (eq.equipmentName && eq.equipmentName.toLowerCase().includes(searchTerm.toLowerCase())) ||
           (eq.equipment_name && eq.equipment_name.toLowerCase().includes(searchTerm.toLowerCase())) ||
@@ -141,18 +141,6 @@ export const DataEntryPage = ({ projects = [], equipment = [], onAddProject, onA
           (eq.community && eq.community.toLowerCase().includes(searchTerm.toLowerCase()));
         
         return matchesSearch;
-      });
-      
-      // Debug logging
-      console.log('Checking equipment link for project:', {
-        projectTitle: safeProjectTitle(project),
-        projectId: project.id,
-        linkedEquipmentCount: projectEquipment.length,
-        equipmentDetails: projectEquipment.map(eq => ({
-          name: eq.equipment_name,
-          project_id: eq.project_id,
-          project_title: eq.project_title
-        }))
       });
       
       groups.push({
@@ -163,30 +151,12 @@ export const DataEntryPage = ({ projects = [], equipment = [], onAddProject, onA
       });
     });
     
-    // REMOVED: No more standalone equipment section
-    // All equipment should be linked to projects
-    
-    console.log('Combined groups created:', groups);
     return groups;
   };
 
   const combinedGroups = createCombinedGroups();
-  
-  // Debug logging for combined groups
-  console.log('Combined groups summary:', {
-    totalGroups: combinedGroups.length,
-    projectGroups: combinedGroups.filter(g => g.type === 'project-group').length,
-    totalEquipmentLinked: combinedGroups
-      .filter(g => g.type === 'project-group')
-      .reduce((sum, g) => sum + g.equipment.length, 0),
-    equipmentDetails: combinedGroups.map(g => ({
-      projectTitle: g.project ? safeProjectTitle(g.project) : 'No Project',
-      equipmentCount: g.equipment.length,
-      equipmentNames: g.equipment.map(eq => eq.equipment_name || eq.equipmentName)
-    }))
-  });
 
-  // Calculate statistics
+  
   const totalProjects = transformedProjects.length;
   const totalEquipment = transformedEquipment.length;
   const uniqueCommunities = new Set(transformedProjects.map(p => p.community)).size;
@@ -196,7 +166,7 @@ export const DataEntryPage = ({ projects = [], equipment = [], onAddProject, onA
   ]).size;
   const totalBudget = transformedProjects.reduce((sum, p) => sum + (parseFloat(p.amountFunded) || 0), 0);
 
-  // Filter data
+  
   const filteredProjects = transformedProjects.filter(p => {
     if (!p) return false;
     const matchesSearch = !searchTerm || 
@@ -206,7 +176,7 @@ export const DataEntryPage = ({ projects = [], equipment = [], onAddProject, onA
       (p.community && p.community.toLowerCase().includes(searchTerm.toLowerCase()));
     const matchesStatus = filterStatus === 'All' || p.status === filterStatus;
     
-    // Province filtering - use database province if available, otherwise determine from municipality
+    
     let itemProvince = p.province || getProvinceFromMunicipality(p.municipality);
     const matchesProvince = filterProvince === 'All' || itemProvince === filterProvince;
     
@@ -221,7 +191,7 @@ export const DataEntryPage = ({ projects = [], equipment = [], onAddProject, onA
       (e.municipality && e.municipality.toLowerCase().includes(searchTerm.toLowerCase())) ||
       (e.community && e.community.toLowerCase().includes(searchTerm.toLowerCase()));
     
-    // Province filtering - use database province if available, otherwise determine from municipality
+    
     let itemProvince = e.province || getProvinceFromMunicipality(e.municipality);
     const matchesProvince = filterProvince === 'All' || itemProvince === filterProvince;
     
@@ -262,7 +232,7 @@ export const DataEntryPage = ({ projects = [], equipment = [], onAddProject, onA
 
   return (
     <div className="max-w-[1400px] mx-auto space-y-4 sm:space-y-6 w-full min-w-0">
-      {/* Header */}
+      {}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-2 sm:mb-4">
         <div className="flex items-center gap-4 min-w-0">
           <div className="p-3 rounded-xl shrink-0" style={{ background: 'linear-gradient(135deg, #004A98 0%, #0066CC 100%)' }}>
@@ -293,7 +263,7 @@ export const DataEntryPage = ({ projects = [], equipment = [], onAddProject, onA
         )}
       </div>
 
-      {/* Statistics Cards */}
+      {}
       <div className="grid grid-cols-2 lg:grid-cols-5 gap-2.5 sm:gap-4 mb-4 sm:mb-6">
         {[
           { label: "Total Projects", value: totalProjects, icon: FileText, color: "#004A98" },
@@ -328,9 +298,9 @@ export const DataEntryPage = ({ projects = [], equipment = [], onAddProject, onA
         })}
       </div>
 
-      {/* Main Content */}
+      {}
       <div className="flex flex-col lg:flex-row gap-4 lg:gap-6">
-        {/* Navigation */}
+        {}
         <div className="lg:w-72 shrink-0">
           <div className="rounded-xl p-2 sm:p-3 flex lg:flex-col gap-2 overflow-x-auto lg:overflow-visible scrollbar-thin" style={cardStyle}>
               {[
@@ -369,7 +339,7 @@ export const DataEntryPage = ({ projects = [], equipment = [], onAddProject, onA
           </div>
         </div>
 
-        {/* Content Area */}
+        {}
         <div className="flex-1 min-w-0">
           <div className="rounded-xl sm:rounded-2xl p-4 sm:p-6" style={cardStyle}>
             {activeView === 'combined' && (
@@ -439,7 +409,7 @@ export const DataEntryPage = ({ projects = [], equipment = [], onAddProject, onA
                     </div>
                   ))}
 
-                  {/* Empty State */}
+                  {}
                   {combinedGroups.length === 0 && (
                     <div className="text-center py-12">
                       <div className="w-16 h-16 mx-auto mb-4 rounded-xl flex items-center justify-center" style={{
@@ -584,7 +554,7 @@ export const DataEntryPage = ({ projects = [], equipment = [], onAddProject, onA
               </div>
             )}
 
-            {/* Projects Tab */}
+            {}
             {activeView === 'projects' && (
               <div>
                 <div className="mb-4 sm:mb-5">
@@ -637,7 +607,7 @@ export const DataEntryPage = ({ projects = [], equipment = [], onAddProject, onA
               </div>
             )}
 
-            {/* Equipment Tab */}
+            {}
             {activeView === 'equipment' && (
               <div>
                 <div className="mb-4 sm:mb-5">
@@ -692,7 +662,7 @@ export const DataEntryPage = ({ projects = [], equipment = [], onAddProject, onA
         </div>
       </div>
 
-      {/* Confirm Delete Modal */}
+      {}
       {confirmDelete && (
         <Modal onClose={() => setConfirmDelete(null)}>
           <ModalPanel maxWidth="max-w-sm">
@@ -734,25 +704,19 @@ export const DataEntryPage = ({ projects = [], equipment = [], onAddProject, onA
         </Modal>
       )}
 
-      {/* Edit Modal */}
+      {}
       {showEditModal && editItem && (
         <AddProjectEquipmentModal
           onClose={() => { setShowEditModal(false); setEditItem(null); }}
           onSaveProject={async (data) => {
-            console.log('Edit modal - saving project with data:', data);
-            console.log('Edit modal - editItem.id:', editItem.id);
             if (onUpdateProject) {
               await onUpdateProject(editItem.id, data);
-              console.log('Edit modal - project update completed');
             }
             setShowEditModal(false); setEditItem(null);
           }}
           onSaveEquipment={async (data) => {
-            console.log('Edit modal - saving equipment with data:', data);
-            console.log('Edit modal - editItem.id:', editItem.id);
             if (onUpdateEquipment) {
               await onUpdateEquipment(editItem.id, data);
-              console.log('Edit modal - equipment update completed');
             }
             setShowEditModal(false); setEditItem(null);
           }}
@@ -769,7 +733,7 @@ export const DataEntryPage = ({ projects = [], equipment = [], onAddProject, onA
         />
       )}
 
-      {/* Detail Modal */}
+      {}
       {showDetailModal && selectedItem && (() => {
         const isProject = !!(selectedItem.project || selectedItem.project_title);
         const title = selectedItem.project || selectedItem.project_title || selectedItem.equipment_name || selectedItem.equipmentName || 'Unknown';
@@ -793,13 +757,13 @@ export const DataEntryPage = ({ projects = [], equipment = [], onAddProject, onA
               }}
               onClick={e => e.stopPropagation()}
             >
-              {/* Enhanced Header Banner with Vibrant Gradient */}
+              {}
               <div className="relative p-8 rounded-t-3xl overflow-hidden"
                 style={{ 
                   background: 'linear-gradient(135deg, #3B82F6 0%, #2DD4BF 50%, #10B981 100%)',
                   boxShadow: 'inset 0 -1px 0 rgba(255, 255, 255, 0.2)'
                 }}>
-                {/* Animated background pattern */}
+                {}
                 <div className="absolute inset-0 opacity-10"
                   style={{ 
                     backgroundImage: 'radial-gradient(circle at 20% 50%, white 2px, transparent 2px)',
@@ -809,7 +773,7 @@ export const DataEntryPage = ({ projects = [], equipment = [], onAddProject, onA
                 
                 <div className="relative flex items-start justify-between gap-4">
                   <div className="flex items-center gap-5 flex-1">
-                    {/* Glassmorphism Icon */}
+                    {}
                     <div className="w-16 h-16 rounded-2xl flex items-center justify-center flex-shrink-0"
                       style={{ 
                         background: 'rgba(255, 255, 255, 0.25)',
@@ -866,19 +830,19 @@ export const DataEntryPage = ({ projects = [], equipment = [], onAddProject, onA
 
               <div className="p-8 space-y-6">
 
-                {/* PROJECT INFORMATION SECTION */}
+                {}
                 {isProject && (
                   <div className="space-y-6">
-                    {/* Section Header */}
+                    {}
                     <div className="pb-3 border-b" style={{ borderColor: darkMode ? '#334155' : '#e2e8f0' }}>
                       <h3 className="text-lg font-bold" style={{ color: darkMode ? '#f8fafc' : '#0f172a' }}>
                         Project Information
                       </h3>
                     </div>
 
-                    {/* Form-like Layout */}
+                    {}
                     <div className="space-y-4">
-                      {/* Year */}
+                      {}
                       <div>
                         <label className="block text-xs font-bold uppercase tracking-wider mb-2" style={{ color: darkMode ? '#94a3b8' : '#6b7280' }}>
                           Year
@@ -893,7 +857,7 @@ export const DataEntryPage = ({ projects = [], equipment = [], onAddProject, onA
                         </div>
                       </div>
 
-                      {/* Province */}
+                      {}
                       <div>
                         <label className="block text-xs font-bold uppercase tracking-wider mb-2" style={{ color: darkMode ? '#94a3b8' : '#6b7280' }}>
                           Province
@@ -908,7 +872,7 @@ export const DataEntryPage = ({ projects = [], equipment = [], onAddProject, onA
                         </div>
                       </div>
 
-                      {/* Municipality */}
+                      {}
                       <div>
                         <label className="block text-xs font-bold uppercase tracking-wider mb-2" style={{ color: darkMode ? '#94a3b8' : '#6b7280' }}>
                           Municipality
@@ -923,7 +887,7 @@ export const DataEntryPage = ({ projects = [], equipment = [], onAddProject, onA
                         </div>
                       </div>
 
-                      {/* Community */}
+                      {}
                       <div>
                         <label className="block text-xs font-bold uppercase tracking-wider mb-2" style={{ color: darkMode ? '#94a3b8' : '#6b7280' }}>
                           Community / Beneficiaries
@@ -938,7 +902,7 @@ export const DataEntryPage = ({ projects = [], equipment = [], onAddProject, onA
                         </div>
                       </div>
 
-                      {/* MOA */}
+                      {}
                       {selectedItem.moa && (
                         <div>
                           <label className="block text-xs font-bold uppercase tracking-wider mb-2" style={{ color: darkMode ? '#94a3b8' : '#6b7280' }}>
@@ -958,10 +922,10 @@ export const DataEntryPage = ({ projects = [], equipment = [], onAddProject, onA
                   </div>
                 )}
 
-                {/* STATUS & PARTNER AGENCIES SECTION */}
+                {}
                 {isProject && (
                   <div className="space-y-6">
-                    {/* Section Header */}
+                    {}
                     <div className="pb-3 border-b" style={{ borderColor: darkMode ? '#334155' : '#e2e8f0' }}>
                       <h3 className="text-lg font-bold" style={{ color: darkMode ? '#f8fafc' : '#0f172a' }}>
                         Project Status & Partners
@@ -969,7 +933,7 @@ export const DataEntryPage = ({ projects = [], equipment = [], onAddProject, onA
                     </div>
 
                     <div className="space-y-4">
-                      {/* Status */}
+                      {}
                       <div>
                         <label className="block text-xs font-bold uppercase tracking-wider mb-2" style={{ color: darkMode ? '#94a3b8' : '#6b7280' }}>
                           Status
@@ -984,7 +948,7 @@ export const DataEntryPage = ({ projects = [], equipment = [], onAddProject, onA
                         </div>
                       </div>
 
-                      {/* Partner Agencies */}
+                      {}
                       <div>
                         <label className="block text-xs font-bold uppercase tracking-wider mb-2" style={{ color: darkMode ? '#94a3b8' : '#6b7280' }}>
                           Partner Agencies
@@ -1027,10 +991,10 @@ export const DataEntryPage = ({ projects = [], equipment = [], onAddProject, onA
                   </div>
                 )}
 
-                {/* BUDGET SECTION */}
+                {}
                 {isProject && (
                   <div className="space-y-6">
-                    {/* Section Header */}
+                    {}
                     <div className="pb-3 border-b" style={{ borderColor: darkMode ? '#334155' : '#e2e8f0' }}>
                       <h3 className="text-lg font-bold" style={{ color: darkMode ? '#f8fafc' : '#0f172a' }}>
                         Budget Information
@@ -1038,7 +1002,7 @@ export const DataEntryPage = ({ projects = [], equipment = [], onAddProject, onA
                     </div>
 
                     <div className="space-y-4">
-                      {/* Amount Funded */}
+                      {}
                       <div>
                         <label className="block text-xs font-bold uppercase tracking-wider mb-2" style={{ color: darkMode ? '#94a3b8' : '#6b7280' }}>
                           Amount Funded
@@ -1055,7 +1019,7 @@ export const DataEntryPage = ({ projects = [], equipment = [], onAddProject, onA
                         </div>
                       </div>
 
-                      {/* Amount Per Year */}
+                      {}
                       <div>
                         <label className="block text-xs font-bold uppercase tracking-wider mb-2" style={{ color: darkMode ? '#94a3b8' : '#6b7280' }}>
                           Amount Per Year
@@ -1075,10 +1039,10 @@ export const DataEntryPage = ({ projects = [], equipment = [], onAddProject, onA
                   </div>
                 )}
 
-                {/* EQUIPMENT INFORMATION SECTION (for equipment items) */}
+                {}
                 {!isProject && (
                   <div className="space-y-6">
-                    {/* Section Header */}
+                    {}
                     <div className="pb-3 border-b" style={{ borderColor: darkMode ? '#334155' : '#e2e8f0' }}>
                       <h3 className="text-lg font-bold" style={{ color: darkMode ? '#f8fafc' : '#0f172a' }}>
                         Equipment Information
@@ -1086,7 +1050,7 @@ export const DataEntryPage = ({ projects = [], equipment = [], onAddProject, onA
                     </div>
 
                     <div className="space-y-4">
-                      {/* Total Units */}
+                      {}
                       <div>
                         <label className="block text-xs font-bold uppercase tracking-wider mb-2" style={{ color: darkMode ? '#94a3b8' : '#6b7280' }}>
                           Total Units
@@ -1101,7 +1065,7 @@ export const DataEntryPage = ({ projects = [], equipment = [], onAddProject, onA
                         </div>
                       </div>
 
-                      {/* Units Per Year */}
+                      {}
                       <div>
                         <label className="block text-xs font-bold uppercase tracking-wider mb-2" style={{ color: darkMode ? '#94a3b8' : '#6b7280' }}>
                           Units Per Year
@@ -1119,7 +1083,7 @@ export const DataEntryPage = ({ projects = [], equipment = [], onAddProject, onA
                   </div>
                 )}
 
-                {/* CEST COMPONENTS SECTION */}
+                {}
                 {isProject && components.length > 0 && (
                   <div className="p-6 rounded-2xl" style={{ 
                     background: darkMode 
@@ -1150,7 +1114,7 @@ export const DataEntryPage = ({ projects = [], equipment = [], onAddProject, onA
                                 boxShadow: `0 4px 15px ${COMP_COLORS[componentKey] || '#64748b'}20`
                               }}
                             >
-                              {/* Shine effect on hover */}
+                              {}
                               <div 
                                 className="absolute inset-0 bg-gradient-to-r from-transparent via-white to-transparent opacity-0 group-hover:opacity-20 transition-opacity duration-300 transform -skew-x-12 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700"
                                 style={{ width: '50%' }}
@@ -1164,19 +1128,19 @@ export const DataEntryPage = ({ projects = [], equipment = [], onAddProject, onA
                   </div>
                 )}
 
-                {/* Equipment Details */}
+                {}
                 {isProject && (() => {
-                  // Get equipment linked to this project
+                  
                   const projectTitle = safeProjectTitle(selectedItem);
                   const linkedEquipment = transformedEquipment.filter(eq => {
                     const isLinkedToProject = (
-                      // Link by project_id (most reliable)
+                      
                       (eq.project_id && selectedItem.id && String(eq.project_id) === String(selectedItem.id)) ||
-                      // Link by matching project titles (direct comparison)
+                      
                       (projectTitle && eq.project_title && projectTitle === eq.project_title) ||
-                      // Link by matching project titles (transformed)
+                      
                       (projectTitle && safeProjectTitle(eq) && projectTitle === safeProjectTitle(eq)) ||
-                      // Legacy linking methods
+                      
                       (eq.projectName === projectTitle) ||
                       (eq.project?.project_title === projectTitle)
                     );
@@ -1229,7 +1193,7 @@ export const DataEntryPage = ({ projects = [], equipment = [], onAddProject, onA
                                     <span className="font-semibold">{eq.units || 0} units</span>
                                   </div>
                                 </div>
-                                {/* Component badge */}
+                                {}
                                 {eq.component_id && (
                                   <div className="flex items-center gap-1">
                                     <span 
@@ -1266,7 +1230,7 @@ export const DataEntryPage = ({ projects = [], equipment = [], onAddProject, onA
                   );
                 })()}
 
-                {/* Beneficiaries */}
+                {}
                 {isProject && benefTotal > 0 && (
                   <div className="p-4 rounded-2xl" style={{ background: darkMode ? 'rgba(255,255,255,0.04)' : 'rgba(0,74,152,0.04)', border: `1px solid ${darkMode ? '#334155' : '#e2e8f0'}` }}>
                     <p className="text-xs font-semibold uppercase tracking-wider mb-3" style={{ color: darkMode ? '#64748b' : '#94a3b8' }}>
@@ -1283,7 +1247,7 @@ export const DataEntryPage = ({ projects = [], equipment = [], onAddProject, onA
                   </div>
                 )}
 
-                {/* Community Types */}
+                {}
                 {isProject && communities.length > 0 && (
                   <div className="p-4 rounded-2xl" style={{ background: darkMode ? 'rgba(255,255,255,0.04)' : 'rgba(0,74,152,0.04)', border: `1px solid ${darkMode ? '#334155' : '#e2e8f0'}` }}>
                     <p className="text-xs font-semibold uppercase tracking-wider mb-3" style={{ color: darkMode ? '#64748b' : '#94a3b8' }}>Community Types</p>
@@ -1298,7 +1262,7 @@ export const DataEntryPage = ({ projects = [], equipment = [], onAddProject, onA
                   </div>
                 )}
 
-                {/* Attachment */}
+                {}
                 {selectedItem.file_name && selectedItem.file_data && (
                   <div className="p-4 rounded-2xl" style={{ background: darkMode ? 'rgba(255,255,255,0.04)' : 'rgba(0,74,152,0.04)', border: `1px solid ${darkMode ? '#334155' : '#e2e8f0'}` }}>
                     <p className="text-xs font-semibold uppercase tracking-wider mb-3" style={{ color: darkMode ? '#64748b' : '#94a3b8' }}>Attachment</p>
@@ -1320,7 +1284,7 @@ export const DataEntryPage = ({ projects = [], equipment = [], onAddProject, onA
 
               </div>
 
-              {/* Footer with Edit button — inside modal */}
+              {}
               <div className="px-6 pb-6 pt-4 flex justify-end gap-3 border-t sticky bottom-0"
                 style={{
                   borderColor: darkMode ? '#334155' : '#e2e8f0',

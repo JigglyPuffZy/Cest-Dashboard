@@ -55,12 +55,12 @@ export const db = {
         throw error;
       }
       
-      // Transform data to include province name from province_id
+      
       const transformedData = data?.map(project => {
         const provinceId = project.municipality?.province_id;
         let provinceName = '';
         
-        // Map province_id to province name
+        
         if (provinceId) {
           const provinceMap = {
             'batanes': 'Batanes',
@@ -78,7 +78,6 @@ export const db = {
         };
       }) || [];
       
-      console.log('Projects fetched successfully:', transformedData.length);
       return transformedData;
     } catch (error) {
       console.error('Error in getProjects:', error);
@@ -89,18 +88,18 @@ export const db = {
   async createProject(project) {
     const { components, communities, ...projectData } = project
     
-    // First, create the main project record
+    
     const { data, error } = await supabase.from('projects').insert([projectData]).select()
     if (error) throw error
     
     const newProject = data[0]
     const projectId = newProject.id
     
-    // Then, create component associations if components are provided
+    
     if (components && components.length > 0) {
       for (const componentCode of components) {
         try {
-          // Get the component ID from the components table
+          
           const { data: component, error: compError } = await supabase
             .from('components')
             .select('id')
@@ -108,7 +107,7 @@ export const db = {
             .single()
           
           if (!compError && component) {
-            // Insert the project-component relationship
+            
             await supabase.from('project_components')
               .insert([{ project_id: projectId, component_id: component.id }])
           }
@@ -118,11 +117,11 @@ export const db = {
       }
     }
     
-    // Create community type associations if communities are provided
+    
     if (communities && communities.length > 0) {
       for (const communityType of communities) {
         try {
-          // Get the community type ID from the community_types table
+          
           const { data: community, error: commError } = await supabase
             .from('community_types')
             .select('id')
@@ -130,7 +129,7 @@ export const db = {
             .single()
           
           if (!commError && community) {
-            // Insert the project-community relationship
+            
             await supabase.from('project_community_types')
               .insert([{ project_id: projectId, community_type_id: community.id }])
           }
@@ -149,7 +148,7 @@ export const db = {
     return data[0]
   },
 
-  // Soft-delete: set both deleted_at (satisfies RLS) and is_archived (our flag)
+  
   async deleteProject(id) {
     const now = new Date().toISOString()
     const { error } = await supabase.from('projects')
@@ -158,7 +157,7 @@ export const db = {
     if (error) throw error
   },
 
-  // Restore: clear both flags so RLS lets it through again
+  
   async restoreProject(id) {
     const { error } = await supabase.from('projects')
       .update({ is_archived: false, archived_at: null, deleted_at: null })
@@ -169,17 +168,17 @@ export const db = {
   async getArchivedProjects() {
     const { data, error } = await supabase
       .from('projects')
-      .select(`*, municipality:municipalities(name, province_id)`)
+      .select(`*, municipality:municipalities(name, province_id), project_components(component:components(*))`)
       .eq('is_archived', true)
       .order('archived_at', { ascending: false })
     if (error) return []
     
-    // Transform data to include province name from province_id
+    
     const transformedData = data?.map(project => {
       const provinceId = project.municipality?.province_id;
       let provinceName = '';
       
-      // Map province_id to province name
+      
       if (provinceId) {
         const provinceMap = {
           'batanes': 'Batanes',
@@ -205,10 +204,10 @@ export const db = {
     if (error) throw error
   },
 
-  // ── Project relationships ─────────────────────────────────────────────────
+  
   async addProjectComponent(projectId, componentCode) {
     try {
-      // Check if relationship already exists
+      
       const { data: existing } = await supabase
         .from('project_components')
         .select('id')
@@ -217,14 +216,12 @@ export const db = {
         .single()
       
       if (existing) {
-        console.log('Component relationship already exists:', componentCode);
         return;
       }
       
       const { data: component, error } = await supabase.from('components')
         .select('id').eq('id', componentCode.toLowerCase()).single()
       if (error || !component) {
-        console.log('Component not found:', componentCode);
         return;
       }
       
@@ -232,16 +229,16 @@ export const db = {
         .insert([{ project_id: projectId, component_id: component.id }])
       
       if (insertError) {
-        console.log('Error inserting project component:', insertError);
+        console.warn('Error inserting project component:', insertError);
       }
     } catch (err) {
-      console.log('Error in addProjectComponent:', err);
+      console.warn('Error in addProjectComponent:', err);
     }
   },
 
   async addProjectCommunityType(projectId, communityCode) {
     try {
-      // Check if relationship already exists
+      
       const { data: existing } = await supabase
         .from('project_community_types')
         .select('id')
@@ -250,14 +247,12 @@ export const db = {
         .single()
       
       if (existing) {
-        console.log('Community type relationship already exists:', communityCode);
         return;
       }
       
       const { data: ct, error } = await supabase.from('community_types')
         .select('id').eq('id', communityCode.toLowerCase()).single()
       if (error || !ct) {
-        console.log('Community type not found:', communityCode);
         return;
       }
       
@@ -265,10 +260,10 @@ export const db = {
         .insert([{ project_id: projectId, community_type_id: ct.id }])
       
       if (insertError) {
-        console.log('Error inserting project community type:', insertError);
+        console.warn('Error inserting project community type:', insertError);
       }
     } catch (err) {
-      console.log('Error in addProjectCommunityType:', err);
+      console.warn('Error in addProjectCommunityType:', err);
     }
   },
 
@@ -285,17 +280,6 @@ export const db = {
       if (error) {
         console.error('Database error in getEquipment:', error);
         throw error;
-      }
-      
-      console.log('Equipment fetched successfully:', data?.length || 0);
-      if (data && data.length > 0) {
-        console.log('Sample equipment data with project info:', data.slice(0, 3).map(eq => ({
-          id: eq.id,
-          name: eq.equipment_name,
-          project_id: eq.project_id,
-          project_title: eq.project_title,
-          project: eq.project
-        })));
       }
       
       return data || [];
@@ -315,11 +299,11 @@ export const db = {
       units_per_year: equipment.units_per_year ? parseInt(equipment.units_per_year) : null,
       component_id: equipment.component_id || 'sel',
       project_title: equipment.project_title || null,
-      // Use provided project_id if available
+      
       project_id: equipment.project_id || null
     }
     
-    // If project_title is provided but no project_id, try to find matching project
+    
     if (equipmentData.project_title && !equipmentData.project_id) {
       try {
         const { data: matchingProjects, error: queryError } = await supabase
@@ -331,27 +315,18 @@ export const db = {
         
         if (!queryError && matchingProjects && matchingProjects.length > 0) {
           equipmentData.project_id = matchingProjects[0].id
-          console.log('Linked equipment to project:', matchingProjects[0]);
-        } else {
-          console.log('No matching project found for equipment:', equipmentData.project_title)
         }
-      } catch (err) {
-        // If no matching project found, that's okay - equipment can exist without project link
-        console.log('Error finding matching project:', err)
+      } catch {
+        
       }
     }
     
-    console.log('Creating equipment with data:', equipmentData);
     const { data, error } = await supabase.from('equipment').insert([equipmentData]).select()
     if (error) throw error
-    console.log('Equipment created:', data[0]);
     return data[0]
   },
 
   async updateEquipment(id, updates) {
-    console.log('Updating equipment in database:', { id, updates });
-    
-    // Ensure we handle all the fields properly
     const updateData = {
       year: updates.year,
       municipality_id: updates.municipality_id,
@@ -363,7 +338,7 @@ export const db = {
       project_title: updates.project_title || null
     };
     
-    // Try to link to actual project if project_title matches
+    
     if (updateData.project_title && !updates.project_id) {
       try {
         const { data: matchingProjects, error: queryError } = await supabase
@@ -375,15 +350,10 @@ export const db = {
         
         if (!queryError && matchingProjects && matchingProjects.length > 0) {
           updateData.project_id = matchingProjects[0].id
-          console.log('Linked equipment to project:', matchingProjects[0]);
         } else {
-          console.log('No matching project found for equipment:', updateData.project_title)
-          // Clear project_id if no matching project found
           updateData.project_id = null
         }
-      } catch (err) {
-        // If no matching project found, that's okay
-        console.log('Error finding matching project:', err)
+      } catch {
         updateData.project_id = null
       }
     } else if (updates.project_id) {
@@ -395,7 +365,6 @@ export const db = {
       console.error('Database update error:', error);
       throw error;
     }
-    console.log('Equipment updated in database:', data[0]);
     return data[0]
   },
 

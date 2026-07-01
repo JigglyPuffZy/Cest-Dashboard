@@ -1,24 +1,3 @@
--- =============================================================================
--- CEST 2.0 — FULL SETUP: Guest Access + Notifications + Activity Log + Admin
--- =============================================================================
--- Run once in: Supabase Dashboard → SQL Editor → New query → Paste all → Run
---
--- What this sets up:
---   • Guest access requests  → Notifications "Alerts" tab (pending approvals)
---   • Guest access logs      → Guest activity tracking
---   • audit_logs table       → Notifications "Activity Log" tab (mark read/unread)
---   • Guest read policies    → Approved guests can view dashboard data
---   • Admin staff user       → Login for approving guests & viewing notifications
---
--- Safe to re-run (uses IF NOT EXISTS / DROP POLICY IF EXISTS).
--- Change admin email/password in SECTION 5 before running if needed.
--- =============================================================================
-
-
--- =============================================================================
--- SECTION 1 — GUEST ACCESS (Notifications → Alerts tab)
--- =============================================================================
-
 CREATE TABLE IF NOT EXISTS public.guest_access_requests (
   id            UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   first_name    TEXT NOT NULL,
@@ -192,10 +171,7 @@ CREATE POLICY "Insert access logs"
 GRANT SELECT ON public.guest_access_stats TO authenticated;
 
 
--- =============================================================================
--- SECTION 2 — AUDIT / ACTIVITY LOG (Notifications → Activity Log tab)
--- No separate notifications table — bell reads guest_access_requests + audit_logs
--- =============================================================================
+
 
 CREATE TABLE IF NOT EXISTS public.audit_logs (
   id            BIGSERIAL PRIMARY KEY,
@@ -218,7 +194,7 @@ CREATE TABLE IF NOT EXISTS public.audit_logs (
   created_at    TIMESTAMPTZ DEFAULT NOW()
 );
 
--- Add columns if audit_logs already existed from an older script
+
 ALTER TABLE public.audit_logs ADD COLUMN IF NOT EXISTS action        TEXT;
 ALTER TABLE public.audit_logs ADD COLUMN IF NOT EXISTS entity_type   TEXT;
 ALTER TABLE public.audit_logs ADD COLUMN IF NOT EXISTS entity_id     TEXT;
@@ -262,7 +238,7 @@ CREATE POLICY "Staff update audit logs read status"
 
 GRANT SELECT, INSERT, UPDATE ON public.audit_logs TO authenticated;
 
--- Optional: RPC to insert activity from the app (future-proof)
+
 CREATE OR REPLACE FUNCTION public.insert_audit_log(
   p_action      TEXT,
   p_entity_type TEXT DEFAULT NULL,
@@ -289,9 +265,7 @@ $$;
 GRANT EXECUTE ON FUNCTION public.insert_audit_log(TEXT, TEXT, TEXT, TEXT, TEXT, TEXT) TO authenticated;
 
 
--- =============================================================================
--- SECTION 3 — GUEST READ ACCESS (approved guests can load dashboard data)
--- =============================================================================
+
 
 DO $$
 DECLARE
@@ -379,10 +353,7 @@ BEGIN
 END $$;
 
 
--- =============================================================================
--- SECTION 4 — ADMIN STAFF USER (approve guests + see notifications)
--- ⚠️  Change email and password below before running in production
--- =============================================================================
+
 
 CREATE EXTENSION IF NOT EXISTS pgcrypto;
 
@@ -436,9 +407,7 @@ BEGIN
 END $$;
 
 
--- =============================================================================
--- SECTION 5 — VERIFY (should return counts / no errors)
--- =============================================================================
+
 
 SELECT 'guest_access_requests' AS item, count(*)::text AS value
 FROM public.guest_access_requests

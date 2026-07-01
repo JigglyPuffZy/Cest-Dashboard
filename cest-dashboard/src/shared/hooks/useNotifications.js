@@ -16,7 +16,7 @@ function saveReadIds(ids) {
   try {
     sessionStorage.setItem(READ_KEY, JSON.stringify(ids));
   } catch {
-    /* ignore */
+    
   }
 }
 

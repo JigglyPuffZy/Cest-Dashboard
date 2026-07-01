@@ -52,16 +52,7 @@ export const TopBar = ({
       : '0 4px 12px rgba(217, 119, 6, 0.3)'
   };
 
-  // Determine if we're on STARBOOKS pages
   const isStarbooksPage = activePage?.startsWith('starbooks');
-
-  // Debug logging
-  useEffect(() => {
-    console.log('TopBar - activePage:', activePage);
-    console.log('TopBar - isStarbooksPage:', isStarbooksPage);
-    console.log('TopBar - starbooksUnits count:', starbooksUnits?.length || 0);
-    console.log('TopBar - projects count:', projects?.length || 0);
-  }, [activePage, isStarbooksPage, starbooksUnits, projects]);
 
   const filteredProjects = (() => {
     try {
@@ -70,10 +61,10 @@ export const TopBar = ({
         
         const query = searchQuery.toLowerCase();
         
-        // Safely check project name
+        
         const projectMatch = p.project?.toLowerCase().includes(query);
         
-        // Safely check municipality (handle both string and object formats)
+        
         let municipalityMatch = false;
         if (typeof p.municipality === 'string') {
           municipalityMatch = p.municipality.toLowerCase().includes(query);
@@ -81,10 +72,10 @@ export const TopBar = ({
           municipalityMatch = p.municipality.name.toLowerCase().includes(query);
         }
         
-        // Safely check community
+        
         const communityMatch = p.community?.toLowerCase().includes(query);
         
-        // Safely check year
+        
         const yearMatch = p.year?.toString().includes(searchQuery);
         
         return projectMatch || municipalityMatch || communityMatch || yearMatch;
@@ -102,7 +93,7 @@ export const TopBar = ({
         
         const query = searchQuery.toLowerCase();
         
-        // Search by location, municipality, serial number, status
+        
         const locationMatch = (unit.location || '').toLowerCase().includes(query);
         const municipalityMatch = (unit.municipality || '').toLowerCase().includes(query);
         const serialMatch = (unit.serialNumber || unit.unit_code || '').toLowerCase().includes(query);
@@ -117,7 +108,7 @@ export const TopBar = ({
     }
   })();
 
-  // Use appropriate filtered results based on active page
+  
   const searchResults = isStarbooksPage ? filteredStarbooksUnits : filteredProjects;
   const searchTitle = isStarbooksPage ? 'Search STARBOOKS Units' : 'Search Projects';
   const searchPlaceholder = isStarbooksPage 
@@ -134,7 +125,7 @@ export const TopBar = ({
     setSearchQuery("");
   };
 
-  // ESC key to close search modal
+  
   useEffect(() => {
     const handleEscape = (e) => {
       if (e.key === 'Escape' && showSearch) {
@@ -234,7 +225,7 @@ export const TopBar = ({
                 maxHeight: '80vh'
               }}
             >
-              {/* Header with gradient */}
+              
               <div 
                 className="p-6 relative overflow-hidden"
                 style={{
@@ -265,7 +256,7 @@ export const TopBar = ({
                     </button>
                   </div>
 
-                  {/* Search Input */}
+                  
                   <div className="relative">
                     <input
                       type="text"
@@ -298,7 +289,7 @@ export const TopBar = ({
                     )}
                   </div>
 
-                  {/* Results count */}
+                  
                   {searchQuery && (
                     <div className="mt-3 flex items-center justify-between">
                       <p className="text-sm font-semibold text-white/90">
@@ -312,7 +303,7 @@ export const TopBar = ({
                 </div>
               </div>
 
-              {/* Results */}
+              
               <div className="max-h-[50vh] overflow-y-auto">
                 {searchQuery.length === 0 ? (
                   <div className="p-12 text-center">
@@ -347,7 +338,6 @@ export const TopBar = ({
                 ) : (
                   <div className="p-4 space-y-2">
                     {isStarbooksPage ? (
-                      // STARBOOKS Units Results
                       searchResults.slice(0, 10).map((unit, index) => (
                         <button
                           key={unit.id}
@@ -433,7 +423,6 @@ export const TopBar = ({
                         </button>
                       ))
                     ) : (
-                      // Projects Results
                       searchResults.slice(0, 10).map((project, index) => (
                       <button
                         key={project.id}

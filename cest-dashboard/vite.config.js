@@ -3,7 +3,7 @@ import react from '@vitejs/plugin-react'
 import { copyFileSync } from 'node:fs'
 import { resolve } from 'node:path'
 
-/** Copy index.html → 404.html so Vercel serves the SPA for unknown routes */
+
 function spaFallback() {
   return {
     name: 'spa-fallback',

@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef } from 'react';
 
 export const HoverTooltip = ({ 
   children, 
@@ -16,7 +16,7 @@ export const HoverTooltip = ({
   const showTooltip = () => {
     const id = setTimeout(() => {
       setIsVisible(true);
-      // Calculate best position after tooltip becomes visible
+      
       setTimeout(() => calculatePosition(), 10);
     }, delay);
     setTimeoutId(id);
@@ -44,9 +44,9 @@ export const HoverTooltip = ({
 
     let bestPosition = position === 'auto' ? 'top' : position;
 
-    // Check if current position fits in viewport
+    
     const positions = ['top', 'bottom', 'left', 'right'];
-    const spacing = 12; // Gap between tooltip and element
+    const spacing = 12; 
 
     for (const pos of positions) {
       let fits = true;
@@ -72,7 +72,7 @@ export const HoverTooltip = ({
       }
     }
 
-    // If no position fits perfectly, choose the one with most space
+    
     if (bestPosition === position && position === 'auto') {
       const spaces = {
         top: containerRect.top,
@@ -136,7 +136,7 @@ export const HoverTooltip = ({
         >
           {content}
           
-          {/* Simplified Arrow */}
+          {}
           <div 
             className="absolute"
             style={{

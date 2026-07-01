@@ -1,4 +1,3 @@
-// CEST 2.0 Components
 export const COMPONENTS = {
   sel: "Sustainable Enterprise & Livelihoods",
   hn: "Health & Nutrition",
@@ -17,10 +16,10 @@ export const COMP_COLORS = {
   dg: "#e319a7",
 };
 
-// Status options
+
 export const STATUS_OPTIONS = ["Ongoing", "Liquidated", "Finished"];
 
-// Community types
+
 export const COMMUNITY_TYPES = {
   gida: "GIDA",
   conflict: "Conflict",
@@ -41,7 +40,7 @@ export const COMMUNITY_COLORS = {
   artisanal: "#0f766e",
 };
 
-// Beneficiary types for trainings
+
 export const BENEF_TYPES = {
   gida: "GIDA Communities",
   conflict: "Communities-in-conflict",

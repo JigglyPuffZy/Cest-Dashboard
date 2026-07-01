@@ -6,7 +6,7 @@ export const LoadingButton = ({
   disabled = false,
   onClick,
   type = "button",
-  variant = "primary", // primary, secondary, danger, success
+  variant = "primary", 
   icon: Icon,
   className = "",
   style = {},

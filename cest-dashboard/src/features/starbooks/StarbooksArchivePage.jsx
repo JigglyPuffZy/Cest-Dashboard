@@ -11,11 +11,11 @@ export const StarbooksArchivePage = ({ darkMode, readOnly = false }) => {
   const [searchQuery, setSearchQuery] = useState("");
   const [loading, setLoading] = useState(true);
   const [stats, setStats] = useState(null);
-  const [confirmAction, setConfirmAction] = useState(null); // { type: 'restore' | 'delete', unit }
+  const [confirmAction, setConfirmAction] = useState(null); 
   const [selectedUnit, setSelectedUnit] = useState(null);
   const [showDetailModal, setShowDetailModal] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 10; // Show 10 items per page
+  const itemsPerPage = 10; 
 
   useEffect(() => {
     loadArchivedUnits();
@@ -77,18 +77,18 @@ export const StarbooksArchivePage = ({ darkMode, readOnly = false }) => {
     );
   });
 
-  // Pagination
+  
   const totalPages = Math.ceil(filteredUnits.length / itemsPerPage);
   const startIndex = (currentPage - 1) * itemsPerPage;
   const endIndex = startIndex + itemsPerPage;
   const paginatedUnits = filteredUnits.slice(startIndex, endIndex);
 
-  // Reset to page 1 when search changes
+  
   useEffect(() => {
     setCurrentPage(1);
   }, [searchQuery]);
 
-  // Memoized theme colors - prevents recalculation on every render
+  
   const theme = useMemo(() => ({
     cardBg: darkMode ? 'rgba(30, 41, 59, 0.95)' : 'rgba(255, 255, 255, 0.98)',
     borderColor: darkMode ? 'rgba(148, 163, 184, 0.1)' : 'rgba(226, 232, 240, 0.8)',
@@ -112,7 +112,7 @@ export const StarbooksArchivePage = ({ darkMode, readOnly = false }) => {
 
   return (
     <div className="max-w-[1600px] mx-auto p-6 space-y-6" style={{ transition: 'all 0.3s ease' }}>
-      {/* Header */}
+      {}
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold mb-1" style={{ color: theme.textPrimary, transition: 'color 0.3s ease' }}>
@@ -136,7 +136,7 @@ export const StarbooksArchivePage = ({ darkMode, readOnly = false }) => {
         </button>
       </div>
 
-      {/* Stats Cards */}
+      {}
       {stats && (
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
           <div className="p-5 rounded-xl transition-all hover:scale-105 duration-300" style={{
@@ -213,7 +213,7 @@ export const StarbooksArchivePage = ({ darkMode, readOnly = false }) => {
         </div>
       )}
 
-      {/* Search */}
+      {}
       <FilterBar
         darkMode={darkMode}
         searchValue={searchQuery}
@@ -229,7 +229,7 @@ export const StarbooksArchivePage = ({ darkMode, readOnly = false }) => {
         }
       />
 
-      {/* Archived Units List */}
+      {}
       {loading ? (
         <div className="text-center py-20">
           <div className="animate-spin w-12 h-12 border-4 border-blue-500 border-t-transparent rounded-full mx-auto mb-4"></div>
@@ -266,12 +266,12 @@ export const StarbooksArchivePage = ({ darkMode, readOnly = false }) => {
                     : '0 4px 20px rgba(0, 0, 0, 0.06), 0 1px 3px rgba(0, 0, 0, 0.08)'
                 }}
               >
-                {/* Archive Banner */}
+                {}
                 <div className="h-1" style={{ background: 'linear-gradient(90deg, #f59e0b 0%, #d97706 100%)' }} />
 
                 <div className="p-5">
                   <div className="flex items-start justify-between gap-4">
-                    {/* Left: Unit Info */}
+                    {}
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-3 mb-3">
                         <div className="p-2 rounded-lg" style={{ background: 'rgba(245, 158, 11, 0.15)' }}>
@@ -318,7 +318,7 @@ export const StarbooksArchivePage = ({ darkMode, readOnly = false }) => {
                       )}
                     </div>
 
-                    {/* Right: Actions */}
+                    {}
                     <div className="flex flex-col gap-2">
                       <button
                         onClick={() => {
@@ -384,7 +384,7 @@ export const StarbooksArchivePage = ({ darkMode, readOnly = false }) => {
         </>
       )}
 
-      {/* Confirmation Modals */}
+      {}
       {confirmAction?.type === 'restore' && (
         <ConfirmDeleteModal
           isOpen={true}
@@ -415,17 +415,18 @@ export const StarbooksArchivePage = ({ darkMode, readOnly = false }) => {
         />
       )}
 
-      {/* Detail Modal */}
+      {}
       {showDetailModal && selectedUnit && (
         <Modal onClose={() => { setShowDetailModal(false); setSelectedUnit(null); }} className="bg-black/80 backdrop-blur-sm">
           <ModalPanel maxWidth="max-w-3xl" className="rounded-3xl overflow-hidden">
           <div 
             style={{
-              ...cardStyle,
+              background: darkMode ? '#0f172a' : '#ffffff',
+              color: darkMode ? '#f8fafc' : '#0f172a',
               boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5)'
             }}
           >
-            {/* Modal Header with Gradient */}
+            {}
             <div 
               className="relative p-8 border-b overflow-hidden"
               style={{ 
@@ -486,10 +487,10 @@ export const StarbooksArchivePage = ({ darkMode, readOnly = false }) => {
               </div>
             </div>
 
-            {/* Modal Content with Enhanced Layout */}
+            {}
             <div className="p-8 overflow-y-auto max-h-[calc(90vh-200px)]">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {/* Location Information Card */}
+                {}
                 <div 
                   className="p-5 rounded-2xl"
                   style={{ 
@@ -528,7 +529,7 @@ export const StarbooksArchivePage = ({ darkMode, readOnly = false }) => {
                   </div>
                 </div>
 
-                {/* Archive Information Card */}
+                {}
                 <div 
                   className="p-5 rounded-2xl"
                   style={{ 
@@ -569,7 +570,7 @@ export const StarbooksArchivePage = ({ darkMode, readOnly = false }) => {
                   </div>
                 </div>
 
-                {/* Installation Date Card */}
+                {}
                 {selectedUnit.installation_date && (
                   <div 
                     className="p-5 rounded-2xl"
@@ -604,7 +605,7 @@ export const StarbooksArchivePage = ({ darkMode, readOnly = false }) => {
                   </div>
                 )}
 
-                {/* Usage Statistics Card */}
+                {}
                 {(selectedUnit.total_users > 0 || selectedUnit.total_sessions > 0) && (
                   <div 
                     className="p-5 rounded-2xl"
@@ -650,7 +651,7 @@ export const StarbooksArchivePage = ({ darkMode, readOnly = false }) => {
                 )}
               </div>
 
-              {/* Archive Reason - Full Width */}
+              {}
               {selectedUnit.archive_reason && (
                 <div 
                   className="mt-6 p-5 rounded-2xl"
@@ -678,7 +679,7 @@ export const StarbooksArchivePage = ({ darkMode, readOnly = false }) => {
                 </div>
               )}
 
-              {/* Additional Information - Full Width */}
+              {}
               {selectedUnit.notes && (
                 <div 
                   className="mt-6 p-5 rounded-2xl"
@@ -707,7 +708,7 @@ export const StarbooksArchivePage = ({ darkMode, readOnly = false }) => {
               )}
             </div>
 
-            {/* Modal Footer with Actions */}
+            {}
             <div 
               className="p-6 border-t"
               style={{ 

@@ -1,10 +1,3 @@
-// ═══════════════════════════════════════════════════════════════════════════
-// REGION II (CAGAYAN VALLEY) - COMPLETE ADMINISTRATIVE STRUCTURE
-// ═══════════════════════════════════════════════════════════════════════════
-// Source: Philippine Statistics Authority (PSA) - PSGC Dataset
-// Last Updated: March 2026
-// ═══════════════════════════════════════════════════════════════════════════
-
 export const REGION_II_STRUCTURE = {
   regionCode: "02",
   regionName: "Cagayan Valley",
@@ -140,12 +133,7 @@ export const REGION_II_STRUCTURE = {
   ],
 };
 
-// ═══════════════════════════════════════════════════════════════════════════
-// SAMPLE BARANGAY DATA (Tuguegarao City Example)
-// ═══════════════════════════════════════════════════════════════════════════
-// Note: This is a sample structure. In production, barangay data should be
-// loaded from the complete PSGC dataset or your database.
-// ═══════════════════════════════════════════════════════════════════════════
+
 
 export const SAMPLE_BARANGAYS = {
   "Tuguegarao City": [
@@ -190,14 +178,9 @@ export const SAMPLE_BARANGAYS = {
   ],
 };
 
-// ═══════════════════════════════════════════════════════════════════════════
-// HELPER FUNCTIONS
-// ═══════════════════════════════════════════════════════════════════════════
 
-/**
- * Get all provinces in Region II
- * @returns {Array} Array of province objects
- */
+
+
 export const getAllProvinces = () => {
   return REGION_II_STRUCTURE.provinces.map((province) => ({
     id: province.id,
@@ -207,30 +190,18 @@ export const getAllProvinces = () => {
   }));
 };
 
-/**
- * Get all municipalities/cities for a specific province
- * @param {string} provinceId - Province ID (e.g., 'cagayan')
- * @returns {Array} Array of municipality objects
- */
+
 export const getMunicipalitiesByProvince = (provinceId) => {
   const province = REGION_II_STRUCTURE.provinces.find((p) => p.id === provinceId);
   return province ? province.municipalities : [];
 };
 
-/**
- * Get province by ID
- * @param {string} provinceId - Province ID
- * @returns {Object|null} Province object or null
- */
+
 export const getProvinceById = (provinceId) => {
   return REGION_II_STRUCTURE.provinces.find((p) => p.id === provinceId) || null;
 };
 
-/**
- * Get province by name
- * @param {string} provinceName - Province name
- * @returns {Object|null} Province object or null
- */
+
 export const getProvinceByName = (provinceName) => {
   return (
     REGION_II_STRUCTURE.provinces.find(
@@ -239,10 +210,7 @@ export const getProvinceByName = (provinceName) => {
   );
 };
 
-/**
- * Get total count of municipalities/cities in Region II
- * @returns {number} Total count
- */
+
 export const getTotalMunicipalityCount = () => {
   return REGION_II_STRUCTURE.provinces.reduce(
     (total, province) => total + province.municipalities.length,
@@ -250,11 +218,7 @@ export const getTotalMunicipalityCount = () => {
   );
 };
 
-/**
- * Search municipalities across all provinces
- * @param {string} searchTerm - Search term
- * @returns {Array} Array of matching municipalities with province info
- */
+
 export const searchMunicipalities = (searchTerm) => {
   const results = [];
   const term = searchTerm.toLowerCase();
@@ -274,12 +238,7 @@ export const searchMunicipalities = (searchTerm) => {
   return results;
 };
 
-/**
- * Validate if a municipality exists in a province
- * @param {string} provinceId - Province ID
- * @param {string} municipalityName - Municipality name
- * @returns {boolean} True if exists
- */
+
 export const municipalityExistsInProvince = (provinceId, municipalityName) => {
   const province = getProvinceById(provinceId);
   if (!province) return false;
@@ -289,10 +248,7 @@ export const municipalityExistsInProvince = (provinceId, municipalityName) => {
   );
 };
 
-/**
- * Get statistics for Region II
- * @returns {Object} Statistics object
- */
+
 export const getRegionStatistics = () => {
   const provinces = REGION_II_STRUCTURE.provinces;
   const totalMunicipalities = getTotalMunicipalityCount();
@@ -312,8 +268,6 @@ export const getRegionStatistics = () => {
   };
 };
 
-// ═══════════════════════════════════════════════════════════════════════════
-// EXPORT DEFAULT
-// ═══════════════════════════════════════════════════════════════════════════
+
 
 export default REGION_II_STRUCTURE;

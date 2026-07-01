@@ -44,8 +44,8 @@ export const StarbooksSidebar = ({
   const handleNavigation = (itemId) => {
     setActivePage(itemId);
     setSidebarOpen(false);
-    // Stay on STARBOOKS page, just update the active menu item
-    // The StarbooksPage component can handle different sections based on activePage
+    
+    
   };
 
   const handleLogout = () => {
@@ -113,7 +113,7 @@ export const StarbooksSidebar = ({
         `}
         style={sidebarStyles}
       >
-        {/* DOST Logo Header */}
+        {}
         {!isCollapsed && (
           <div 
             className="px-6 pt-6 pb-4"
@@ -159,7 +159,7 @@ export const StarbooksSidebar = ({
           </div>
         )}
 
-        {/* Header */}
+        {}
         <button
           onClick={handleToggle}
           className={`w-full border-b transition-all duration-200 group cursor-pointer ${
@@ -221,7 +221,7 @@ export const StarbooksSidebar = ({
           )}
         </button>
 
-        {/* Navigation */}
+        {}
         <nav className={`flex-1 overflow-y-auto scrollbar-thin ${isCollapsed ? 'px-3 py-4' : 'px-4 py-4'}`}>
           <div className="space-y-1">
             {STARBOOKS_NAV_ITEMS.map((item) => {
@@ -303,14 +303,14 @@ export const StarbooksSidebar = ({
           </div>
         </nav>
 
-        {/* Logout Button */}
+        {}
         <div 
           className={`border-t ${isCollapsed ? 'px-3 py-4' : 'px-4 py-4'} space-y-3`}
           style={{
             borderColor: darkMode ? 'rgba(30, 41, 59, 0.6)' : 'rgba(226, 232, 240, 0.8)'
           }}
         >
-          {/* System Switcher */}
+          {}
           {!isCollapsed && onSwitchSystem && (
             <button
               onClick={handleSwitchClick}
@@ -403,7 +403,7 @@ export const StarbooksSidebar = ({
           </button>
         </div>
 
-        {/* Footer */}
+        {}
         {!isCollapsed && (
           <div 
             className="px-4 py-3 border-t"
@@ -451,7 +451,7 @@ export const StarbooksSidebar = ({
         darkMode={darkMode}
       />
 
-      {/* System Switch Confirmation Modal */}
+      {}
       {showSwitchModal && (
         <Modal onClose={() => setShowSwitchModal(false)} overlayClassName="bg-black/70 backdrop-blur-md">
           <ModalPanel maxWidth="max-w-lg">
@@ -465,7 +465,7 @@ export const StarbooksSidebar = ({
                 boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(0, 74, 152, 0.1)'
               }}
             >
-              {/* Header */}
+              {}
               <div 
                 className="relative p-8 border-b"
                 style={{ 
@@ -509,7 +509,7 @@ export const StarbooksSidebar = ({
                 </div>
               </div>
 
-              {/* Content */}
+              
               <div className="relative p-8">
                 <div className="space-y-6">
                   <div className="grid grid-cols-2 gap-4">
@@ -575,7 +575,7 @@ export const StarbooksSidebar = ({
                 </div>
               </div>
 
-              {/* Actions */}
+              
               <div 
                 className="relative p-6 border-t"
                 style={{ 

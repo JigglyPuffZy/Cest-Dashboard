@@ -208,7 +208,7 @@ export function AuthProvider({ children }) {
   const guestAccessStatus = guestProfile?.status ?? null
   const isAuthenticated = !!user
   const isAdmin = isAuthenticated && !isGuestMode
-  // Guests only see data after admin approval; add/delete blocked via isReadOnly
+  
   const canViewData = isAdmin || (isGuestMode && guestAccessStatus === 'approved')
   const isReadOnly = isGuestMode && !isAdmin
 

@@ -1,14 +1,13 @@
-// Currency formatter
 export const fmt = (v) => (v ? `₱${Number(v).toLocaleString("en-PH")}` : "₱0");
 
-// Short currency formatter for charts
+
 export const formatCurrencyShort = (value) => {
   if (value >= 1_000_000) return `₱${(value / 1_000_000).toFixed(1)}M`;
   if (value >= 1_000) return `₱${(value / 1_000).toFixed(0)}k`;
   return `₱${value}`;
 };
 
-// Status color helper
+
 export const getStatusColor = (status, darkMode = false) => {
   const colors = {
     Ongoing: darkMode 
@@ -24,7 +23,7 @@ export const getStatusColor = (status, darkMode = false) => {
   return colors[status] || colors.Finished;
 };
 
-// Card style helper - Enhanced with glassmorphism
+
 export const getCardStyle = (darkMode = false) => ({
   background: darkMode 
     ? 'linear-gradient(145deg, rgba(15, 23, 42, 0.95) 0%, rgba(30, 41, 59, 0.95) 100%)'
@@ -37,7 +36,7 @@ export const getCardStyle = (darkMode = false) => ({
     : '0 8px 32px rgba(0, 74, 152, 0.08), 0 1px 0 rgba(255, 255, 255, 0.8) inset',
 });
 
-// Input style helper - Enhanced with better focus states
+
 export const getInputStyle = (darkMode = false, isFocused = false) => ({
   background: darkMode ? 'rgba(30, 41, 59, 0.6)' : 'rgba(248, 250, 252, 0.8)',
   color: darkMode ? '#f8fafc' : '#0f172a',
@@ -48,7 +47,7 @@ export const getInputStyle = (darkMode = false, isFocused = false) => ({
   transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)'
 });
 
-// Button style helper - New utility
+
 export const getButtonStyle = (variant = 'primary', darkMode = false) => {
   const variants = {
     primary: {
@@ -79,7 +78,7 @@ export const getButtonStyle = (variant = 'primary', darkMode = false) => {
   return variants[variant] || variants.primary;
 };
 
-// Open uploaded file in new tab or trigger download
+
 export function openUploadedFile(fileData, fileName) {
   if (!fileData) return;
   
@@ -95,7 +94,7 @@ export function openUploadedFile(fileData, fileName) {
   }
 }
 
-// Generate project PDF
+
 export function openProjectAsPDF(project, COMPONENTS, COMP_COLORS, COMMUNITY_TYPES, fmt) {
   const p = project;
   
