@@ -2,21 +2,22 @@ import { useState, useEffect, useCallback, useMemo } from 'react';
 import { accessRequestService } from '../services/accessRequestService';
 
 const READ_KEY = 'cest_notification_read_ids';
+const CLEARED_KEY = 'cest_notification_cleared_ids';
 
-function loadReadIds() {
+function loadIds(key) {
   try {
-    const raw = sessionStorage.getItem(READ_KEY);
+    const raw = sessionStorage.getItem(key);
     return raw ? JSON.parse(raw) : [];
   } catch {
     return [];
   }
 }
 
-function saveReadIds(ids) {
+function saveIds(key, ids) {
   try {
-    sessionStorage.setItem(READ_KEY, JSON.stringify(ids));
+    sessionStorage.setItem(key, JSON.stringify(ids));
   } catch {
-    
+    /* ignore */
   }
 }
 
@@ -39,9 +40,11 @@ export function useNotifications({
   isAdmin = false,
   isGuestMode = false,
   guestAccessStatus = null,
+  guestDisconnected = false,
   pollMs = 15000,
 }) {
-  const [readIds, setReadIds] = useState(loadReadIds);
+  const [readIds, setReadIds] = useState(() => loadIds(READ_KEY));
+  const [clearedIds, setClearedIds] = useState(() => loadIds(CLEARED_KEY));
   const [pendingGuests, setPendingGuests] = useState([]);
 
   const refreshGuestRequests = useCallback(async () => {
@@ -65,7 +68,7 @@ export function useNotifications({
     setReadIds((prev) => {
       if (prev.includes(id)) return prev;
       const next = [...prev, id];
-      saveReadIds(next);
+      saveIds(READ_KEY, next);
       return next;
     });
   }, []);
@@ -73,7 +76,16 @@ export function useNotifications({
   const markAllRead = useCallback((ids) => {
     setReadIds((prev) => {
       const next = [...new Set([...prev, ...ids])];
-      saveReadIds(next);
+      saveIds(READ_KEY, next);
+      return next;
+    });
+  }, []);
+
+  const clearNotifications = useCallback((ids) => {
+    if (!ids?.length) return;
+    setClearedIds((prev) => {
+      const next = [...new Set([...prev, ...ids])];
+      saveIds(CLEARED_KEY, next);
       return next;
     });
   }, []);
@@ -85,8 +97,10 @@ export function useNotifications({
 
     if (isAdmin) {
       pendingGuests.forEach((req) => {
+        const id = `guest-request-${req.id}`;
+        if (clearedIds.includes(id)) return;
         items.push({
-          id: `guest-request-${req.id}`,
+          id,
           type: 'guest_request',
           category: 'access',
           title: 'Guest access request',
@@ -100,7 +114,7 @@ export function useNotifications({
       });
     }
 
-    if (isGuestMode && guestAccessStatus === 'approved' && !readIds.includes('guest-access-approved')) {
+    if (isGuestMode && guestAccessStatus === 'approved' && !clearedIds.includes('guest-access-approved')) {
       items.push({
         id: 'guest-access-approved',
         type: 'access_approved',
@@ -113,31 +127,39 @@ export function useNotifications({
       });
     }
 
-    if (isGuestMode && guestAccessStatus === 'declined' && !readIds.includes('guest-access-declined')) {
-      items.push({
-        id: 'guest-access-declined',
-        type: 'access_declined',
-        category: 'access',
-        title: 'Access not approved',
-        message: 'Your guest request was declined. Contact DOST Region II or sign in as staff.',
-        timestamp: new Date().toISOString(),
-        timeAgo: 'Just now',
-        priority: 'high',
-      });
+    if (isGuestMode && guestAccessStatus === 'declined') {
+      const declinedId = guestDisconnected ? 'guest-access-disconnected' : 'guest-access-declined';
+      if (!clearedIds.includes(declinedId)) {
+        items.push({
+          id: declinedId,
+          type: 'access_declined',
+          category: 'access',
+          title: guestDisconnected ? 'Session ended' : 'Access not approved',
+          message: guestDisconnected
+            ? 'An administrator ended your guest session for safety.'
+            : 'Your guest request was declined. Contact DOST Region II or sign in as staff.',
+          timestamp: new Date().toISOString(),
+          timeAgo: 'Just now',
+          priority: 'high',
+        });
+      }
     }
 
     return items
       .map((n) => ({ ...n, read: readIds.includes(n.id) }))
       .sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
-  }, [enabled, isAdmin, isGuestMode, guestAccessStatus, pendingGuests, readIds]);
+  }, [enabled, isAdmin, isGuestMode, guestAccessStatus, guestDisconnected, pendingGuests, readIds, clearedIds]);
 
   const unreadCount = notifications.filter((n) => !n.read).length;
+  const readCount = notifications.filter((n) => n.read).length;
 
   return {
     notifications,
     unreadCount,
+    readCount,
     markRead,
     markAllRead,
+    clearNotifications,
     refreshGuestRequests,
   };
-}
+};

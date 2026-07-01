@@ -193,7 +193,25 @@ export const accessRequestService = {
     return this._review(requestId, "declined", reviewedBy);
   },
 
-  async _review(requestId, status, reviewedBy) {
+  async disconnectGuest(requestId, reviewedBy = "Administrator") {
+    const { data: existing, error: fetchError } = await supabase
+      .from("guest_access_requests")
+      .select("*")
+      .eq("id", requestId)
+      .maybeSingle();
+
+    if (fetchError) throw new Error(fetchError.message || "Failed to load guest request.");
+    if (!existing) throw new Error("Guest request not found.");
+    if (existing.status !== "approved") {
+      throw new Error("Only approved guests can be disconnected.");
+    }
+
+    return this._review(requestId, "declined", reviewedBy, {
+      logMessage: `${existing.full_name || "Guest"} was disconnected by administrator for safety`,
+    });
+  },
+
+  async _review(requestId, status, reviewedBy, options = {}) {
     const { data, error } = await supabase
       .from("guest_access_requests")
       .update({
@@ -215,7 +233,7 @@ export const accessRequestService = {
 
     await this.logEvent({
       type: status === "approved" ? "request_approved" : "request_declined",
-      message: `${request.fullName} was ${status}`,
+      message: options.logMessage || `${request.fullName} was ${status}`,
       userName: request.fullName,
       actor: reviewedBy,
       requestId,

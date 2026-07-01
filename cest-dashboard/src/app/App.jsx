@@ -47,6 +47,7 @@ function AppContent() {
     canViewData,
     displayName,
     guestAccessStatus,
+    guestDisconnected,
     guestNeedsProfile,
     refreshGuestProfile,
   } = useAuth();
@@ -63,21 +64,34 @@ function AppContent() {
   const [showNotifications, setShowNotifications] = useState(false);
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [auditUpdating, setAuditUpdating] = useState(false);
+  const [clearedActivityIds, setClearedActivityIds] = useState(() => {
+    try {
+      const raw = sessionStorage.getItem('cest_activity_cleared_ids');
+      return raw ? JSON.parse(raw) : [];
+    } catch {
+      return [];
+    }
+  });
 
   const { toasts, success, warning, error, removeToast } = useToastNotification();
   const { logs, refreshLogs, getUnreadCount } = useAuditLog();
   const {
     notifications,
     unreadCount: alertsUnreadCount,
+    readCount: alertsReadCount,
     markRead: markNotificationRead,
     markAllRead: markAllNotificationsRead,
+    clearNotifications,
   } = useNotifications({
-    enabled: canAccessApp && (isAdmin || (isGuestMode && guestAccessStatus === 'approved')),
+    enabled: canAccessApp && (isAdmin || isGuestMode),
     isAdmin,
     isGuestMode,
     guestAccessStatus,
+    guestDisconnected,
   });
   const auditUnreadCount = getUnreadCount();
+  const visibleAuditLogs = logs.filter((log) => !clearedActivityIds.includes(String(log.id)));
+  const activityReadCount = visibleAuditLogs.filter((log) => log.is_read).length;
   const totalNotificationUnread = alertsUnreadCount + (isAdmin ? auditUnreadCount : 0);
   const dataLoadedRef = useRef(false);
   const prevGuestStatusRef = useRef(null);
@@ -345,6 +359,21 @@ function AppContent() {
     }
   };
 
+  const handleClearReadAlerts = () => {
+    const readIds = notifications.filter((n) => n.read).map((n) => n.id);
+    clearNotifications(readIds);
+  };
+
+  const handleClearReadActivity = () => {
+    const readIds = visibleAuditLogs.filter((log) => log.is_read).map((log) => String(log.id));
+    if (!readIds.length) return;
+    setClearedActivityIds((prev) => {
+      const next = [...new Set([...prev, ...readIds])];
+      sessionStorage.setItem('cest_activity_cleared_ids', JSON.stringify(next));
+      return next;
+    });
+  };
+
   const handleNotificationAction = (notification) => {
     if (!notification.read) markNotificationRead(notification.id);
     if (notification.actionTarget === 'admin') {
@@ -606,6 +635,7 @@ function AppContent() {
         status={guestAccessStatus || "pending"}
         displayName={displayName}
         darkMode={darkMode}
+        disconnected={guestDisconnected}
         onStaffSignIn={exitGuestMode}
         onRefresh={refreshGuestProfile}
       />
@@ -837,15 +867,19 @@ function AppContent() {
           {showNotifications && (
             <NotificationPanel
               notifications={notifications}
-              auditLogs={logs}
+              auditLogs={visibleAuditLogs}
               darkMode={darkMode}
               isAdmin={isAdmin}
               alertsUnread={alertsUnreadCount}
+              alertsRead={alertsReadCount}
               activityUnread={auditUnreadCount}
+              activityRead={activityReadCount}
               isUpdatingAudit={auditUpdating}
               onClose={() => setShowNotifications(false)}
               onMarkRead={markNotificationRead}
               onMarkAllRead={markAllNotificationsRead}
+              onClearReadAlerts={handleClearReadAlerts}
+              onClearReadActivity={handleClearReadActivity}
               onAuditMarkRead={handleAuditMarkRead}
               onAuditMarkAllRead={handleAuditMarkAllRead}
               onAction={handleNotificationAction}

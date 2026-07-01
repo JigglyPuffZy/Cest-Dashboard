@@ -56,6 +56,14 @@ export function useAccessRequests({ enabled = true, pollMs = 15000 } = {}) {
     [refresh]
   );
 
+  const disconnectGuest = useCallback(
+    async (id, reviewedBy) => {
+      await accessRequestService.disconnectGuest(id, reviewedBy);
+      await refresh();
+    },
+    [refresh]
+  );
+
   return {
     stats,
     requests,
@@ -64,6 +72,7 @@ export function useAccessRequests({ enabled = true, pollMs = 15000 } = {}) {
     refresh,
     approveRequest,
     declineRequest,
+    disconnectGuest,
     pending: requests.filter((r) => r.status === "pending"),
     approved: requests.filter((r) => r.status === "approved"),
     declined: requests.filter((r) => r.status === "declined"),

@@ -1,4 +1,4 @@
-import { useState, useEffect, createContext, useContext, useCallback } from 'react'
+import { useState, useEffect, createContext, useContext, useCallback, useRef } from 'react'
 import { auth } from '../services/supabaseClient'
 import { accessRequestService } from '../services/accessRequestService'
 
@@ -23,10 +23,23 @@ export function AuthProvider({ children }) {
   const [loading, setLoading] = useState(true)
   const [isGuestMode, setIsGuestMode] = useState(false)
   const [guestProfile, setGuestProfile] = useState(null)
+  const [guestDisconnected, setGuestDisconnected] = useState(false)
+  const guestStatusRef = useRef(null)
 
   const refreshGuestProfile = useCallback(async () => {
+    const previousStatus = guestStatusRef.current
     const synced = await accessRequestService.syncGuestProfileFromServer()
-    setGuestProfile(synced ?? accessRequestService.getGuestProfile())
+    const next = synced ?? accessRequestService.getGuestProfile()
+    if (previousStatus === 'approved' && next?.status === 'declined') {
+      const updated = { ...next, disconnectedByAdmin: true }
+      accessRequestService.setGuestProfile(updated)
+      setGuestDisconnected(true)
+      guestStatusRef.current = updated.status
+      setGuestProfile(updated)
+      return
+    }
+    guestStatusRef.current = next?.status ?? null
+    setGuestProfile(next)
   }, [])
 
   useEffect(() => {
@@ -56,6 +69,8 @@ export function AuthProvider({ children }) {
         }
         setIsGuestMode(true)
         setGuestProfile(profile)
+        guestStatusRef.current = profile?.status ?? null
+        setGuestDisconnected(!!profile?.disconnectedByAdmin)
         setUser(null)
         setSession(null)
         setLoading(false)
@@ -114,6 +129,14 @@ export function AuthProvider({ children }) {
     }
   }, [refreshGuestProfile, loading])
 
+  useEffect(() => {
+    if (!isGuestMode || guestProfile?.status !== 'approved') return undefined
+    const timer = setInterval(() => {
+      refreshGuestProfile()
+    }, 5000)
+    return () => clearInterval(timer)
+  }, [isGuestMode, guestProfile?.status, refreshGuestProfile])
+
   const startGuestSession = () => {
     sessionStorage.setItem(SESSION_KEYS.GUEST_MODE, '1')
     setIsGuestMode(true)
@@ -136,6 +159,8 @@ export function AuthProvider({ children }) {
     }
     accessRequestService.setGuestProfile(profile)
     setGuestProfile(profile)
+    guestStatusRef.current = profile.status
+    setGuestDisconnected(false)
     setIsGuestMode(true)
     setUser(null)
     setSession(null)
@@ -227,6 +252,7 @@ export function AuthProvider({ children }) {
     guestProfile,
     guestNeedsProfile,
     guestAccessStatus,
+    guestDisconnected: guestDisconnected || !!guestProfile?.disconnectedByAdmin,
     isReadOnly,
     isAuthenticated,
     isAdmin,

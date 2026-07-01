@@ -18,6 +18,7 @@ import {
   User,
   FileText,
   Check,
+  Eraser,
 } from 'lucide-react';
 import { useState } from 'react';
 
@@ -71,6 +72,8 @@ function ActivityLogTab({
   darkMode,
   onMarkRead,
   onMarkAllRead,
+  onClearRead,
+  readCount = 0,
   isUpdating,
 }) {
   const [searchTerm, setSearchTerm] = useState('');
@@ -136,6 +139,18 @@ function ActivityLogTab({
             >
               <CheckCheck className="w-3.5 h-3.5" />
               Mark all read
+            </button>
+          )}
+          {readCount > 0 && (
+            <button
+              type="button"
+              onClick={onClearRead}
+              disabled={isUpdating}
+              className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-semibold disabled:opacity-50"
+              style={{ color: darkMode ? '#94a3b8' : '#64748b' }}
+            >
+              <Eraser className="w-3.5 h-3.5" />
+              Clear
             </button>
           )}
         </div>
@@ -258,13 +273,17 @@ export function NotificationPanel({
   onClose,
   onMarkRead,
   onMarkAllRead,
+  onClearReadAlerts,
+  onClearReadActivity,
   onAuditMarkRead,
   onAuditMarkAllRead,
   onAction,
   isAdmin = false,
   isUpdatingAudit = false,
   alertsUnread = 0,
+  alertsRead = 0,
   activityUnread = 0,
+  activityRead = 0,
 }) {
   const [activeTab, setActiveTab] = useState('alerts');
   const [alertFilter, setAlertFilter] = useState('all');
@@ -318,9 +337,20 @@ export function NotificationPanel({
               onClick={() => onMarkAllRead?.(notifications.map((n) => n.id))}
               className="p-2 rounded-lg"
               style={{ color: darkMode ? '#93c5fd' : '#2563eb' }}
-              title="Mark alerts as read"
+              title="Mark all as read"
             >
               <CheckCheck className="w-4 h-4" />
+            </button>
+          )}
+          {activeTab === 'alerts' && alertsRead > 0 && (
+            <button
+              type="button"
+              onClick={() => onClearReadAlerts?.()}
+              className="p-2 rounded-lg"
+              style={{ color: darkMode ? '#94a3b8' : '#64748b' }}
+              title="Clear read alerts"
+            >
+              <Eraser className="w-4 h-4" />
             </button>
           )}
           <button type="button" onClick={onClose} className="p-2 rounded-lg" style={{ color: darkMode ? '#94a3b8' : '#64748b' }}>
@@ -432,9 +462,17 @@ export function NotificationPanel({
                             <Clock className="w-3 h-3" />
                             {n.timeAgo}
                           </span>
-                          {n.actionLabel && (
-                            <span className="text-[10px] font-bold" style={{ color: '#004A98' }}>{n.actionLabel} →</span>
-                          )}
+                          <div className="flex items-center gap-2">
+                            {n.read && (
+                              <span className="text-[10px] flex items-center gap-1" style={{ color: '#10b981' }}>
+                                <Check className="w-3 h-3" />
+                                Read
+                              </span>
+                            )}
+                            {n.actionLabel && (
+                              <span className="text-[10px] font-bold" style={{ color: '#004A98' }}>{n.actionLabel} →</span>
+                            )}
+                          </div>
                         </div>
                       </div>
                     </div>
@@ -450,6 +488,8 @@ export function NotificationPanel({
           darkMode={darkMode}
           onMarkRead={onAuditMarkRead}
           onMarkAllRead={onAuditMarkAllRead}
+          onClearRead={onClearReadActivity}
+          readCount={activityRead}
           isUpdating={isUpdatingAudit}
         />
       )}

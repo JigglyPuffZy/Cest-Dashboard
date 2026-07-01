@@ -13,11 +13,13 @@ export function GuestWaitingScreen({
   status = "pending",
   displayName = "Guest",
   darkMode = false,
+  disconnected = false,
   onStaffSignIn,
   onRefresh,
 }) {
   const [messageIndex, setMessageIndex] = useState(0);
   const isDeclined = status === "declined";
+  const isDisconnected = isDeclined && disconnected;
 
   useEffect(() => {
     if (isDeclined || !onRefresh) return undefined;
@@ -84,9 +86,19 @@ export function GuestWaitingScreen({
 
         {isDeclined ? (
           <>
-            <h1 className="text-2xl sm:text-3xl font-bold mb-3 text-white">Access Not Approved</h1>
+            <h1 className="text-2xl sm:text-3xl font-bold mb-3 text-white">
+              {isDisconnected ? "Session Ended" : "Access Not Approved"}
+            </h1>
             <p className="text-sm leading-relaxed mb-6 text-white/85 px-2">
-              Hello, {displayName}. Your guest access request was declined. Please contact DOST Region II or sign in with staff credentials.
+              {isDisconnected ? (
+                <>
+                  Hello, {displayName}. An administrator disconnected your guest session for safety. You no longer have access to project records.
+                </>
+              ) : (
+                <>
+                  Hello, {displayName}. Your guest access request was declined. Please contact DOST Region II or sign in with staff credentials.
+                </>
+              )}
             </p>
           </>
         ) : (

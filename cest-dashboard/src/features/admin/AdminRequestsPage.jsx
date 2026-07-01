@@ -7,6 +7,7 @@ import {
   ScrollText,
   Check,
   X,
+  Unplug,
 } from "lucide-react";
 import { PageHeader, GlassCard, StatCard } from "../../components/ui/PageHeader";
 import { useAccessRequests } from "../../shared/hooks/useAccessRequests";
@@ -22,6 +23,7 @@ const LOG_TYPE_LABELS = {
   request_submitted: "Request submitted",
   request_approved: "Approved",
   request_declined: "Declined",
+  access_revoked: "Disconnected",
   file_access: "File viewed",
   page_visit: "Page visit",
 };
@@ -54,7 +56,7 @@ function StatusBadge({ status }) {
   );
 }
 
-function RequestCard({ request, darkMode, onApprove, onDecline, showActions }) {
+function RequestCard({ request, darkMode, onApprove, onDecline, onDisconnect, showActions, showDisconnect }) {
   return (
     <GlassCard darkMode={darkMode} className="p-4 sm:p-5">
       <div className="flex flex-col sm:flex-row sm:items-center gap-4">
@@ -84,6 +86,17 @@ function RequestCard({ request, darkMode, onApprove, onDecline, showActions }) {
             )}
           </p>
         </div>
+        {showDisconnect && request.status === "approved" && (
+          <button
+            type="button"
+            onClick={() => onDisconnect(request.id)}
+            className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold text-white transition-opacity hover:opacity-90"
+            style={{ background: "linear-gradient(135deg, #dc2626 0%, #ef4444 100%)" }}
+          >
+            <Unplug className="w-4 h-4" />
+            Disconnect
+          </button>
+        )}
         {showActions && request.status === "pending" && (
           <div className="flex gap-2 w-full sm:w-auto">
             <button
@@ -176,7 +189,7 @@ function AccessLogsTable({ logs, darkMode }) {
 
 export function AdminRequestsPage({ darkMode, initialTab = "pending", adminName = "Administrator" }) {
   const [activeTab, setActiveTab] = useState(initialTab);
-  const { stats, pending, approved, declined, logs, approveRequest, declineRequest } = useAccessRequests({
+  const { stats, pending, approved, declined, logs, approveRequest, declineRequest, disconnectGuest } = useAccessRequests({
     enabled: true,
     pollMs: 10000,
   });
@@ -199,6 +212,21 @@ export function AdminRequestsPage({ darkMode, initialTab = "pending", adminName 
     }
   };
 
+  const handleDisconnect = async (id) => {
+    const request = approved.find((r) => r.id === id);
+    const name = request?.fullName || "this guest";
+    const confirmed = window.confirm(
+      `Disconnect ${name}? They will lose dashboard access immediately for safety.`
+    );
+    if (!confirmed) return;
+    try {
+      await disconnectGuest(id, adminName);
+    } catch (err) {
+      console.error(err);
+      alert(err.message || "Failed to disconnect guest.");
+    }
+  };
+
   const lists = { pending, approved, declined };
   const currentList = lists[activeTab] || [];
 
@@ -208,7 +236,7 @@ export function AdminRequestsPage({ darkMode, initialTab = "pending", adminName 
         darkMode={darkMode}
         eyebrow="Administration"
         title="User Access"
-        description="Review guest requests, approve or decline access, and view system activity."
+        description="Review guest requests, approve or decline access, disconnect active guests, and view activity."
       />
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
@@ -277,8 +305,10 @@ export function AdminRequestsPage({ darkMode, initialTab = "pending", adminName 
                 request={request}
                 darkMode={darkMode}
                 showActions={activeTab === "pending"}
+                showDisconnect={activeTab === "approved"}
                 onApprove={() => handleApprove(request.id)}
                 onDecline={() => handleDecline(request.id)}
+                onDisconnect={() => handleDisconnect(request.id)}
               />
             ))
           )}
