@@ -104,6 +104,44 @@ $$;
 
 GRANT EXECUTE ON FUNCTION public.get_guest_request_status(TEXT) TO anon, authenticated;
 
+CREATE OR REPLACE FUNCTION public.guest_end_session(p_access_token TEXT)
+RETURNS void
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+DECLARE
+  v_row public.guest_access_requests%ROWTYPE;
+BEGIN
+  SELECT * INTO v_row
+  FROM public.guest_access_requests
+  WHERE access_token = p_access_token AND status = 'approved'
+  LIMIT 1;
+
+  IF NOT FOUND THEN
+    RETURN;
+  END IF;
+
+  UPDATE public.guest_access_requests
+  SET
+    status = 'declined',
+    reviewed_at = now(),
+    reviewed_by = coalesce(v_row.full_name, 'Guest')
+  WHERE id = v_row.id;
+
+  INSERT INTO public.guest_access_logs (request_id, log_type, message, user_name, actor)
+  VALUES (
+    v_row.id,
+    'request_declined',
+    coalesce(v_row.full_name, 'Guest') || ' ended their guest session (logged out)',
+    coalesce(v_row.full_name, 'Guest'),
+    'Guest (logout)'
+  );
+END;
+$$;
+
+GRANT EXECUTE ON FUNCTION public.guest_end_session(TEXT) TO anon, authenticated;
+
 CREATE OR REPLACE FUNCTION public.submit_guest_access_request(
   p_first_name TEXT,
   p_last_name TEXT
@@ -433,6 +471,7 @@ FROM pg_proc
 WHERE proname IN (
   'submit_guest_access_request',
   'get_guest_request_status',
+  'guest_end_session',
   'insert_audit_log'
 )
 ORDER BY proname;

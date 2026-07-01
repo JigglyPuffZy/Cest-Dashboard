@@ -10,6 +10,7 @@ import {
   Unplug,
 } from "lucide-react";
 import { PageHeader, GlassCard, StatCard } from "../../components/ui/PageHeader";
+import { ConfirmModal } from "../../components/ui/ConfirmModal";
 import { useAccessRequests } from "../../shared/hooks/useAccessRequests";
 
 const TABS = [
@@ -189,6 +190,7 @@ function AccessLogsTable({ logs, darkMode }) {
 
 export function AdminRequestsPage({ darkMode, initialTab = "pending", adminName = "Administrator" }) {
   const [activeTab, setActiveTab] = useState(initialTab);
+  const [disconnectTarget, setDisconnectTarget] = useState(null);
   const { stats, pending, approved, declined, logs, approveRequest, declineRequest, disconnectGuest } = useAccessRequests({
     enabled: true,
     pollMs: 10000,
@@ -212,15 +214,14 @@ export function AdminRequestsPage({ darkMode, initialTab = "pending", adminName 
     }
   };
 
-  const handleDisconnect = async (id) => {
-    const request = approved.find((r) => r.id === id);
-    const name = request?.fullName || "this guest";
-    const confirmed = window.confirm(
-      `Disconnect ${name}? They will lose dashboard access immediately for safety.`
-    );
-    if (!confirmed) return;
+  const handleDisconnectClick = (request) => {
+    setDisconnectTarget(request);
+  };
+
+  const handleConfirmDisconnect = async () => {
+    if (!disconnectTarget) return;
     try {
-      await disconnectGuest(id, adminName);
+      await disconnectGuest(disconnectTarget.id, adminName);
     } catch (err) {
       console.error(err);
       alert(err.message || "Failed to disconnect guest.");
@@ -308,12 +309,26 @@ export function AdminRequestsPage({ darkMode, initialTab = "pending", adminName 
                 showDisconnect={activeTab === "approved"}
                 onApprove={() => handleApprove(request.id)}
                 onDecline={() => handleDecline(request.id)}
-                onDisconnect={() => handleDisconnect(request.id)}
+                onDisconnect={() => handleDisconnectClick(request)}
               />
             ))
           )}
         </div>
       )}
+
+      <ConfirmModal
+        isOpen={!!disconnectTarget}
+        onClose={() => setDisconnectTarget(null)}
+        onConfirm={handleConfirmDisconnect}
+        title="Disconnect Guest?"
+        subtitle={disconnectTarget ? `Remove access for ${disconnectTarget.fullName}` : ""}
+        description="They will lose dashboard access immediately. This action is for safety when a guest session should end."
+        confirmText="Disconnect"
+        cancelText="Cancel"
+        variant="danger"
+        darkMode={darkMode}
+        icon={Unplug}
+      />
     </div>
   );
 }

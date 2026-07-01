@@ -211,6 +211,24 @@ export const accessRequestService = {
     });
   },
 
+  async endGuestSession(accessToken) {
+    if (!accessToken) return;
+    const { error } = await supabase.rpc("guest_end_session", {
+      p_access_token: accessToken,
+    });
+    if (error) throw new Error(error.message || "Failed to end guest session.");
+  },
+
+  async revokeApprovedSessionIfActive() {
+    const profile = readGuestProfile();
+    if (profile?.status !== "approved" || !profile?.accessToken) return;
+    try {
+      await this.endGuestSession(profile.accessToken);
+    } catch (err) {
+      console.error("revokeApprovedSessionIfActive:", err);
+    }
+  },
+
   async _review(requestId, status, reviewedBy, options = {}) {
     const { data, error } = await supabase
       .from("guest_access_requests")

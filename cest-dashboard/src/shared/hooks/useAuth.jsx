@@ -181,11 +181,14 @@ export function AuthProvider({ children }) {
     setLoading(false)
   }
 
-  const exitGuestMode = () => {
+  const exitGuestMode = async () => {
+    await accessRequestService.revokeApprovedSessionIfActive()
     sessionStorage.removeItem(SESSION_KEYS.GUEST_MODE)
     accessRequestService.setGuestProfile(null)
     setIsGuestMode(false)
     setGuestProfile(null)
+    setGuestDisconnected(false)
+    guestStatusRef.current = null
     setUser(null)
     setSession(null)
     setLoading(false)
@@ -194,6 +197,7 @@ export function AuthProvider({ children }) {
   const signIn = async (email, password) => {
     setLoading(true)
     try {
+      await accessRequestService.revokeApprovedSessionIfActive()
       sessionStorage.removeItem(SESSION_KEYS.GUEST_MODE)
       accessRequestService.setGuestProfile(null)
       setIsGuestMode(false)
@@ -213,10 +217,13 @@ export function AuthProvider({ children }) {
   const signOut = async () => {
     setLoading(true)
     try {
+      await accessRequestService.revokeApprovedSessionIfActive()
       sessionStorage.removeItem(SESSION_KEYS.GUEST_MODE)
       accessRequestService.setGuestProfile(null)
       setIsGuestMode(false)
       setGuestProfile(null)
+      setGuestDisconnected(false)
+      guestStatusRef.current = null
       if (user || session) {
         await auth.signOut()
       }

@@ -224,11 +224,8 @@ export const Dashboard = ({
         ].map((stat) => {
           const Icon = stat.icon;
           return (
-            <div key={stat.label} className="rounded-xl p-4 sm:p-5 relative overflow-hidden group min-h-[120px]" style={cardStyle}>
-              <div className="absolute right-2 bottom-2 w-16 h-16 opacity-[0.07] pointer-events-none" aria-hidden>
-                <Icon className="w-full h-full" style={{ color: stat.color }} strokeWidth={1.25} />
-              </div>
-              <div className="relative z-10">
+            <div key={stat.label} className="rounded-xl p-4 sm:p-5 min-h-[120px]" style={cardStyle}>
+              <div>
                 <div className="w-10 h-10 rounded-xl flex items-center justify-center mb-3" style={{ background: stat.color + '18' }}>
                   <Icon className="w-5 h-5" style={{ color: stat.color }} strokeWidth={2.25} />
                 </div>

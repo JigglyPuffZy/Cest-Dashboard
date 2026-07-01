@@ -168,16 +168,7 @@ export const ProvincesPage = ({ projects, darkMode }) => {
         ].map((stat) => {
           const Icon = stat.icon;
           return (
-            <div key={stat.label} className="rounded-xl p-5 relative overflow-hidden group min-h-[140px]" style={cardStyle}>
-              {}
-              <div
-                className="absolute right-2 bottom-2 w-20 h-20 opacity-[0.07] pointer-events-none"
-                aria-hidden="true"
-              >
-                <Icon className="w-full h-full" style={{ color: stat.color }} strokeWidth={1.25} />
-              </div>
-
-              {}
+            <div key={stat.label} className="rounded-xl p-5 relative group min-h-[140px]" style={cardStyle}>
               <div className="absolute top-3 right-3 flex items-center gap-1.5 z-10">
                 <Activity className="w-3 h-3 animate-pulse" style={{ color: '#3b82f6' }} />
                 <span className="text-[10px] font-bold tracking-wide" style={{ color: '#3b82f6' }}>
