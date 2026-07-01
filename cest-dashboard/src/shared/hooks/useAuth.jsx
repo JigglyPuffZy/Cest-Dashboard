@@ -132,6 +132,7 @@ export function AuthProvider({ children }) {
   useEffect(() => {
     if (!isGuestMode || guestProfile?.status !== 'approved') return undefined
     const timer = setInterval(() => {
+      if (!navigator.onLine) return
       refreshGuestProfile()
     }, 5000)
     return () => clearInterval(timer)

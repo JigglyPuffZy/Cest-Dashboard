@@ -81,15 +81,15 @@ export const LoginPage = ({ darkMode, setDarkMode, initialGuestStep = false }) =
     }
   };
 
+  const cardBg = darkMode ? "rgba(15, 23, 42, 0.95)" : "rgba(255, 255, 255, 0.95)";
+
   const cardStyles = {
-    background: darkMode 
-      ? 'rgba(15, 23, 42, 0.95)' 
-      : 'rgba(255, 255, 255, 0.95)',
-    backdropFilter: 'blur(20px)',
-    border: `1px solid ${darkMode ? 'rgba(30, 41, 59, 0.6)' : 'rgba(226, 232, 240, 0.8)'}`,
-    boxShadow: darkMode 
-      ? '0 20px 60px rgba(0, 0, 0, 0.5)' 
-      : '0 20px 60px rgba(0, 74, 152, 0.15)'
+    background: cardBg,
+    backdropFilter: "blur(20px)",
+    border: `1px solid ${darkMode ? "rgba(30, 41, 59, 0.6)" : "rgba(226, 232, 240, 0.8)"}`,
+    boxShadow: darkMode
+      ? "0 20px 60px rgba(0, 0, 0, 0.5)"
+      : "0 20px 60px rgba(0, 74, 152, 0.15)",
   };
 
   const inputStyles = {
@@ -99,46 +99,50 @@ export const LoginPage = ({ darkMode, setDarkMode, initialGuestStep = false }) =
   };
 
   return (
-    <div 
-      className="min-h-screen flex items-center justify-center p-4 relative overflow-hidden"
+    <div
+      className="min-h-dvh flex flex-col overflow-x-hidden"
       style={{
-        background: darkMode 
-          ? 'linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #0f172a 100%)'
-          : 'linear-gradient(135deg, #004A98 0%, #0066CC 50%, #004A98 100%)'
+        background: darkMode
+          ? "linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #0f172a 100%)"
+          : "linear-gradient(135deg, #004A98 0%, #0066CC 50%, #004A98 100%)",
       }}
     >
-      <button
-        onClick={() => setDarkMode(!darkMode)}
-        className="fixed top-4 left-4 p-2.5 rounded-xl transition-all duration-300 hover:scale-110 border-2 group z-50"
-        style={{
-          backgroundColor: darkMode ? '#422006' : '#fef3c7',
-          borderColor: darkMode ? '#92400e' : '#fcd34d',
-          color: darkMode ? '#fbbf24' : '#d97706',
-          boxShadow: darkMode 
-            ? '0 4px 12px rgba(251, 191, 36, 0.3)' 
-            : '0 4px 12px rgba(217, 119, 6, 0.3)'
-        }}
-        title={darkMode ? "Switch to Light Mode" : "Switch to Dark Mode"}
-      >
-        {darkMode ? (
-          <svg className="w-4 h-4 group-hover:rotate-90 transition-transform duration-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
-          </svg>
-        ) : (
-          <svg className="w-4 h-4 group-hover:-rotate-12 transition-transform duration-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
-          </svg>
-        )}
-      </button>
+      <div className="flex-shrink-0 flex justify-end px-4 pt-[max(0.75rem,env(safe-area-inset-top))] pb-2 relative z-20">
+        <button
+          onClick={() => setDarkMode(!darkMode)}
+          className="p-2.5 rounded-xl transition-all duration-300 hover:scale-110 border-2 group"
+          style={{
+            backgroundColor: darkMode ? "#422006" : "#fef3c7",
+            borderColor: darkMode ? "#92400e" : "#fcd34d",
+            color: darkMode ? "#fbbf24" : "#d97706",
+            boxShadow: darkMode
+              ? "0 4px 12px rgba(251, 191, 36, 0.3)"
+              : "0 4px 12px rgba(217, 119, 6, 0.3)",
+          }}
+          title={darkMode ? "Switch to Light Mode" : "Switch to Dark Mode"}
+          aria-label={darkMode ? "Switch to light mode" : "Switch to dark mode"}
+        >
+          {darkMode ? (
+            <svg className="w-4 h-4 group-hover:rotate-90 transition-transform duration-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
+            </svg>
+          ) : (
+            <svg className="w-4 h-4 group-hover:-rotate-12 transition-transform duration-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
+            </svg>
+          )}
+        </button>
+      </div>
 
-      <div className="absolute inset-0 opacity-5" style={{
-        backgroundImage: 'radial-gradient(circle at 20% 50%, white 2px, transparent 2px), radial-gradient(circle at 80% 80%, white 2px, transparent 2px)',
-        backgroundSize: '60px 60px'
+      <div className="flex-1 flex items-center justify-center px-4 pb-[max(1rem,env(safe-area-inset-bottom))] relative">
+      <div className="absolute inset-0 opacity-5 pointer-events-none" style={{
+        backgroundImage: "radial-gradient(circle at 20% 50%, white 2px, transparent 2px), radial-gradient(circle at 80% 80%, white 2px, transparent 2px)",
+        backgroundSize: "60px 60px",
       }} />
 
-      <div className="w-full max-w-6xl grid lg:grid-cols-2 gap-6 items-center relative z-10">
-        <div 
-          className={`rounded-3xl p-6 lg:p-8 animate-fade-in ${isShaking ? 'animate-shake' : ''}`} 
+      <div className="w-full max-w-6xl grid lg:grid-cols-2 gap-4 sm:gap-6 items-stretch lg:items-center relative z-10">
+        <div
+          className={`w-full min-w-0 rounded-3xl p-5 sm:p-6 lg:p-8 animate-fade-in ${isShaking ? "animate-shake" : ""}`}
           style={cardStyles}
         >
           <div className="mb-6">
@@ -200,22 +204,20 @@ export const LoginPage = ({ darkMode, setDarkMode, initialGuestStep = false }) =
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="Enter your email address"
-                  className="w-full py-2.5 px-4 pl-10 rounded-xl text-sm outline-none transition-all duration-200"
+                  className="w-full py-2.5 px-4 pl-10 rounded-xl text-sm outline-none transition-colors duration-200"
                   style={inputStyles}
                   onFocus={(e) => {
-                    e.target.style.borderColor = '#004A98';
-                    e.target.style.boxShadow = '0 0 0 3px rgba(0, 74, 152, 0.08)';
-                    e.target.style.transform = 'scale(1.01)';
+                    e.target.style.borderColor = "#004A98";
+                    e.target.style.boxShadow = "0 0 0 3px rgba(0, 74, 152, 0.08)";
                   }}
                   onBlur={(e) => {
-                    e.target.style.borderColor = darkMode ? 'rgba(51, 65, 85, 0.6)' : 'rgba(226, 232, 240, 0.8)';
-                    e.target.style.boxShadow = 'none';
-                    e.target.style.transform = 'scale(1)';
+                    e.target.style.borderColor = darkMode ? "rgba(51, 65, 85, 0.6)" : "rgba(226, 232, 240, 0.8)";
+                    e.target.style.boxShadow = "none";
                   }}
                   required
                 />
-                <svg 
-                  className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 transition-all duration-200" 
+                <svg
+                  className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 pointer-events-none" 
                   style={{ color: darkMode ? '#64748b' : '#94a3b8' }}
                   fill="none" 
                   stroke="currentColor" 
@@ -236,22 +238,20 @@ export const LoginPage = ({ darkMode, setDarkMode, initialGuestStep = false }) =
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="Enter your password"
-                  className="w-full py-2.5 px-4 pl-10 pr-12 rounded-xl text-sm outline-none transition-all duration-200"
+                  className="w-full py-2.5 px-4 pl-10 pr-12 rounded-xl text-sm outline-none transition-colors duration-200"
                   style={inputStyles}
                   onFocus={(e) => {
-                    e.target.style.borderColor = '#004A98';
-                    e.target.style.boxShadow = '0 0 0 3px rgba(0, 74, 152, 0.08)';
-                    e.target.style.transform = 'scale(1.01)';
+                    e.target.style.borderColor = "#004A98";
+                    e.target.style.boxShadow = "0 0 0 3px rgba(0, 74, 152, 0.08)";
                   }}
                   onBlur={(e) => {
-                    e.target.style.borderColor = darkMode ? 'rgba(51, 65, 85, 0.6)' : 'rgba(226, 232, 240, 0.8)';
-                    e.target.style.boxShadow = 'none';
-                    e.target.style.transform = 'scale(1)';
+                    e.target.style.borderColor = darkMode ? "rgba(51, 65, 85, 0.6)" : "rgba(226, 232, 240, 0.8)";
+                    e.target.style.boxShadow = "none";
                   }}
                   required
                 />
-                <svg 
-                  className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 transition-all duration-200" 
+                <svg
+                  className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 pointer-events-none" 
                   style={{ color: darkMode ? '#64748b' : '#94a3b8' }}
                   fill="none" 
                   stroke="currentColor" 
@@ -273,7 +273,7 @@ export const LoginPage = ({ darkMode, setDarkMode, initialGuestStep = false }) =
             <button
               type="submit"
               disabled={loading}
-              className="w-full py-3 px-6 rounded-xl font-bold text-sm text-white transition-all duration-200 hover:shadow-xl hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed relative overflow-hidden group"
+              className="w-full py-3 px-6 rounded-xl font-bold text-sm text-white transition-all duration-200 sm:hover:shadow-xl sm:hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed relative overflow-hidden group"
               style={{
                 background: 'linear-gradient(135deg, #004A98 0%, #0066CC 100%)',
                 boxShadow: '0 4px 16px rgba(0, 74, 152, 0.3)'
@@ -296,12 +296,15 @@ export const LoginPage = ({ darkMode, setDarkMode, initialGuestStep = false }) =
 
           {!showGuestForm && (
           <>
-          <div className="relative my-6">
+          <div className="relative my-5 sm:my-6">
             <div className="absolute inset-0 flex items-center">
-              <div className="w-full border-t" style={{ borderColor: darkMode ? '#334155' : '#e2e8f0' }} />
+              <div className="w-full border-t" style={{ borderColor: darkMode ? "#334155" : "#e2e8f0" }} />
             </div>
             <div className="relative flex justify-center text-xs">
-              <span className="px-3" style={{ background: darkMode ? 'rgba(15, 23, 42, 0.95)' : 'rgba(255, 255, 255, 0.95)', color: darkMode ? '#64748b' : '#94a3b8' }}>
+              <span
+                className="px-3 py-0.5 rounded-full"
+                style={{ background: cardBg, color: darkMode ? "#64748b" : "#94a3b8" }}
+              >
                 or
               </span>
             </div>
@@ -311,7 +314,7 @@ export const LoginPage = ({ darkMode, setDarkMode, initialGuestStep = false }) =
                 type="button"
                 onClick={handleGuestContinue}
                 disabled={loading}
-                className="w-full py-3 px-6 rounded-xl font-bold text-sm transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 flex items-center justify-center gap-2"
+                className="w-full py-3 px-6 rounded-xl font-bold text-sm transition-all duration-200 sm:hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 flex items-center justify-center gap-2"
                 style={{
                   background: darkMode ? 'rgba(59, 130, 246, 0.12)' : 'rgba(59, 130, 246, 0.08)',
                   border: `2px solid ${darkMode ? 'rgba(59, 130, 246, 0.35)' : 'rgba(59, 130, 246, 0.25)'}`,
@@ -377,7 +380,7 @@ export const LoginPage = ({ darkMode, setDarkMode, initialGuestStep = false }) =
               <button
                 type="submit"
                 disabled={loading || guestSubmitting}
-                className="w-full py-3 px-6 rounded-xl font-bold text-sm text-white transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 flex items-center justify-center gap-2"
+                className="w-full py-3 px-6 rounded-xl font-bold text-sm text-white transition-all duration-200 sm:hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 flex items-center justify-center gap-2"
                 style={{
                   background: 'linear-gradient(135deg, #004A98 0%, #0066CC 100%)',
                   boxShadow: '0 4px 16px rgba(0, 74, 152, 0.3)',
@@ -392,16 +395,16 @@ export const LoginPage = ({ darkMode, setDarkMode, initialGuestStep = false }) =
             </form>
           )}
 
-          <div className="mt-6 text-center">
-            <p className="text-xs mb-2" style={{ color: darkMode ? '#64748b' : '#94a3b8' }}>
+          <div className="mt-5 sm:mt-6 text-center space-y-1">
+            <p className="text-xs" style={{ color: darkMode ? "#64748b" : "#94a3b8" }}>
               Need help accessing your account?
             </p>
-            <p className="text-xs" style={{ color: darkMode ? '#94a3b8' : '#64748b' }}>
+            <p className="text-xs leading-relaxed" style={{ color: darkMode ? "#94a3b8" : "#64748b" }}>
               Contact your system administrator for assistance
             </p>
           </div>
 
-          <p className="text-center text-[10px] mt-6" style={{ color: darkMode ? '#475569' : '#94a3b8' }}>
+          <p className="text-center text-[10px] leading-relaxed mt-4 sm:mt-6 px-1" style={{ color: darkMode ? "#475569" : "#94a3b8" }}>
             Copyright © CEST 2.0, All Right Reserved · Terms & Condition · Privacy & Policy
           </p>
         </div>
@@ -606,6 +609,7 @@ export const LoginPage = ({ darkMode, setDarkMode, initialGuestStep = false }) =
             </div>
           </div>
         </div>
+      </div>
       </div>
 
       <style>{`

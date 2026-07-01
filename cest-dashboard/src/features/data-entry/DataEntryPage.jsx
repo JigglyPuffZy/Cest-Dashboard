@@ -8,7 +8,7 @@ import { safeProjectTitle, safeEquipmentName, safeDisplayName } from "../../shar
 import { Modal, ModalPanel } from "../../components/ui/Modal";
 import { DataEntryFilters, ProjectRecordCard, EquipmentRecordCard } from "../../components/data-entry/RecordCards";
 
-export const DataEntryPage = ({ projects = [], equipment = [], onAddProject, onAddEquipment, onDeleteProject, onDeleteEquipment, onUpdateProject, onUpdateEquipment, darkMode, isLoading = false, readOnly = false }) => {
+export const DataEntryPage = ({ projects = [], equipment = [], onAddProject, onSaveProjectBundle, onAddEquipment, onDeleteProject, onDeleteEquipment, onUpdateProject, onUpdateEquipment, darkMode, isLoading = false, readOnly = false }) => {
   const [showModal, setShowModal] = useState(false);
   const [showDetailModal, setShowDetailModal] = useState(false);
   const [selectedItem, setSelectedItem] = useState(null);
@@ -728,6 +728,7 @@ export const DataEntryPage = ({ projects = [], equipment = [], onAddProject, onA
         <AddProjectEquipmentModal
           onClose={() => setShowModal(false)}
           onSaveProject={onAddProject}
+          onSaveProjectBundle={onSaveProjectBundle}
           onSaveEquipment={onAddEquipment}
           darkMode={darkMode}
         />

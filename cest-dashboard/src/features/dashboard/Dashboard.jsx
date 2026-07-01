@@ -165,7 +165,7 @@ export const Dashboard = ({
       <GlassCard darkMode={darkMode} className="p-6 sm:p-8 relative overflow-hidden">
         <div
           className="absolute inset-0 opacity-[0.07] pointer-events-none"
-          style={{
+                    style={{ 
             background: "linear-gradient(135deg, #004A98 0%, #0066CC 50%, #3b82f6 100%)",
           }}
         />
@@ -190,24 +190,24 @@ export const Dashboard = ({
               <StatCard darkMode={darkMode} label="Approved Users" value={accessStats.approvedUsers} icon={UserCheck} color="#10b981" />
               <StatCard darkMode={darkMode} label="Total Visitors" value={accessStats.totalVisitors} icon={Users} color="#004A98" />
               <StatCard darkMode={darkMode} label="Files Accessed Today" value={accessStats.filesAccessedToday} icon={ScrollText} color="#8b5cf6" />
-            </div>
+                    </div>
           )}
 
           {isAdmin && onNavigateAdmin && (
-            <button
+              <button
               type="button"
               onClick={() => onNavigateAdmin()}
               className="mt-5 inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold text-white"
-              style={{
+                style={{
                 background: "linear-gradient(135deg, #004A98 0%, #0066CC 100%)",
                 boxShadow: "0 4px 14px rgba(0, 74, 152, 0.35)",
-              }}
-            >
+                }}
+              >
               Review Guest Requests
               <ArrowRight className="w-4 h-4" />
-            </button>
+              </button>
           )}
-        </div>
+            </div>
       </GlassCard>
 
       {!canViewData ? null : (
@@ -228,15 +228,15 @@ export const Dashboard = ({
               <div>
                 <div className="w-10 h-10 rounded-xl flex items-center justify-center mb-3" style={{ background: stat.color + '18' }}>
                   <Icon className="w-5 h-5" style={{ color: stat.color }} strokeWidth={2.25} />
-                </div>
+              </div>
                 <p className="text-xs font-medium mb-1" style={{ color: darkMode ? '#94a3b8' : '#64748b' }}>{stat.label}</p>
                 <p className="text-xl sm:text-2xl font-bold" style={{ color: darkMode ? '#f8fafc' : '#0f172a' }}>{stat.value}</p>
-              </div>
             </div>
+                </div>
           );
         })}
-      </div>
-
+              </div>
+              
       {}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
         {[
@@ -248,9 +248,9 @@ export const Dashboard = ({
           <div key={item.label} className="rounded-xl px-4 py-3 flex items-center justify-between" style={{ ...cardStyle, borderLeft: '3px solid ' + item.color }}>
             <span className="text-xs font-medium" style={{ color: darkMode ? '#94a3b8' : '#64748b' }}>{item.label}</span>
             <span className="text-lg font-bold" style={{ color: item.color }}>{item.value}</span>
-          </div>
+                </div>
         ))}
-      </div>
+              </div>
 
       <div ref={analyticsRef} className="scroll-mt-6 space-y-6">
           {}
@@ -310,7 +310,7 @@ export const Dashboard = ({
                         content={({ active, payload }) => {
                           if (active && payload?.length) {
                             return (
-                              <div
+                              <div 
                                 className="cursor-pointer"
                                 onClick={() => navigate(`/analytics/provinces/${payload[0].payload.id}`)}
                               >
@@ -378,7 +378,7 @@ export const Dashboard = ({
                             />
                           ))}
                         </Pie>
-                        <Tooltip
+                        <Tooltip 
                           content={(props) => renderChartTooltip(props)}
                         />
                       </PieChart>

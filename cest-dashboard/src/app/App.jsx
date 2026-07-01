@@ -28,6 +28,12 @@ import { useNotifications } from "../shared/hooks/useNotifications";
 import { auditService, ENTITY_TYPES } from "../shared/services/auditService";
 import { db, supabase } from "../shared/services/supabaseClient";
 import { transformProject, transformEquipment } from "../shared/utils/dataTransform";
+import { offlineDataCache } from "../shared/services/offlineDataCache";
+import { useOfflineStatus, isNetworkError } from "../shared/hooks/useOfflineStatus";
+import { OfflineIndicator } from "../components/ui/OfflineIndicator";
+import { GuestRequiresOnline } from "../components/ui/GuestRequiresOnline";
+import { useOfflineSync, shouldQueueMutation } from "../shared/hooks/useOfflineSync";
+import { PendingSyncBanner } from "../components/ui/PendingSyncBanner";
 
 const INACTIVITY_TIMEOUT = 60 * 60 * 1000;
 const ACTIVITY_EVENTS = ['mousedown', 'mousemove', 'keypress', 'scroll', 'touchstart', 'click'];
@@ -95,6 +101,31 @@ function AppContent() {
   const totalNotificationUnread = alertsUnreadCount + (isAdmin ? auditUnreadCount : 0);
   const dataLoadedRef = useRef(false);
   const prevGuestStatusRef = useRef(null);
+  const wasOfflineRef = useRef(false);
+  const isOffline = useOfflineStatus();
+  const [usingOfflineData, setUsingOfflineData] = useState(false);
+  const [offlineCachedAt, setOfflineCachedAt] = useState(null);
+
+  const { pendingItems, pendingCount, isSyncing, syncNow, enqueue } = useOfflineSync({
+    enabled: isAdmin,
+    onSyncComplete: (result) => {
+      if (result.synced > 0) {
+        dataLoadedRef.current = true;
+        loadSupabaseData({ preferNetwork: true });
+        success(
+          `${result.synced} pending change${result.synced === 1 ? "" : "s"} uploaded successfully.`
+        );
+      }
+      if (result.failed > 0) {
+        warning(`${result.failed} pending change(s) could not upload yet.`);
+      }
+    },
+  });
+
+  const queuePendingChange = (type, payload, label, onQueued) => {
+    enqueue({ type, payload, label });
+    onQueued?.();
+  };
 
   useEffect(() => {
     const pathToPage = {
@@ -175,86 +206,170 @@ function AppContent() {
     return () => clearTimeout(failsafeTimeout);
   }, [loadingData]);
 
-  const loadSupabaseData = async () => {
+  useEffect(() => {
+    if (wasOfflineRef.current && !isOffline && isAdmin && canViewData && !authLoading) {
+      dataLoadedRef.current = true;
+      loadSupabaseData({ preferNetwork: true });
+    }
+    wasOfflineRef.current = isOffline;
+  }, [isOffline, isAdmin, canViewData, authLoading]);
+
+  const restoreFromOfflineCache = () => {
+    if (!isAdmin) return false;
+
+    const cached = offlineDataCache.load();
+    if (!cached || !offlineDataCache.hasData()) return false;
+
+    setProjects(cached.projects || []);
+    setEquipment(cached.equipment || []);
+    setStarbooksUnits(cached.starbooksUnits || []);
+    setArchivedProjects(cached.archivedProjects || []);
+    setUsingOfflineData(true);
+    setOfflineCachedAt(cached.cachedAt || null);
+    return true;
+  };
+
+  const loadSupabaseData = async ({ preferNetwork = false } = {}) => {
+    if (!isAdmin) {
+      if (!navigator.onLine) {
+        setLoadingData(false);
+        return;
+      }
+    } else if (!navigator.onLine && !preferNetwork) {
+      if (restoreFromOfflineCache()) {
+        setLoadingData(false);
+        return;
+      }
+    }
+
     try {
       setLoadingData(true);
-      
-      const timeoutPromise = new Promise((_, reject) => 
-        setTimeout(() => reject(new Error('Data loading timeout')), 10000)
+      if (preferNetwork) setUsingOfflineData(false);
+
+      const timeoutPromise = new Promise((_, reject) =>
+        setTimeout(() => reject(new Error("Data loading timeout")), 10000)
       );
-      
+
       const [projectsData, equipmentData, starbooksData] = await Promise.race([
         Promise.allSettled([
           db.getProjects(),
           db.getEquipment(),
           db.getActiveStarbooksUnits(),
         ]),
-        timeoutPromise
+        timeoutPromise,
       ]);
-      
-      if (projectsData.status === 'fulfilled') {
-        setProjects(projectsData.value || []);
+
+      let nextProjects = [];
+      let nextEquipment = [];
+      let nextStarbooks = [];
+      let hadNetworkFailure = false;
+
+      if (projectsData.status === "fulfilled") {
+        nextProjects = projectsData.value || [];
+        setProjects(nextProjects);
       } else {
-        console.error('Failed to load projects:', projectsData.reason);
-        setProjects([]);
-        console.warn('Projects loading failed, continuing with empty array');
-      }
-      
-      if (equipmentData.status === 'fulfilled') {
-        setEquipment(equipmentData.value || []);
-      } else {
-        console.error('Failed to load equipment:', equipmentData.reason);
-        setEquipment([]);
-        console.warn('Equipment loading failed, continuing with empty array');
+        console.error("Failed to load projects:", projectsData.reason);
+        hadNetworkFailure = true;
       }
 
-      if (starbooksData.status === 'fulfilled') {
-        setStarbooksUnits(starbooksData.value || []);
+      if (equipmentData.status === "fulfilled") {
+        nextEquipment = equipmentData.value || [];
+        setEquipment(nextEquipment);
       } else {
-        console.error('Failed to load STARBOOKS units:', starbooksData.reason);
-        setStarbooksUnits([]);
-        console.warn('STARBOOKS units loading failed, continuing with empty array');
+        console.error("Failed to load equipment:", equipmentData.reason);
+        hadNetworkFailure = true;
       }
+
+      if (starbooksData.status === "fulfilled") {
+        nextStarbooks = starbooksData.value || [];
+        setStarbooksUnits(nextStarbooks);
+      } else {
+        console.error("Failed to load STARBOOKS units:", starbooksData.reason);
+        hadNetworkFailure = true;
+      }
+
+      let nextArchived = [];
 
       try {
         const archivedPromise = Promise.allSettled([
           db.getArchivedProjects(),
           db.getArchivedEquipment(),
-          supabase.from('trainings').select('*').eq('is_archived', true).order('archived_at', { ascending: false }),
+          supabase.from("trainings").select("*").eq("is_archived", true).order("archived_at", { ascending: false }),
         ]);
-        
+
         const [archivedP, archivedE, archivedTRes] = await Promise.race([
           archivedPromise,
-          new Promise((_, reject) => setTimeout(() => reject(new Error('Archive loading timeout')), 5000))
+          new Promise((_, reject) => setTimeout(() => reject(new Error("Archive loading timeout")), 5000)),
         ]);
 
-        const archivedItems = [
-          ...(archivedP.status === 'fulfilled' ? archivedP.value : [])
-            .map((p) => ({ ...transformProject(p), _type: 'project' }))
+        nextArchived = [
+          ...(archivedP.status === "fulfilled" ? archivedP.value : [])
+            .map((p) => ({ ...transformProject(p), _type: "project" }))
             .filter(Boolean),
-          ...(archivedE.status === 'fulfilled' ? archivedE.value : [])
-            .map((e) => ({ ...transformEquipment(e), _type: 'equipment' }))
+          ...(archivedE.status === "fulfilled" ? archivedE.value : [])
+            .map((e) => ({ ...transformEquipment(e), _type: "equipment" }))
             .filter(Boolean),
-          ...((archivedTRes.status === 'fulfilled' ? archivedTRes.value.data : null) || []).map(t => ({ ...t, _type: 'training' })),
+          ...((archivedTRes.status === "fulfilled" ? archivedTRes.value.data : null) || []).map((t) => ({
+            ...t,
+            _type: "training",
+          })),
         ];
-        
-        setArchivedProjects(archivedItems);
+
+        setArchivedProjects(nextArchived);
       } catch (archiveErr) {
-        console.warn('Archive loading failed, continuing without archived items:', archiveErr);
-        setArchivedProjects([]);
+        console.warn("Archive loading failed, continuing without archived items:", archiveErr);
+        hadNetworkFailure = true;
       }
 
-    } catch (err) {
-      console.error('Critical error loading data:', err);
-      setProjects([]);
-      setEquipment([]);
-      setStarbooksUnits([]);
-      setArchivedProjects([]);
-      
-      if (!err.message.includes('timeout')) {
-        error('Failed to load data: ' + err.message);
+      const loadedAnyLiveData =
+        nextProjects.length > 0 || nextEquipment.length > 0 || nextStarbooks.length > 0;
+
+      const previousCache = isAdmin ? offlineDataCache.load() || {} : {};
+
+      if (isAdmin && (loadedAnyLiveData || nextArchived.length > 0)) {
+        offlineDataCache.save({
+          projects: nextProjects.length > 0 ? nextProjects : previousCache.projects || [],
+          equipment: nextEquipment.length > 0 ? nextEquipment : previousCache.equipment || [],
+          starbooksUnits: nextStarbooks.length > 0 ? nextStarbooks : previousCache.starbooksUnits || [],
+          archivedProjects:
+            nextArchived.length > 0 ? nextArchived : previousCache.archivedProjects || [],
+        });
+      }
+
+      if (isAdmin && (hadNetworkFailure || !navigator.onLine)) {
+        if (restoreFromOfflineCache()) {
+          warning("You are offline. Showing last saved data from this device.");
+        } else if (!loadedAnyLiveData) {
+          setProjects([]);
+          setEquipment([]);
+          setStarbooksUnits([]);
+          setArchivedProjects([]);
+        }
+      } else if (!isAdmin && (hadNetworkFailure || !navigator.onLine)) {
+        setProjects([]);
+        setEquipment([]);
+        setStarbooksUnits([]);
+        setArchivedProjects([]);
       } else {
-        console.warn('Data loading timed out, continuing with empty data');
+        setUsingOfflineData(false);
+        setOfflineCachedAt(null);
+      }
+    } catch (err) {
+      console.error("Critical error loading data:", err);
+
+      if (isAdmin && isNetworkError(err) && restoreFromOfflineCache()) {
+        warning("You are offline. Showing last saved data from this device.");
+      } else {
+        setProjects([]);
+        setEquipment([]);
+        setStarbooksUnits([]);
+        setArchivedProjects([]);
+
+        if (!isNetworkError(err)) {
+          error("Failed to load data: " + err.message);
+        } else if (isAdmin) {
+          warning("No internet connection and no saved data found on this device.");
+        }
       }
     } finally {
       setLoadingData(false);
@@ -393,29 +508,44 @@ function AppContent() {
         eq.project_title === project.project_title
       );
       
-      setProjects(prev => prev.filter(p => p.id !== project.id));
-      setEquipment(prev => prev.filter(eq => 
-        String(eq.project_id) !== String(project.id) && 
-        eq.project_title !== project.project_title
-      ));
-      
-      await db.deleteProject(project.id);
-      
-      setArchivedProjects(prev => [
-        { ...project, _type: 'project', archived_at: new Date().toISOString() },
-        ...linkedEquipment.map(eq => ({ ...eq, _type: 'equipment', archived_at: new Date().toISOString() })),
-        ...prev
-      ]);
-      
-      auditService.logDelete(
-        ENTITY_TYPES.PROJECT, 
-        project.project_title || project.project,
-        linkedEquipment.length > 0 ? `Also archived ${linkedEquipment.length} equipment item(s)` : undefined
+      const applyLocalArchive = () => {
+        setProjects(prev => prev.filter(p => p.id !== project.id));
+        setEquipment(prev => prev.filter(eq => 
+          String(eq.project_id) !== String(project.id) && 
+          eq.project_title !== project.project_title
+        ));
+        setArchivedProjects(prev => [
+          { ...project, _type: 'project', archived_at: new Date().toISOString(), _syncPending: true },
+          ...linkedEquipment.map(eq => ({ ...eq, _type: 'equipment', archived_at: new Date().toISOString(), _syncPending: true })),
+          ...prev
+        ]);
+      };
+
+      if (!isAdmin || navigator.onLine) {
+        try {
+          applyLocalArchive();
+          await db.deleteProject(project.id);
+          auditService.logDelete(
+            ENTITY_TYPES.PROJECT, 
+            project.project_title || project.project,
+            linkedEquipment.length > 0 ? `Also archived ${linkedEquipment.length} equipment item(s)` : undefined
+          );
+          success(`Project and ${linkedEquipment.length} equipment item(s) moved to archive`);
+          return;
+        } catch (err) {
+          await loadSupabaseData();
+          if (!shouldQueueMutation(isAdmin, err)) throw err;
+        }
+      }
+
+      applyLocalArchive();
+      queuePendingChange(
+        'archiveProject',
+        { id: project.id, project },
+        `Archive project: ${project.project_title || project.project}`
       );
-      
-      success(`Project and ${linkedEquipment.length} equipment item(s) moved to archive`);
+      success('Project saved as pending. It will upload when you are back online.');
     } catch (err) {
-      setProjects(prev => [...prev, project]);
       await loadSupabaseData();
       error('Failed to archive project: ' + err.message);
     }
@@ -425,11 +555,32 @@ function AppContent() {
     if (isReadOnly) { warning('View-only mode: cannot archive records'); return; }
     try {
       if (archivedProjects.some(p => String(p.id) === String(item.id))) return;
-      setEquipment(prev => prev.filter(e => e.id !== item.id));
-      await db.deleteEquipment(item.id);
-      setArchivedProjects(prev => [...prev, { ...item, _type: 'equipment', archived_at: new Date().toISOString() }]);
-      auditService.logDelete(ENTITY_TYPES.EQUIPMENT, item.equipment_name || item.equipmentName);
-      success(`Equipment moved to archive`);
+
+      const applyLocalArchive = () => {
+        setEquipment(prev => prev.filter(e => e.id !== item.id));
+        setArchivedProjects(prev => [...prev, { ...item, _type: 'equipment', archived_at: new Date().toISOString(), _syncPending: true }]);
+      };
+
+      if (!isAdmin || navigator.onLine) {
+        try {
+          applyLocalArchive();
+          await db.deleteEquipment(item.id);
+          auditService.logDelete(ENTITY_TYPES.EQUIPMENT, item.equipment_name || item.equipmentName);
+          success(`Equipment moved to archive`);
+          return;
+        } catch (err) {
+          setEquipment(prev => [...prev, item]);
+          if (!shouldQueueMutation(isAdmin, err)) throw err;
+        }
+      }
+
+      applyLocalArchive();
+      queuePendingChange(
+        'archiveEquipment',
+        { id: item.id, item },
+        `Archive equipment: ${item.equipment_name || item.equipmentName}`
+      );
+      success('Equipment saved as pending. It will upload when you are back online.');
     } catch (err) {
       setEquipment(prev => [...prev, item]);
       error('Failed to archive equipment: ' + err.message);
@@ -520,34 +671,143 @@ function AppContent() {
   const handleAddProject = async (projectData) => {
     if (isReadOnly) { warning('View-only mode: cannot add records'); return; }
     try {
-      const newProject = await db.createProject(projectData);
-      
-      if (projectData.components && projectData.components.length > 0) {
-        for (const componentCode of projectData.components) {
-          await db.addProjectComponent(newProject.id, componentCode);
+      const run = async () => {
+        const newProject = await db.createProject(projectData);
+
+        if (projectData.components && projectData.components.length > 0) {
+          for (const componentCode of projectData.components) {
+            await db.addProjectComponent(newProject.id, componentCode);
+          }
+        }
+
+        if (projectData.communities && projectData.communities.length > 0) {
+          for (const communityCode of projectData.communities) {
+            await db.addProjectCommunityType(newProject.id, communityCode);
+          }
+        }
+
+        await loadSupabaseData();
+
+        auditService.logCreate(
+          ENTITY_TYPES.PROJECT,
+          projectData.project_title,
+          `Municipality: ${projectData.municipality_id}, Budget: ₱${projectData.amount_funded?.toLocaleString()}`
+        );
+        success('Project added successfully!');
+        return newProject;
+      };
+
+      if (!isAdmin || navigator.onLine) {
+        try {
+          return await run();
+        } catch (err) {
+          if (!shouldQueueMutation(isAdmin, err)) throw err;
         }
       }
-      
-      if (projectData.communities && projectData.communities.length > 0) {
-        for (const communityCode of projectData.communities) {
-          await db.addProjectCommunityType(newProject.id, communityCode);
+
+      queuePendingChange(
+        'createProjectBundle',
+        { projectData, equipmentList: [] },
+        `Add project: ${projectData.project_title}`,
+        () => {
+          setProjects((prev) => [
+            {
+              id: `pending-${Date.now()}`,
+              ...projectData,
+              project_title: projectData.project_title,
+              _syncPending: true,
+            },
+            ...prev,
+          ]);
         }
-      }
-      
-      await loadSupabaseData();
-      
-      auditService.logCreate(
-        ENTITY_TYPES.PROJECT, 
-        projectData.project_title,
-        `Municipality: ${projectData.municipality_id}, Budget: ₱${projectData.amount_funded?.toLocaleString()}`
       );
-      success('Project added successfully!');
-      
-      return newProject;
+      success('Project saved as pending. It will upload when you are back online.');
+      return { id: `pending-${Date.now()}`, _pending: true };
     } catch (err) {
       console.error('Error adding project:', err);
-      console.error('Error details:', err.message, err.details, err.hint);
       error('Failed to add project: ' + (err.message || 'Unknown error'));
+      throw err;
+    }
+  };
+
+  const handleSaveProjectBundle = async (projectData, equipmentList = []) => {
+    if (isReadOnly) { warning('View-only mode: cannot add records'); return; }
+    try {
+      const run = async () => {
+        const newProject = await db.createProject(projectData);
+
+        if (projectData.components?.length) {
+          for (const componentCode of projectData.components) {
+            await db.addProjectComponent(newProject.id, componentCode);
+          }
+        }
+        if (projectData.communities?.length) {
+          for (const communityCode of projectData.communities) {
+            await db.addProjectCommunityType(newProject.id, communityCode);
+          }
+        }
+
+        for (const equipmentData of equipmentList) {
+          await db.createEquipment({
+            ...equipmentData,
+            project_id: newProject.id,
+            project_title: projectData.project_title,
+          });
+        }
+
+        await loadSupabaseData();
+        auditService.logCreate(
+          ENTITY_TYPES.PROJECT,
+          projectData.project_title,
+          equipmentList.length
+            ? `With ${equipmentList.length} equipment item(s)`
+            : `Municipality: ${projectData.municipality_id}`
+        );
+        success('Project added successfully!');
+        return newProject;
+      };
+
+      if (!isAdmin || navigator.onLine) {
+        try {
+          return await run();
+        } catch (err) {
+          if (!shouldQueueMutation(isAdmin, err)) throw err;
+        }
+      }
+
+      const pendingId = `pending-${Date.now()}`;
+      queuePendingChange(
+        'createProjectBundle',
+        { projectData, equipmentList },
+        `Add project: ${projectData.project_title}`,
+        () => {
+          setProjects((prev) => [
+            {
+              id: pendingId,
+              ...projectData,
+              project_title: projectData.project_title,
+              _syncPending: true,
+            },
+            ...prev,
+          ]);
+          if (equipmentList.length) {
+            setEquipment((prev) => [
+              ...equipmentList.map((eq, index) => ({
+                id: `pending-eq-${pendingId}-${index}`,
+                ...eq,
+                project_id: pendingId,
+                _syncPending: true,
+              })),
+              ...prev,
+            ]);
+          }
+        }
+      );
+      success('Project saved as pending. It will upload when you are back online.');
+      return { id: pendingId, _pending: true };
+    } catch (err) {
+      console.error('Error saving project bundle:', err);
+      error('Failed to save project: ' + (err.message || 'Unknown error'));
       throw err;
     }
   };
@@ -555,16 +815,38 @@ function AppContent() {
   const handleAddEquipment = async (equipmentData) => {
     if (isReadOnly) { warning('View-only mode: cannot add records'); return; }
     try {
-      await db.createEquipment(equipmentData);
-      
-      await loadSupabaseData();
-      
-      auditService.logCreate(
-        ENTITY_TYPES.EQUIPMENT,
-        equipmentData.equipment_name,
-        `Quantity: ${equipmentData.units}, Location: ${equipmentData.municipality}`
+      const run = async () => {
+        await db.createEquipment(equipmentData);
+        await loadSupabaseData();
+        auditService.logCreate(
+          ENTITY_TYPES.EQUIPMENT,
+          equipmentData.equipment_name,
+          `Quantity: ${equipmentData.units}, Location: ${equipmentData.municipality}`
+        );
+        success('Equipment added successfully!');
+      };
+
+      if (!isAdmin || navigator.onLine) {
+        try {
+          await run();
+          return;
+        } catch (err) {
+          if (!shouldQueueMutation(isAdmin, err)) throw err;
+        }
+      }
+
+      queuePendingChange(
+        'createEquipment',
+        equipmentData,
+        `Add equipment: ${equipmentData.equipment_name}`,
+        () => {
+          setEquipment((prev) => [
+            { id: `pending-eq-${Date.now()}`, ...equipmentData, _syncPending: true },
+            ...prev,
+          ]);
+        }
       );
-      success('Equipment added successfully!');
+      success('Equipment saved as pending. It will upload when you are back online.');
     } catch (err) {
       console.error('Error adding equipment:', err);
       error('Failed to add equipment: ' + (err.message || 'Unknown error'));
@@ -574,17 +856,38 @@ function AppContent() {
   const handleUpdateProject = async (id, projectData) => {
     if (isReadOnly) { warning('View-only mode: cannot edit records'); return; }
     try {
-      const { components: _components, communities: _communities, ...rest } = projectData;
-      await db.updateProject(id, rest);
-      
-      await loadSupabaseData();
-      
-      auditService.logUpdate(
-        ENTITY_TYPES.PROJECT,
-        projectData.project_title || projectData.project,
-        `Updated project details`
+      const run = async () => {
+        const { components: _components, communities: _communities, ...rest } = projectData;
+        await db.updateProject(id, rest);
+        await loadSupabaseData();
+        auditService.logUpdate(
+          ENTITY_TYPES.PROJECT,
+          projectData.project_title || projectData.project,
+          `Updated project details`
+        );
+        success('Project updated successfully!');
+      };
+
+      if (!isAdmin || navigator.onLine) {
+        try {
+          await run();
+          return;
+        } catch (err) {
+          if (!shouldQueueMutation(isAdmin, err)) throw err;
+        }
+      }
+
+      queuePendingChange(
+        'updateProject',
+        { id, projectData },
+        `Update project: ${projectData.project_title || projectData.project}`,
+        () => {
+          setProjects((prev) =>
+            prev.map((p) => (String(p.id) === String(id) ? { ...p, ...projectData, _syncPending: true } : p))
+          );
+        }
       );
-      success('Project updated successfully!');
+      success('Project update saved as pending. It will upload when you are back online.');
     } catch (err) {
       console.error('Error updating project:', err);
       error('Failed to update project: ' + err.message);
@@ -604,17 +907,38 @@ function AppContent() {
         component_id: equipmentData.component_id || equipmentData.component,
         project_title: equipmentData.project_title || null
       };
-      
-      await db.updateEquipment(id, updatePayload);
-      
-      await loadSupabaseData();
-      
-      auditService.logUpdate(
-        ENTITY_TYPES.EQUIPMENT,
-        equipmentData.equipment_name || equipmentData.equipmentName,
-        `Updated equipment details`
+
+      const run = async () => {
+        await db.updateEquipment(id, updatePayload);
+        await loadSupabaseData();
+        auditService.logUpdate(
+          ENTITY_TYPES.EQUIPMENT,
+          equipmentData.equipment_name || equipmentData.equipmentName,
+          `Updated equipment details`
+        );
+        success('Equipment updated successfully!');
+      };
+
+      if (!isAdmin || navigator.onLine) {
+        try {
+          await run();
+          return;
+        } catch (err) {
+          if (!shouldQueueMutation(isAdmin, err)) throw err;
+        }
+      }
+
+      queuePendingChange(
+        'updateEquipment',
+        { id, equipmentData: updatePayload },
+        `Update equipment: ${equipmentData.equipment_name || equipmentData.equipmentName}`,
+        () => {
+          setEquipment((prev) =>
+            prev.map((e) => (String(e.id) === String(id) ? { ...e, ...updatePayload, _syncPending: true } : e))
+          );
+        }
       );
-      success('Equipment updated successfully!');
+      success('Equipment update saved as pending. It will upload when you are back online.');
     } catch (err) {
       console.error('Error updating equipment:', err);
       error('Failed to update equipment: ' + err.message);
@@ -638,6 +962,15 @@ function AppContent() {
         disconnected={guestDisconnected}
         onStaffSignIn={exitGuestMode}
         onRefresh={refreshGuestProfile}
+      />
+    );
+  }
+
+  if (isGuestMode && guestAccessStatus === "approved" && isOffline) {
+    return (
+      <GuestRequiresOnline
+        darkMode={darkMode}
+        onStaffSignIn={exitGuestMode}
       />
     );
   }
@@ -719,6 +1052,19 @@ function AppContent() {
           />
 
           <main className="flex-1 overflow-auto overflow-x-hidden p-4 sm:p-6 lg:p-8 scrollbar-thin">
+            {isAdmin && (isOffline || usingOfflineData) && (
+              <OfflineIndicator darkMode={darkMode} cachedAt={offlineCachedAt} />
+            )}
+            {isAdmin && (
+              <PendingSyncBanner
+                darkMode={darkMode}
+                pendingCount={pendingCount}
+                failedCount={pendingItems.filter((item) => item.status === "failed").length}
+                isSyncing={isSyncing}
+                items={pendingItems}
+                onSyncNow={syncNow}
+              />
+            )}
             {isGuestMode && isReadOnly && activePage !== "dashboard" && (
               <div className="mx-auto mb-6 max-w-[1400px]">
                 <ViewModeBanner
@@ -756,6 +1102,7 @@ function AppContent() {
                         projects={projects}
                         equipment={equipment}
                         onAddProject={handleAddProject}
+                        onSaveProjectBundle={handleSaveProjectBundle}
                         onAddEquipment={handleAddEquipment}
                         onDeleteProject={handleArchiveProject}
                         onDeleteEquipment={handleArchiveEquipment}
@@ -825,6 +1172,7 @@ function AppContent() {
                     projects={projects}
                     equipment={equipment}
                     onAddProject={handleAddProject}
+                    onSaveProjectBundle={handleSaveProjectBundle}
                     onAddEquipment={handleAddEquipment}
                     onDeleteProject={handleArchiveProject}
                     onDeleteEquipment={handleArchiveEquipment}

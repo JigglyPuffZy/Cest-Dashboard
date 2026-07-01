@@ -2,7 +2,7 @@
   "name": "CEST 2.0 Dashboard",
   "short_name": "CEST Dashboard",
   "description": "DOST Region 2 CEST 2.0 Projects and STARBOOKS Management Dashboard",
-  "start_url": "/",
+  "start_url": "/#/",
   "display": "standalone",
   "background_color": "#0f172a",
   "theme_color": "#3b82f6",

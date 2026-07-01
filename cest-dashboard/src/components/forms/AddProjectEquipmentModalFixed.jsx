@@ -7,7 +7,7 @@ import { useKeyboardShortcuts } from "../../shared/hooks/useKeyboardShortcuts";
 import { HoverTooltip } from "../ui/Tooltip";
 import { Modal, ModalPanel } from "../ui/Modal";
 
-export const AddProjectEquipmentModal = ({ onClose, onSaveProject, onSaveEquipment, darkMode, initialData }) => {
+export const AddProjectEquipmentModal = ({ onClose, onSaveProject, onSaveProjectBundle, onSaveEquipment, darkMode, initialData }) => {
   const isEditMode = !!initialData;
 
   const getInitialFormData = () => {
@@ -283,53 +283,61 @@ export const AddProjectEquipmentModal = ({ onClose, onSaveProject, onSaveEquipme
         file_name: formData.fileName,
         file_type: formData.fileType
       };
+
+      const equipmentList = [];
+      if (hasEquipmentFields) {
+        for (const [equipmentIndex, eq] of (formData.equipmentList || []).entries()) {
+          if (eq.equipment && eq.units && eq.component) {
+            const units = parseInt(eq.units) || 0;
+            const unitsPerYear = parseInt(eq.unitsPerYear) || 0;
+
+            if (units >= 1000000) {
+              alert(`Equipment entry ${equipmentIndex + 1}: Number of units is too large. Please enter a smaller number.`);
+              setIsSubmitting(false);
+              return;
+            }
+
+            equipmentList.push({
+              year: formData.year,
+              municipality_id: formData.municipality || initialData?.municipality_id || null,
+              community: formData.community,
+              equipment_name: eq.equipment,
+              units,
+              units_per_year: unitsPerYear > 0 ? unitsPerYear : null,
+              component_id: eq.component,
+              project_title: formData.project,
+            });
+          }
+        }
+      }
       
       try {
-        const newProject = await onSaveProject(projectData);
+        if (!isEditMode && onSaveProjectBundle) {
+          await onSaveProjectBundle(projectData, equipmentList);
+        } else {
+          const newProject = await onSaveProject(projectData);
         
-        if (hasEquipmentFields && newProject && newProject.id) {
+          if (hasEquipmentFields && newProject && newProject.id) {
           
-          await new Promise(resolve => setTimeout(resolve, 100));
+            await new Promise(resolve => setTimeout(resolve, 100));
           
+            const equipmentPromises = [];
           
-          const equipmentPromises = [];
+            equipmentList.forEach((equipmentData) => {
+              equipmentPromises.push(onSaveEquipment({
+                ...equipmentData,
+                project_id: newProject.id,
+              }));
+            });
           
-          
-          (formData.equipmentList || []).forEach((eq, equipmentIndex) => {
-            if (eq.equipment && eq.units && eq.component) {
-              const units = parseInt(eq.units) || 0;
-              const unitsPerYear = parseInt(eq.unitsPerYear) || 0;
-              
-              
-              if (units >= 1000000) {
-                alert(`Equipment entry ${equipmentIndex + 1}: Number of units is too large. Please enter a smaller number.`);
-                setIsSubmitting(false);
-                return;
-              }
-              
-              const equipmentData = {
-                year: formData.year,
-                municipality_id: formData.municipality || initialData?.municipality_id || null,
-                community: formData.community,
-                equipment_name: eq.equipment,
-                units: units,
-                units_per_year: unitsPerYear > 0 ? unitsPerYear : null,
-                component_id: eq.component,
-                project_title: formData.project, 
-                project_id: newProject.id 
-              };
-              
-              equipmentPromises.push(onSaveEquipment(equipmentData));
+            try {
+              await Promise.all(equipmentPromises);
+            } catch (error) {
+              console.error('Error saving equipment:', error);
+              alert('Failed to save equipment: ' + error.message);
+              setIsSubmitting(false);
+              return;
             }
-          });
-          
-          try {
-            await Promise.all(equipmentPromises);
-          } catch (error) {
-            console.error('Error saving equipment:', error);
-            alert('Failed to save equipment: ' + error.message);
-            setIsSubmitting(false);
-            return;
           }
         }
       } catch (error) {

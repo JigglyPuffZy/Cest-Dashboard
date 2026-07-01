@@ -18,13 +18,29 @@ export function GuestWaitingScreen({
   onRefresh,
 }) {
   const [messageIndex, setMessageIndex] = useState(0);
+  const [isOffline, setIsOffline] = useState(() => !navigator.onLine);
   const isDeclined = status === "declined";
   const isDisconnected = isDeclined && disconnected;
 
   useEffect(() => {
+    const handleOnline = () => setIsOffline(false);
+    const handleOffline = () => setIsOffline(true);
+    window.addEventListener("online", handleOnline);
+    window.addEventListener("offline", handleOffline);
+    return () => {
+      window.removeEventListener("online", handleOnline);
+      window.removeEventListener("offline", handleOffline);
+    };
+  }, []);
+
+  useEffect(() => {
     if (isDeclined || !onRefresh) return undefined;
+    if (!navigator.onLine) return undefined;
     onRefresh();
-    const poll = setInterval(onRefresh, 4000);
+    const poll = setInterval(() => {
+      if (!navigator.onLine) return;
+      onRefresh();
+    }, 4000);
     return () => clearInterval(poll);
   }, [isDeclined, onRefresh]);
 
@@ -110,6 +126,15 @@ export function GuestWaitingScreen({
             <p className="text-xs mb-8 text-white/70 px-2">
               You&apos;ll proceed to the dashboard automatically once approved. Please keep this page open.
             </p>
+
+            {isOffline && (
+              <p
+                className="text-xs mb-6 px-3 py-2 rounded-xl"
+                style={{ background: "rgba(245, 158, 11, 0.2)", border: "1px solid rgba(245, 158, 11, 0.35)", color: "#fde68a" }}
+              >
+                You are offline. Approval updates will continue when your connection returns.
+              </p>
+            )}
 
             <div
               className="rounded-2xl p-5 mb-6 text-left"
