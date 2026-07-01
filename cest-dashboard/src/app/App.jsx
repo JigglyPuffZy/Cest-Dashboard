@@ -120,14 +120,19 @@ function AppContent() {
   };
 
   useEffect(() => {
-    if (canAccessApp && !authLoading && !dataLoadedRef.current) {
+    if (canViewData && !authLoading && !dataLoadedRef.current) {
       dataLoadedRef.current = true;
       loadSupabaseData();
     }
-    if (!canAccessApp && !authLoading) {
+    if (!canViewData && !authLoading) {
       dataLoadedRef.current = false;
+      setProjects([]);
+      setEquipment([]);
+      setStarbooksUnits([]);
+      setArchivedProjects([]);
+      setLoadingData(false);
     }
-  }, [canAccessApp, authLoading]);
+  }, [canViewData, authLoading]);
 
   useEffect(() => {
     const failsafeTimeout = setTimeout(() => {
@@ -576,7 +581,7 @@ function AppContent() {
     return <LoginPage darkMode={darkMode} setDarkMode={setDarkMode} />;
   }
 
-  if (loadingData) {
+  if (loadingData && canViewData) {
     return <LoadingScreen onComplete={() => {}} darkMode={darkMode} />;
   }
 

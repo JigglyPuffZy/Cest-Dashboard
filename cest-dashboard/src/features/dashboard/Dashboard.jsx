@@ -192,9 +192,13 @@ export const Dashboard = ({
               ? "Manage CEST records, review guest access requests, and monitor system activity from one central dashboard."
               : isGuestMode && guestNeedsProfile
                 ? "You are browsing as a guest. Submit your name below to request view-only access to project records."
-                : isGuestMode
-                ? "Browse approved project summaries and regional analytics in view-only mode."
-                : "Complete overview of projects, budgets, and monitoring across Cagayan Valley."}
+                : isGuestMode && guestAccessStatus === "pending"
+                  ? "Your access request is waiting for admin approval. Project records will appear here once you are approved."
+                  : isGuestMode && guestAccessStatus === "declined"
+                    ? "Your access request was not approved. Contact DOST Region II if you believe this is an error."
+                    : isGuestMode
+                      ? "Browse approved project summaries and regional analytics in view-only mode."
+                      : "Complete overview of projects, budgets, and monitoring across Cagayan Valley."}
           </p>
 
           {isAdmin && (
