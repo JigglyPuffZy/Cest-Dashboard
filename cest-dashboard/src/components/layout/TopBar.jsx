@@ -1,4 +1,4 @@
-import { Menu, Sun, Moon, Database, Search, X } from "lucide-react";
+import { Menu, Sun, Moon, Bell, Search, X } from "lucide-react";
 import { useState, useEffect } from "react";
 import { Modal, ModalPanel } from "../ui/Modal";
 
@@ -17,8 +17,8 @@ const NAV_LABELS = {
 
 export const TopBar = ({
   activePage,
-  auditLogCount = 0,
-  setShowAuditLog,
+  notificationCount = 0,
+  setShowNotifications,
   setSidebarOpen,
   darkMode,
   setDarkMode,
@@ -126,7 +126,7 @@ export const TopBar = ({
 
   const handleSearchClick = () => {
     setShowSearch(true);
-    setShowAuditLog(false);
+    setShowNotifications?.(false);
   };
 
   const handleCloseSearch = () => {
@@ -205,17 +205,17 @@ export const TopBar = ({
             <button
               onClick={(e) => {
                 e.stopPropagation();
-                setShowAuditLog((v) => !v);
+                setShowNotifications?.((v) => !v);
                 setShowSearch(false);
               }}
               className="relative p-2.5 rounded-xl transition-all duration-200 hover:scale-110 group"
               style={buttonStyles}
-              title="Activity Log"
+              title="Notifications & Activity"
             >
-              <Database className="w-5 h-5 group-hover:scale-110 transition-transform" />
-              {auditLogCount > 0 && (
-                <span className="absolute -top-1 -right-1 w-5 h-5 bg-gradient-to-r from-blue-500 to-cyan-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center shadow-lg">
-                  {auditLogCount > 99 ? "99+" : auditLogCount}
+              <Bell className="w-5 h-5 group-hover:scale-110 transition-transform" />
+              {notificationCount > 0 && (
+                <span className="absolute -top-1 -right-1 w-5 h-5 bg-gradient-to-r from-amber-500 to-orange-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center shadow-lg">
+                  {notificationCount > 99 ? "99+" : notificationCount}
                 </span>
               )}
             </button>

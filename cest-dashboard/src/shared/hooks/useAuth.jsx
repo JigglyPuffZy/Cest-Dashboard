@@ -43,9 +43,19 @@ export function AuthProvider({ children }) {
       const guestActive = sessionStorage.getItem(SESSION_KEYS.GUEST_MODE) === '1'
       if (guestActive) {
         const synced = await accessRequestService.syncGuestProfileFromServer()
+        const profile = synced ?? accessRequestService.getGuestProfile()
         if (!mounted) return
+        if (!profile?.requestId) {
+          sessionStorage.removeItem(SESSION_KEYS.GUEST_MODE)
+          accessRequestService.setGuestProfile(null)
+          setIsGuestMode(false)
+          setGuestProfile(null)
+          setLoading(false)
+          clearTimeout(authTimeout)
+          return
+        }
         setIsGuestMode(true)
-        setGuestProfile(synced ?? accessRequestService.getGuestProfile())
+        setGuestProfile(profile)
         setUser(null)
         setSession(null)
         setLoading(false)
@@ -221,7 +231,7 @@ export function AuthProvider({ children }) {
     isAuthenticated,
     isAdmin,
     canViewData,
-    canAccessApp: isAuthenticated || isGuestMode,
+    canAccessApp: isAuthenticated || (isGuestMode && !!guestProfile?.requestId),
     displayName: isGuestMode
       ? guestProfile?.firstName || 'Guest'
       : getUserDisplayName(user),

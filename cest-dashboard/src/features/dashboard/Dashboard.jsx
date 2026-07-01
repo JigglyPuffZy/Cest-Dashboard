@@ -5,8 +5,6 @@ import { fmt, getStatusColor, getCardStyle, formatCurrencyShort } from "../../sh
 import { COMPONENTS, COMP_COLORS } from "../../shared/constants";
 import { HoverTooltip } from "../../components/ui/Tooltip";
 import { ViewModeBanner } from "../../components/ui/ViewModeBanner";
-import { GuestPendingBanner, GuestDeclinedBanner } from "../../components/ui/GuestAccessBanners";
-import { GuestNameRequestCard } from "../../components/ui/GuestNameRequestCard";
 import { GlassCard, StatCard } from "../../components/ui/PageHeader";
 import { useAccessRequests } from "../../shared/hooks/useAccessRequests";
 import { accessRequestService } from "../../shared/services/accessRequestService";
@@ -159,15 +157,6 @@ export const Dashboard = ({
 
   return (
     <div className="max-w-[1400px] mx-auto space-y-4 sm:space-y-6 w-full min-w-0 px-0">
-      {isGuestMode && guestNeedsProfile && (
-        <GuestNameRequestCard darkMode={darkMode} />
-      )}
-      {isGuestMode && guestAccessStatus === "pending" && (
-        <GuestPendingBanner darkMode={darkMode} guestName={displayName} onSignIn={onGuestSignIn} />
-      )}
-      {isGuestMode && guestAccessStatus === "declined" && (
-        <GuestDeclinedBanner darkMode={darkMode} guestName={displayName} onSignIn={onGuestSignIn} />
-      )}
       {isGuestMode && isReadOnly && guestAccessStatus === "approved" && (
         <ViewModeBanner darkMode={darkMode} onSignIn={onGuestSignIn} />
       )}
@@ -190,15 +179,9 @@ export const Dashboard = ({
           <p className="text-sm leading-relaxed max-w-2xl" style={{ color: darkMode ? "#94a3b8" : "#64748b" }}>
             {isAdmin
               ? "Manage CEST records, review guest access requests, and monitor system activity from one central dashboard."
-              : isGuestMode && guestNeedsProfile
-                ? "You are browsing as a guest. Submit your name below to request view-only access to project records."
-                : isGuestMode && guestAccessStatus === "pending"
-                  ? "Your access request is waiting for admin approval. Project records will appear here once you are approved."
-                  : isGuestMode && guestAccessStatus === "declined"
-                    ? "Your access request was not approved. Contact DOST Region II if you believe this is an error."
-                    : isGuestMode
-                      ? "Browse approved project summaries and regional analytics in view-only mode."
-                      : "Complete overview of projects, budgets, and monitoring across Cagayan Valley."}
+              : isGuestMode
+                ? "Browse approved project summaries and regional analytics in view-only mode."
+                : "Complete overview of projects, budgets, and monitoring across Cagayan Valley."}
           </p>
 
           {isAdmin && (

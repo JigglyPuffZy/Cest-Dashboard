@@ -1,17 +1,21 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Eye, EyeOff, AlertCircle, X, LogIn } from "lucide-react";
+import { Eye, EyeOff, AlertCircle, X, LogIn, UserPlus, ArrowLeft } from "lucide-react";
 import { useAuth } from "../../shared/hooks/useAuth.jsx";
 import dostLogo from "../../dost logo.png";
 
-export const LoginPage = ({ darkMode, setDarkMode }) => {
+export const LoginPage = ({ darkMode, setDarkMode, initialGuestStep = false }) => {
   const navigate = useNavigate();
-  const { signIn, startGuestSession, loading } = useAuth();
+  const { signIn, submitGuestAccessRequest, loading } = useAuth();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
   const [isShaking, setIsShaking] = useState(false);
+  const [showGuestForm, setShowGuestForm] = useState(initialGuestStep);
+  const [guestFirstName, setGuestFirstName] = useState("");
+  const [guestLastName, setGuestLastName] = useState("");
+  const [guestSubmitting, setGuestSubmitting] = useState(false);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -53,8 +57,28 @@ export const LoginPage = ({ darkMode, setDarkMode }) => {
   };
 
   const handleGuestContinue = () => {
-    startGuestSession();
-    navigate("/dashboard");
+    setError("");
+    setShowGuestForm(true);
+  };
+
+  const handleGuestSubmit = async (e) => {
+    e.preventDefault();
+    setError("");
+    const first = guestFirstName.trim();
+    const last = guestLastName.trim();
+    if (!first || !last) {
+      setError("Please enter your first and last name.");
+      return;
+    }
+    setGuestSubmitting(true);
+    try {
+      await submitGuestAccessRequest(first, last);
+      navigate("/dashboard");
+    } catch (err) {
+      setError(err.message || "Could not submit your guest request.");
+    } finally {
+      setGuestSubmitting(false);
+    }
   };
 
   const cardStyles = {
@@ -143,79 +167,29 @@ export const LoginPage = ({ darkMode, setDarkMode }) => {
             </div>
 
             <h1 className="text-2xl font-bold mb-1" style={{ color: darkMode ? '#f8fafc' : '#0f172a' }}>
-              Welcome Back
+              {showGuestForm ? "Guest Access" : "Welcome Back"}
             </h1>
             <p className="text-xs" style={{ color: darkMode ? '#94a3b8' : '#64748b' }}>
-              Sign in to access your CEST 2.0 dashboard
+              {showGuestForm
+                ? "Enter your name to request view-only access"
+                : "Sign in to access your CEST 2.0 dashboard"}
             </p>
           </div>
 
+          {error && (
+            <div
+              className="mb-4 p-3 rounded-xl text-xs font-medium flex items-start justify-between gap-2"
+              style={{ background: "rgba(239,68,68,0.1)", color: "#ef4444", border: "1px solid rgba(239,68,68,0.25)" }}
+            >
+              <span>{error}</span>
+              <button type="button" onClick={() => setError("")} className="shrink-0 p-0.5">
+                <X className="w-3.5 h-3.5" />
+              </button>
+            </div>
+          )}
+
+          {!showGuestForm && (
           <form onSubmit={handleSubmit} className="space-y-4">
-            {error && (
-              <div 
-                className="p-4 rounded-xl border transition-all duration-300 animate-slide-down relative overflow-hidden" 
-                style={{
-                  backgroundColor: darkMode ? 'rgba(239, 68, 68, 0.1)' : '#fef2f2',
-                  borderColor: darkMode ? 'rgba(239, 68, 68, 0.3)' : '#fecaca',
-                  color: darkMode ? '#fca5a5' : '#dc2626',
-                  boxShadow: darkMode 
-                    ? '0 8px 25px rgba(239, 68, 68, 0.2)' 
-                    : '0 8px 25px rgba(220, 38, 38, 0.15)'
-                }}
-              >
-                {/* Animated background pulse */}
-                <div 
-                  className="absolute inset-0 opacity-10 animate-pulse-slow"
-                  style={{
-                    background: 'linear-gradient(45deg, transparent 30%, rgba(239, 68, 68, 0.3) 50%, transparent 70%)',
-                    backgroundSize: '200% 200%',
-                    animation: 'gradient-shift 3s ease-in-out infinite'
-                  }}
-                />
-                
-                <div className="flex items-start gap-3 relative z-10">
-                  <div className="flex-shrink-0">
-                    <div 
-                      className="w-8 h-8 rounded-full flex items-center justify-center animate-bounce-slow"
-                      style={{
-                        background: darkMode ? 'rgba(239, 68, 68, 0.2)' : 'rgba(220, 38, 38, 0.1)',
-                        border: `1px solid ${darkMode ? 'rgba(239, 68, 68, 0.4)' : 'rgba(220, 38, 38, 0.2)'}`
-                      }}
-                    >
-                      <AlertCircle className="w-4 h-4" />
-                    </div>
-                  </div>
-                  <div className="flex-1">
-                    <div className="flex items-center justify-between mb-1">
-                      <p className="text-sm font-bold">Authentication Failed</p>
-                      <button
-                        onClick={() => setError("")}
-                        className="p-1 rounded-lg transition-all duration-200 hover:scale-110 hover:bg-red-500/20"
-                        style={{ color: darkMode ? '#fca5a5' : '#dc2626' }}
-                      >
-                        <X className="w-3 h-3" />
-                      </button>
-                    </div>
-                    <p className="text-xs leading-relaxed opacity-90">{error}</p>
-                    
-                    {/* Progress bar animation */}
-                    <div className="mt-3 h-1 rounded-full overflow-hidden" style={{
-                      background: darkMode ? 'rgba(239, 68, 68, 0.2)' : 'rgba(220, 38, 38, 0.1)'
-                    }}>
-                      <div 
-                        className="h-full rounded-full animate-progress"
-                        style={{
-                          background: darkMode ? '#fca5a5' : '#dc2626',
-                          width: '0%',
-                          animation: 'progress-fill 2s ease-out forwards'
-                        }}
-                      />
-                    </div>
-                  </div>
-                </div>
-              </div>
-            )}
-            
             <div>
               <label className="block text-xs font-semibold mb-1.5" style={{ color: darkMode ? '#94a3b8' : '#64748b' }}>
                 Email Address <span style={{ color: '#dc2626' }}>*</span>
@@ -318,7 +292,10 @@ export const LoginPage = ({ darkMode, setDarkMode }) => {
               )}
             </button>
           </form>
+          )}
 
+          {!showGuestForm && (
+          <>
           <div className="relative my-6">
             <div className="absolute inset-0 flex items-center">
               <div className="w-full border-t" style={{ borderColor: darkMode ? '#334155' : '#e2e8f0' }} />
@@ -330,23 +307,90 @@ export const LoginPage = ({ darkMode, setDarkMode }) => {
             </div>
           </div>
 
-          <button
-            type="button"
-            onClick={handleGuestContinue}
-            disabled={loading}
-            className="w-full py-3 px-6 rounded-xl font-bold text-sm transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 flex items-center justify-center gap-2"
-            style={{
-              background: darkMode ? 'rgba(59, 130, 246, 0.12)' : 'rgba(59, 130, 246, 0.08)',
-              border: `2px solid ${darkMode ? 'rgba(59, 130, 246, 0.35)' : 'rgba(59, 130, 246, 0.25)'}`,
-              color: darkMode ? '#93c5fd' : '#2563eb',
-            }}
-          >
-            <LogIn className="w-4 h-4" />
-            Continue as Guest
-          </button>
-          <p className="text-[10px] text-center leading-relaxed mt-2" style={{ color: darkMode ? '#64748b' : '#94a3b8' }}>
-            Browse the dashboard first — you&apos;ll enter your name inside to request access.
-          </p>
+              <button
+                type="button"
+                onClick={handleGuestContinue}
+                disabled={loading}
+                className="w-full py-3 px-6 rounded-xl font-bold text-sm transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 flex items-center justify-center gap-2"
+                style={{
+                  background: darkMode ? 'rgba(59, 130, 246, 0.12)' : 'rgba(59, 130, 246, 0.08)',
+                  border: `2px solid ${darkMode ? 'rgba(59, 130, 246, 0.35)' : 'rgba(59, 130, 246, 0.25)'}`,
+                  color: darkMode ? '#93c5fd' : '#2563eb',
+                }}
+              >
+                <LogIn className="w-4 h-4" />
+                Continue as Guest
+              </button>
+              <p className="text-[10px] text-center leading-relaxed mt-2" style={{ color: darkMode ? '#64748b' : '#94a3b8' }}>
+                Enter your name first — an admin must approve before you can view records.
+              </p>
+          </>
+          )}
+
+          {showGuestForm && (
+            <form onSubmit={handleGuestSubmit} className="space-y-3">
+              <button
+                type="button"
+                onClick={() => {
+                  setShowGuestForm(false);
+                  setError("");
+                }}
+                className="inline-flex items-center gap-1.5 text-xs font-semibold mb-1"
+                style={{ color: darkMode ? '#94a3b8' : '#64748b' }}
+              >
+                <ArrowLeft className="w-3.5 h-3.5" />
+                Back to sign in
+              </button>
+              <p className="text-xs font-semibold" style={{ color: darkMode ? '#cbd5e1' : '#475569' }}>
+                Guest access — enter your name
+              </p>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs font-semibold mb-1.5" style={{ color: darkMode ? '#94a3b8' : '#64748b' }}>
+                    First name <span style={{ color: '#dc2626' }}>*</span>
+                  </label>
+                  <input
+                    type="text"
+                    value={guestFirstName}
+                    onChange={(e) => setGuestFirstName(e.target.value)}
+                    placeholder="Juan"
+                    className="w-full py-2.5 px-4 rounded-xl text-sm outline-none transition-all duration-200"
+                    style={inputStyles}
+                    required
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold mb-1.5" style={{ color: darkMode ? '#94a3b8' : '#64748b' }}>
+                    Last name <span style={{ color: '#dc2626' }}>*</span>
+                  </label>
+                  <input
+                    type="text"
+                    value={guestLastName}
+                    onChange={(e) => setGuestLastName(e.target.value)}
+                    placeholder="Dela Cruz"
+                    className="w-full py-2.5 px-4 rounded-xl text-sm outline-none transition-all duration-200"
+                    style={inputStyles}
+                    required
+                  />
+                </div>
+              </div>
+              <button
+                type="submit"
+                disabled={loading || guestSubmitting}
+                className="w-full py-3 px-6 rounded-xl font-bold text-sm text-white transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 flex items-center justify-center gap-2"
+                style={{
+                  background: 'linear-gradient(135deg, #004A98 0%, #0066CC 100%)',
+                  boxShadow: '0 4px 16px rgba(0, 74, 152, 0.3)',
+                }}
+              >
+                <UserPlus className="w-4 h-4" />
+                {guestSubmitting ? "Submitting…" : "Continue to Dashboard"}
+              </button>
+              <p className="text-[10px] text-center leading-relaxed" style={{ color: darkMode ? '#64748b' : '#94a3b8' }}>
+                Your request goes to an admin for approval. Records stay hidden until approved.
+              </p>
+            </form>
+          )}
 
           <div className="mt-6 text-center">
             <p className="text-xs mb-2" style={{ color: darkMode ? '#64748b' : '#94a3b8' }}>

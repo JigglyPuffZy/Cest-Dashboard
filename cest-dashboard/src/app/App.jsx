@@ -5,7 +5,7 @@ import { Sidebar } from "../components/layout/Sidebar";
 import { StarbooksSidebar } from "../components/layout/StarbooksSidebar";
 import { TopBar } from "../components/layout/TopBar";
 import { Toast } from "../components/ui/Toast";
-import { AuditLog } from "../components/ui/AuditLog";
+import { NotificationPanel } from "../components/ui/NotificationPanel";
 import { LoadingScreen } from "../components/ui/LoadingScreen";
 import { ViewModeBanner } from "../components/ui/ViewModeBanner";
 import ErrorBoundary from "../components/ui/ErrorBoundary";
@@ -21,8 +21,10 @@ import { LoginPage } from "../features/auth/LoginPage";
 import TrainingsPage from "../features/trainings/TrainingsPage";
 import { AdminRequestsPage } from "../features/admin/AdminRequestsPage";
 import { GuestAccessBlocked } from "../components/ui/GuestAccessBlocked";
+import { GuestWaitingScreen } from "../components/ui/GuestWaitingScreen";
 import { useToastNotification } from "../shared/hooks/useToastNotification";
 import { useAuditLog } from "../shared/hooks/useAuditLog";
+import { useNotifications } from "../shared/hooks/useNotifications";
 import { auditService, ENTITY_TYPES } from "../shared/services/auditService";
 import { db, supabase } from "../shared/services/supabaseClient";
 
@@ -57,13 +59,27 @@ function AppContent() {
   const [activePage, setActivePage] = useState("dashboard");
   const [activeSystem, setActiveSystem] = useState("cest");
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [showAuditLog, setShowAuditLog] = useState(false);
+  const [showNotifications, setShowNotifications] = useState(false);
   const [isCollapsed, setIsCollapsed] = useState(false);
+  const [auditUpdating, setAuditUpdating] = useState(false);
 
   const { toasts, success, warning, error, removeToast } = useToastNotification();
   const { logs, refreshLogs, getUnreadCount } = useAuditLog();
+  const {
+    notifications,
+    unreadCount: alertsUnreadCount,
+    markRead: markNotificationRead,
+    markAllRead: markAllNotificationsRead,
+  } = useNotifications({
+    enabled: canAccessApp && (isAdmin || (isGuestMode && guestAccessStatus === 'approved')),
+    isAdmin,
+    isGuestMode,
+    guestAccessStatus,
+  });
+  const auditUnreadCount = getUnreadCount();
+  const totalNotificationUnread = alertsUnreadCount + (isAdmin ? auditUnreadCount : 0);
   const dataLoadedRef = useRef(false);
-  const unreadCount = getUnreadCount();
+  const prevGuestStatusRef = useRef(null);
 
   useEffect(() => {
     const pathToPage = {
@@ -88,12 +104,11 @@ function AppContent() {
   }, [location.pathname]);
 
   useEffect(() => {
-    if (!isGuestMode || guestAccessStatus !== "pending") return undefined;
-    const timer = setInterval(() => {
-      refreshGuestProfile();
-    }, 4000);
-    return () => clearInterval(timer);
-  }, [isGuestMode, guestAccessStatus, refreshGuestProfile]);
+    if (prevGuestStatusRef.current === "pending" && guestAccessStatus === "approved") {
+      success("Access approved! Loading your dashboard…");
+    }
+    prevGuestStatusRef.current = guestAccessStatus;
+  }, [guestAccessStatus, success]);
 
   const guardData = (node) => (canViewData ? node : <GuestAccessBlocked darkMode={darkMode} />);
   const guardAdmin = (node) => (isAdmin ? node : <Navigate to="/dashboard" replace />);
@@ -299,19 +314,50 @@ function AppContent() {
 
   useEffect(() => {
     const handleClick = () => {
-      if (showAuditLog) {
-        setShowAuditLog(false);
-      }
+      if (showNotifications) setShowNotifications(false);
     };
-    
-    if (showAuditLog) {
+
+    if (showNotifications) {
       setTimeout(() => {
         document.addEventListener('click', handleClick);
       }, 0);
-      
+
       return () => document.removeEventListener('click', handleClick);
     }
-  }, [showAuditLog]);
+  }, [showNotifications]);
+
+  const handleAuditMarkRead = async (logId) => {
+    try {
+      setAuditUpdating(true);
+      await db.markAuditLogAsRead(logId);
+      await refreshLogs();
+    } catch (err) {
+      console.error('Error marking audit log as read:', err);
+    } finally {
+      setAuditUpdating(false);
+    }
+  };
+
+  const handleAuditMarkAllRead = async () => {
+    try {
+      setAuditUpdating(true);
+      await db.markAllAuditLogsAsRead();
+      await refreshLogs();
+    } catch (err) {
+      console.error('Error marking all audit logs as read:', err);
+    } finally {
+      setAuditUpdating(false);
+    }
+  };
+
+  const handleNotificationAction = (notification) => {
+    if (!notification.read) markNotificationRead(notification.id);
+    if (notification.actionTarget === 'admin') {
+      setActivePage('admin');
+      navigate('/admin');
+      setShowNotifications(false);
+    }
+  };
 
   const handleArchiveProject = async (project) => {
     if (isReadOnly) { warning('View-only mode: cannot archive records'); return; }
@@ -581,6 +627,18 @@ function AppContent() {
     return <LoginPage darkMode={darkMode} setDarkMode={setDarkMode} />;
   }
 
+  if (isGuestMode && guestAccessStatus !== "approved") {
+    return (
+      <GuestWaitingScreen
+        status={guestAccessStatus || "pending"}
+        displayName={displayName}
+        darkMode={darkMode}
+        onStaffSignIn={exitGuestMode}
+        onRefresh={refreshGuestProfile}
+      />
+    );
+  }
+
   if (loadingData && canViewData) {
     return <LoadingScreen onComplete={() => {}} darkMode={darkMode} />;
   }
@@ -642,8 +700,8 @@ function AppContent() {
         <div className="flex-1 flex flex-col overflow-hidden">
           <TopBar
             activePage={activePage}
-            auditLogCount={unreadCount}
-            setShowAuditLog={setShowAuditLog}
+            notificationCount={totalNotificationUnread}
+            setShowNotifications={setShowNotifications}
             setSidebarOpen={setSidebarOpen}
             darkMode={darkMode}
             setDarkMode={setDarkMode}
@@ -802,13 +860,22 @@ function AppContent() {
             </Routes>
           </main>
 
-          {/* Audit Log Panel */}
-          {showAuditLog && (
-            <AuditLog 
-              logs={logs}
-              onClose={() => setShowAuditLog(false)}
+          {/* Notification Panel */}
+          {showNotifications && (
+            <NotificationPanel
+              notifications={notifications}
+              auditLogs={logs}
               darkMode={darkMode}
-              onLogsUpdate={refreshLogs}
+              isAdmin={isAdmin}
+              alertsUnread={alertsUnreadCount}
+              activityUnread={auditUnreadCount}
+              isUpdatingAudit={auditUpdating}
+              onClose={() => setShowNotifications(false)}
+              onMarkRead={markNotificationRead}
+              onMarkAllRead={markAllNotificationsRead}
+              onAuditMarkRead={handleAuditMarkRead}
+              onAuditMarkAllRead={handleAuditMarkAllRead}
+              onAction={handleNotificationAction}
             />
           )}
         </div>
